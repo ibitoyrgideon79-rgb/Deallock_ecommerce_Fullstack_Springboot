@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/login.css">
+  <link rel="stylesheet" href="/frontend/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="/frontend/logo.jpeg">
+  <title>deallock.ng</title>
+</head>
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="logo-wrapper">
+        <a href="#" class="logo">
+          <img src="/frontend/logo.jpeg" alt="DealLock Logo">
+        </a>
+        <span class="slogan">Deal Securing & Purchase Support</span>
+      </div>
+
+      <div class="menu-toggle" id="menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+
+      <ul class="nav-links" id="nav-links">
+          <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#products">Items We Buy</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="terms.html">Terms and Conditions</a></li>
+        <li><a href="#footer">Contact Us</a></li>
+        <li><a href="login.html">Sign In/Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="login-page">
+    <div class="login-container">
+        <h2 class="login-title">Login</h2>
+
+        <form class="login-form" id="loginForm" method="post" action="/login">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="login-form-group">
+                <label class="login-label" for="loginUsername">Username</label>
+                <input class="login-input" type="text" id="loginUsername" name="email">
+                <div class="login-error" id="usernameError"></div>
+            </div>
+
+            <div class="login-form-group">
+                <label class="login-label" for="loginPassword">Password</label>
+                <input class="login-input" type="password" id="loginPassword" name="password">
+                <div class="login-error" id="passwordError"></div>
+            </div>
+
+            <button class="login-btn" type="submit">Login</button>
+
+            <div class="login-signup">
+                Don't have an account?
+                <a class="login-signup-link" href="register.html">Sign Up</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+  
+   <footer id="footer" class="footer">
+    <div class="footer-container">
+
+      <div class="footer-left">
+        <h4>Contact Us</h4><br>
+
+        <div class="footer-contact-row">
+          <img src="/frontend/logo.jpeg" alt="DealLock Logo" class="footer-logo">
+
+          <div class="footer-socials">
+            <a href="https://wa.me/2348166027757">
+              <i class="fab fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </a>
+
+            <a href="https://www.instagram.com/deallock.ng?igsh=MTJwazdvYTlrMGNxeQ==">
+              <i class="fab fa-instagram"></i>
+              <span>Instagram</span>
+            </a>
+
+            <a href="mailto:info@deallock.ng">
+              <i class="fas fa-envelope"></i>
+              <span>Email</span>
+            </a>
+            <a href=>
+                <i class=></i>
+                <span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-center">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#products">Interested Products</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="terms.html">Terms and Conditions</a></li>
+          <li><a href="#footer">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-right">
+        <h4>Our Values</h4>
+        <ul>
+          <li>Trust First</li>
+          <li>Speed with Structure</li>
+          <li>Transparency</li>
+          <li>Customer Confidence</li>
+        </ul>
+      </div>
+
+    </div>
+    <button type="button" class="back-to-top" aria-label="Back to top"></button>
+
+    <div class="footer-bottom">
+      © 2026 DealLock. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="/frontend/home.js" defer></script>
+  <script src="/frontend/login.js"></script>
+</html>

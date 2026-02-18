@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/style.css">
+  <link rel="stylesheet" href="/frontend/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="/frontend/logo.jpeg">
+  <title>deallock.ng</title>
+</head>
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="logo-wrapper">
+        <a href="#" class="logo">
+          <img src="/frontend/logo.jpeg" alt="DealLock Logo">
+        </a>
+        <span class="slogan">Deal Securing & Purchase Support</span>
+      </div>
+
+      <div class="menu-toggle" id="menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+
+      <ul class="nav-links" id="nav-links">
+          <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+        <li><a href="/">Home</a></li>
+        <li><a href="/#about">About Us</a></li>
+        <li><a href="/#products">Items We Buy</a></li>
+        <li><a href="/#how-it-works">How It Works</a></li>
+        <li><a href="/terms">Terms and Conditions</a></li>
+        <li><a href="#footer">Contact Us</a></li>
+            <li class="user-menu-item">
+              <button type="button" class="user-trigger" aria-label="User menu">
+                <img 
+                  src="/frontend/81218050339.jpg"
+                  alt="User avatar" 
+                  class="user-avatar"
+                >
+                <span class="username">Dahiru</span>
+                <i class="fas fa-chevron-down chevron"></i>
+              </button>
+
+              <div class="user-dropdown-menu">
+                <a href="/profile" class="dropdown-link">
+                  <i class="fas fa-user"></i> Profile
+                </a>
+                <a href="/dashboard" class="dropdown-link">
+                  <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="/logout" class="dropdown-link logout">
+                  <i class="fas fa-sign-out-alt"></i> Log out
+                </a>
+              </div>
+            </li>
+      </ul>
+    </nav>
+  </header>
+
+     
+<div class="dashboard-container">
+
+
+  <aside class="sidebar">
+
+    <div class="profile-section">
+      <div class="profile-avatar-wrapper">
+        <img 
+          src="/frontend/81218050339.jpg"
+          alt="User avatar" 
+          class="profile-avatar"
+        >
+      </div>
+      <h2 class="greeting">
+        Hi, <span class="username">Dahiru</span>
+      </h2>
+    </div>
+
+   <div class="active-deals-section">
+  <h3>Active Deals</h3>
+  <div class="deals-list" id="deals-list">
+  </div>
+</div>
+
+  </aside>
+
+  
+  <main class="main-content">
+    <button type="button" class="create-deal-card" id="open-create-modal">
+      <div class="plus-icon">+</div>
+      <div class="create-label">Create Deal</div>
+    </button>
+  </main>
+
+</div>
+
+
+<div class="modal-overlay" id="create-deal-modal">
+  <div class="modal-dialog">
+
+    <div class="modal-header">
+      <h3>New Deal</h3>
+      <button type="button" class="modal-close-btn" id="close-modal">×</button>
+    </div>
+
+    <form class="deal-form" id="new-deal-form">
+
+      <div class="form-row">
+        <label for="deal-title">Deal / Item Name</label>
+        <input type="text" id="deal-title" placeholder="e.g. iPhone 15 Pro Max 256GB" required>
+      </div>
+
+       <div class="form-row">
+        <label for="deal-title">Deal / Item Link</label>
+        <input type="text" id="deal-title" placeholder="" required>
+      </div>
+
+      <div class="form-row">
+        <label for="client-name">Client Name</label>
+        <input type="text" id="client-name" placeholder="Full name or Business name" required>
+      </div>
+
+      <div class="form-row">
+        <label for="deal-value">Expected Value (₦)</label>
+        <input type="number" id="deal-value" placeholder="e.g. 1250000" min="1000" required>
+      </div>
+
+      <div class="form-row">
+        <label for="description">Description / Details</label>
+        <textarea id="description" rows="5" placeholder="Item condition, location, delivery terms, payment method..."></textarea>
+      </div>
+
+      <div class="form-row">
+  <label for="item-photo">Upload Item Photo / Proof <span class="required">(required)</span></label>
+  
+  <div class="file-upload-container">
+    <input 
+      type="file" 
+      id="item-photo" 
+      name="itemPhoto" 
+      accept="image/*" 
+      required 
+      class="file-input"
+    >
+    
+    
+    <div class="upload-area" id="upload-area">
+      <div class="upload-icon">+</div>
+      <div class="upload-text">
+        Click or drag photo here<br>
+        <small>Max 10 MB • JPG, PNG</small>
+      </div>
+    </div>
+
+     <div class="preview-container" id="preview-container" style="display: none;">
+      <img id="preview-img" alt="Preview" />
+      <button type="button" class="remove-preview" id="remove-preview">×</button>
+    </div>
+  </div>
+</div>
+
+<div class="form-row payment-plan-section">
+  <label>Payment Plan <span class="required">*</span></label>
+
+  <div class="payment-summary-box">
+    <div class="row">
+      <span>Item Value (₦)</span>
+      <strong id="display-value">0</strong>
+    </div>
+    <div class="row">
+      <span>Service Fee (5% per week)</span>
+      <strong id="display-service-fee">₦0</strong>
+    </div>
+    <div class="row" id="extra-fee-row" style="display:none;">
+      <span>Extra 5% (extended plan)</span>
+      <strong id="display-extra-fee">₦0</strong>
+    </div>
+    <div class="row">
+      <span>VAT (7.5%)</span>
+      <strong id="display-vat">₦0</strong>
+    </div>
+    <div class="row total">
+      <span>Total Amount to Pay</span>
+      <strong id="display-total">₦0</strong>
+    </div>
+  </div>
+
+  <div class="form-group mt-4">
+    <label for="weeks">Number of weekly installments</label>
+    <select id="weeks" name="weeks" required class="select-input">
+      <option value="">Select duration</option>
+      <option value="1">1 week (full payment)</option>
+      <option value="2">2 weeks (standard max)</option>
+      <option value="custom">Request more than 2 weeks</option>
+    </select>
+  </div>
+
+  <div class="form-group mt-2" id="custom-weeks-group" style="display:none;">
+    <label for="custom-weeks">Requested weeks (3 or more)</label>
+    <input 
+      type="number" 
+      id="custom-weeks" 
+      name="customWeeks" 
+      min="3" 
+      placeholder="e.g. 4, 6, 8..." 
+      class="input-small"
+      required
+    >
+    <small class="text-muted mt-1">Plans longer than 2 weeks attract an extra 5% fee</small>
+  </div>
+
+  <div class="payment-breakdown mt-4" id="breakdown" style="display:none;">
+    <h4>Payment Schedule Preview</h4>
+    <div class="breakdown-row">
+      <span>Upfront (50% of total)</span>
+      <strong id="upfront-amount">₦0</strong>
+    </div>
+    <div class="breakdown-row">
+      <span>Weekly payment (× <span id="weekly-count">0</span>)</span>
+      <strong id="weekly-amount">₦0</strong>
+    </div>
+  </div>
+
+  <div class="form-group mt-3">
+    <small class="text-muted">
+      • First 50% due immediately<br>
+      • Remaining 50% spread over selected weeks<br>
+      • Plans > 2 weeks require approval and add 5% extra fee
+    </small>
+  </div>
+</div>
+    
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" id="cancel-create">Cancel</button>
+        <button type="submit" class="btn-submit">Lock Deal</button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+   
+  <footer id="footer" class="footer">
+    <div class="footer-container">
+
+      <div class="footer-left">
+        <h4>Contact Us</h4><br>
+
+        <div class="footer-contact-row">
+          <img src="/frontend/logo.jpeg" alt="DealLock Logo" class="footer-logo">
+
+          <div class="footer-socials">
+            <a href="https://wa.me/2348166027757">
+              <i class="fab fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </a>
+
+            <a href="https://www.instagram.com/deallock.ng?igsh=MTJwazdvYTlrMGNxeQ==">
+              <i class="fab fa-instagram"></i>
+              <span>Instagram</span>
+            </a>
+
+            <a href="mailto:info@deallock.ng">
+              <i class="fas fa-envelope"></i>
+              <span>Email</span>
+            </a>
+            <a href=>
+                <i class=></i>
+                <span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-center">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#products">Interested Products</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="/terms">Terms and Conditions</a></li>
+          <li><a href="#footer">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-right">
+        <h4>Our Values</h4>
+        <ul>
+          <li>Trust First</li>
+          <li>Speed with Structure</li>
+          <li>Transparency</li>
+          <li>Customer Confidence</li>
+        </ul>
+      </div>
+
+    </div>
+    <button type="button" class="back-to-top" aria-label="Back to top"></button>
+
+    <div class="footer-bottom">
+      © 2026 DealLock. All rights reserved.
+    </div>
+  </footer>
+
+  <script src="/frontend/home.js" defer></script>
+  <script src="/frontend/dashboard.js" defer></script>
+</body>
+</html>

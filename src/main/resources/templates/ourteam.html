@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CLTC - Citizenship & Leadership Training Centre</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    /* =============================================
+       HEADER
+    ============================================= */
+    .site-header {
+      background-color: #006400; /* dark green */
+      color: white;
+      padding: 12px 5%;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      margin: 0;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Desktop Nav */
+    .main-nav {
+      display: none;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      gap: 28px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-list li a {
+      color: white;
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      padding: 8px 4px;
+    }
+
+    .nav-list li a:hover,
+    .nav-list li a.active {
+      color: #ffd700;
+    }
+
+    /* Orange button */
+    .orange-btn {
+      width: 36px;
+      height: 36px;
+      background-color: #ff6600;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    /* Hamburger */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 5px;
+      padding: 10px;
+    }
+
+    .menu-toggle span {
+      width: 26px;
+      height: 3px;
+      background-color: white;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    /* Mobile Menu */
+    .mobile-nav {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #006400;
+      padding: 20px 5%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .mobile-nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .mobile-nav-list li {
+      margin: 16px 0;
+    }
+
+    .mobile-nav-list a {
+      color: white;
+      text-decoration: none;
+      font-size: 1.1rem;
+      display: block;
+      padding: 10px 0;
+    }
+
+    .mobile-nav-list a.active {
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    .footer {
+      background-color: #006400;
+      color: white;
+      padding: 40px 5% 20px;
+      font-size: 15px;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 30px;
+    }
+
+    .footer-left {
+      flex: 1;
+      min-width: 200px;
+      text-align: left;
+    }
+
+    .footer-right {
+      flex: 2;
+      min-width: 300px;
+      text-align: left;
+    }
+
+    .footer-left h2 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .footer-left p {
+      margin-bottom: 8px;
+      opacity: 0.95;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .contact-item i {
+      margin-right: 12px;
+      font-size: 1.3rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .social-icons {
+      margin-top: 20px;
+    }
+
+    .social-icons a {
+      color: white;
+      font-size: 1.6rem;
+      margin-right: 18px;
+      transition: 0.3s;
+      opacity: 0.9;
+    }
+
+    .social-icons a:hover {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+
+    .footer-logo {
+      width: 140px;
+      height: auto;
+      margin-bottom: 20px;
+      filter: brightness(0) invert(1);
+    }
+
+    .copyright {
+      text-align: center;
+      margin-top: 50px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    /* =============================================
+       TEAM SECTION
+    ============================================= */
+    .team-section {
+      background-color: #f8f9fa;
+      padding: 60px 5%;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.2rem;
+      margin-bottom: 50px;
+      color: #006400;
+      font-weight: bold;
+    }
+
+    .featured-leader {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .leader-card.large {
+      width: 320px;
+      text-align: center;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      transition: transform 0.3s;
+    }
+
+    .leader-card.large:hover {
+      transform: translateY(-8px);
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+
+    .leader-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      text-align: center;
+    }
+
+    .leader-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+
+    .leader-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .leader-info {
+      padding: 20px 15px;
+    }
+
+    .leader-info h3 {
+      font-size: 1.4rem;
+      margin: 0 0 8px;
+      color: #006400;
+    }
+
+    .title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 10px;
+    }
+
+    .description {
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .brand h1 { font-size: 1.2rem; }
+      .nav-list { gap: 20px; }
+      .nav-list li a { font-size: 0.9rem; }
+      .featured-leader { gap: 30px; }
+      .leader-card.large { width: 280px; }
+    }
+
+    @media (max-width: 768px) {
+      .header-container { flex-wrap: nowrap; justify-content: space-between; }
+      .brand { flex: 1; }
+      .main-nav { display: none; }
+      .menu-toggle { display: flex; }
+      .orange-btn { margin-left: 15px; }
+      .mobile-nav.active { display: block; }
+      .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+      .menu-toggle.active span:nth-child(2) { opacity: 0; }
+      .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+      .featured-leader { flex-direction: column; align-items: center; }
+      .section-title { font-size: 1.8rem; }
+      .footer-right { text-align: left; }
+      .footer-content { flex-direction: column; }
+      .footer-left { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-container">
+    <div class="brand">
+      <!-- Insert your logo here, e.g. <img src="logo.png" alt="CLTC" style="height:50px;"> -->
+      <h1>Citizenship and Leadership Training Centre</h1>
+    </div>
+
+    <nav class="main-nav">
+      <ul class="nav-list">
+        <li><a href="#" class="active">HOME</a></li>
+        <li><a href="#">ABOUT US</a></li>
+        <li><a href="#">PROCUREMENT</a></li>
+        <li><a href="#">NEWS & MEDIA</a></li>
+        <li><a href="#">TRAINING SCHOOLS</a></li>
+        <li><a href="#">CONTACT</a></li>
+        <li><a href="#">COURSE CAT</a></li>
+        <li><a href="#">FMY</a></li>
+        <li><a href="#">PROG & EVENT</a></li>
+      </ul>
+    </nav>
+
+    <div class="orange-btn"><span>O</span></div>
+
+    <button class="menu-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <nav class="mobile-nav">
+    <ul class="mobile-nav-list">
+      <li><a href="#" class="active">HOME</a></li>
+      <li><a href="#">ABOUT US</a></li>
+      <li><a href="#">PROCUREMENT</a></li>
+      <li><a href="#">NEWS & MEDIA</a></li>
+      <li><a href="#">TRAINING SCHOOLS</a></li>
+      <li><a href="#">CONTACT</a></li>
+      <li><a href="#">COURSE CAT</a></li>
+      <li><a href="#">FMY</a></li>
+      <li><a href="#">PROG & EVENT</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- TEAM SECTION -->
+<section class="team-section">
+  <div class="container">
+    <h2 class="section-title">Our Leadership Team</h2>
+
+    <div class="featured-leader">
+      <div class="leader-card large">
+        <img src="/frontend/Idcodelogo%20png.PNG" alt="Rinsola Abiola" class="leader-img">
+        <div class="leader-info">
+          <h3>RINSOLA ABIOLA</h3>
+          <p class="title">DIRECTOR GENERAL</p>
+          <p class="description">Citizenship & Leadership Training Centre (CLTC)</p>
+        </div>
+      </div>
+
+      <div class="leader-card large">
+        <img src="https://via.placeholder.com/400x500/006400/fff?text=Rinsola+Abiola+2" alt="Rinsola Abiola" class="leader-img">
+        <div class="leader-info">
+          <h3>RINSOLA ABIOLA</h3>
+          <p class="title">DIRECTOR GENERAL</p>
+          <p class="description">Citizenship & Leadership Training Centre (CLTC)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-grid">
+      <!-- Replace with real images/names/titles -->
+      <div class="leader-card">
+        <img src="https://via.placeholder.com/300x300/006400/fff?text=Leader+1" alt="Leader" class="leader-img">
+        <div class="leader-info">
+          <h3>NAME HERE</h3>
+          <p class="title">POSITION / TITLE</p>
+          <p class="description">Brief role or highlight</p>
+        </div>
+      </div>
+
+      <div class="leader-card">
+        <img src="https://via.placeholder.com/300x300/006400/fff?text=Leader+2" alt="Leader" class="leader-img">
+        <div class="leader-info">
+          <h3>NAME HERE</h3>
+          <p class="title">POSITION / TITLE</p>
+          <p class="description">Brief role or highlight</p>
+        </div>
+      </div>
+
+      <div class="leader-card">
+        <img src="https://via.placeholder.com/300x300/006400/fff?text=Leader+3" alt="Leader" class="leader-img">
+        <div class="leader-info">
+          <h3>NAME HERE</h3>
+          <p class="title">POSITION / TITLE</p>
+          <p class="description">Brief role or highlight</p>
+        </div>
+      </div>
+      
+      <div class="leader-card">
+        <img src="https://via.placeholder.com/300x300/006400/fff?text=Leader+3" alt="Leader" class="leader-img">
+        <div class="leader-info">
+          <h3>NAME HERE</h3>
+          <p class="title">POSITION / TITLE</p>
+          <p class="description">Brief role or highlight</p>
+        </div>
+      </div>
+      <div class="leader-card">
+        <img src="https://via.placeholder.com/300x300/006400/fff?text=Leader+3" alt="Leader" class="leader-img">
+        <div class="leader-info">
+          <h3>NAME HERE</h3>
+          <p class="title">POSITION / TITLE</p>
+          <p class="description">Brief role or highlight</p>
+        </div>
+      </div>
+      <div class="leader-card">
+        <img src="https://via.placeholder.com/300x300/006400/fff?text=Leader+3" alt="Leader" class="leader-img">
+        <div class="leader-info">
+          <h3>NAME HERE</h3>
+          <p class="title">POSITION / TITLE</p>
+          <p class="description">Brief role or highlight</p>
+        </div>
+      </div>
+      
+
+      <!-- Add more cards here as needed -->
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-content">
+
+    <div class="footer-left">
+      <img 
+        src="https://cltc.gov.ng/wp-content/uploads/2023/05/CLTC-LOGO-1.png" 
+        alt="CLTC Logo" 
+        class="footer-logo"
+      />
+    </div>
+
+    <div class="footer-right">
+      <h2>Citizenship & Leadership Training Centre (CLTC)</h2>
+      <p>Empowering Nigerians through leadership development and experiential training</p>
+      
+      <div class="contact-item">
+        <i class="fas fa-map-marker-alt"></i>
+        Plot 1075, Joseph Gomwalk Str., Gudu District, P.M.B. 345, Garki Abuja
+      </div>
+      
+      <div class="contact-item">
+        <i class="fas fa-phone"></i>
+        +234-803-803-0464<br>
+        +234-803-300-289<br>
+        +234-803-631-7224<br>
+        +234-803-687-3841
+      </div>
+      
+      <div class="contact-item">
+        <i class="fas fa-envelope"></i>
+        cltcnigeria@gmail.com<br>
+        info@cltc.gov.ng
+      </div>
+
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-x-twitter"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="copyright">
+    Copyright © 2026 CLTC | Powered by CLTC
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.mobile-nav');
+
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('active');
+      nav.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.mobile-nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        toggle.classList.remove('active');
+        nav.classList.remove('active');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

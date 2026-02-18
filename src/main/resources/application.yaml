@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/deallock?createDatabaseIfNotExist=true
+    username: root
+    password: Profisic1.
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+
