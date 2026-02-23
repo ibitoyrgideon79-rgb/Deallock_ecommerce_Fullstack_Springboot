@@ -522,6 +522,77 @@ h2 {
       content: "↑";
     }
 
+@media (max-width: 1270px) {
+  header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #0f172a;
+  z-index: 1000;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(59, 69, 95, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.logo img {
+  height: 48px;
+  width: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.slogan {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #94a3b8;
+  line-height: 1.3;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.8rem;
+}
+
+.nav-links a {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.7rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  transition: all 0.25s ease;
+}
+
+.nav-links a:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.menu-toggle {
+  display: none;
+  font-size: 1.8rem;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+}
 @media (max-width: 992px) {
   .nav-links {
     position: fixed;
