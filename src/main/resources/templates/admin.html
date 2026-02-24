@@ -42,12 +42,6 @@
         </a>
         <span class="slogan">Admin Dashboard</span>
       </div>
-      <div class="header-links">
-        <a href="/dashboard">User Dashboard</a>
-        <a href="/profile">Profile</a>
-        <a href="/admin">Admin Console</a>
-        <a href="/logout">Log out</a>
-      </div>
       <div class="menu-toggle" id="menu-toggle">
         <i class="fas fa-bars"></i>
       </div>
@@ -58,38 +52,6 @@
         <li><a href="/profile">Profile</a></li>
         <li><a href="/admin">Admin Console</a></li>
         <li><a href="/logout">Log out</a></li>
-        <li class="admin-label" style="color:#e2e8f0; font-weight:600;">
-          <span th:text="${currentUser != null && currentUser.fullName != null ? ((#strings.startsWith(currentUser.fullName, 'Admin ') ? currentUser.fullName : ('Admin ' + currentUser.fullName))) : (currentUser != null ? ('Admin ' + currentUser.email) : 'Admin')}">Admin</span>
-        </li>
-        <li class="user-menu-item">
-          <button type="button" class="user-trigger" aria-label="User menu">
-            <img 
-              th:src="${currentUser != null && currentUser.profileImage != null ? '/profile/image' : '/frontend/logo.jpeg'}"
-              src="/frontend/logo.jpeg"
-              alt="User avatar" 
-              class="user-avatar"
-            >
-            <span class="username"
-                  th:text="${currentUser != null && currentUser.fullName != null ? currentUser.fullName : (currentUser != null ? currentUser.email : 'Admin')}">Admin</span>
-            <i class="fas fa-chevron-down chevron"></i>
-          </button>
-
-          <div class="user-dropdown-menu">
-            <a href="/profile" class="dropdown-link">
-              <i class="fas fa-user"></i> Profile
-            </a>
-            <a href="/admin" class="dropdown-link">
-              <i class="fas fa-shield-alt"></i> Admin Console
-            </a>
-            <a href="/dashboard" class="dropdown-link">
-              <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-            <div class="dropdown-divider"></div>
-            <a href="/logout" class="dropdown-link logout">
-              <i class="fas fa-sign-out-alt"></i> Log out
-            </a>
-          </div>
-        </li>
       </ul>
     </nav>
   </header>

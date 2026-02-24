@@ -37,13 +37,6 @@
         </a>
         <span class="slogan">Deal Securing & Purchase Support</span>
       </div>
-      <div class="header-links">
-        <a href="/dashboard">User Dashboard</a>
-        <a href="/profile">Profile</a>
-        <a href="/admin" th:if="${isAdmin}">Admin Console</a>
-        <a href="/logout">Log out</a>
-      </div>
-
       <div class="menu-toggle" id="menu-toggle">
         <i class="fas fa-bars"></i>
       </div>
@@ -51,45 +44,10 @@
       <ul class="nav-links" id="nav-links">
           <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
         <li><a href="/">Home</a></li>
-        <li><a href="/#about">About Us</a></li>
-        <li><a href="/#products">Items We Buy</a></li>
-        <li><a href="/#how-it-works">How It Works</a></li>
-        <li><a href="/terms">Terms and Conditions</a></li>
-        <li><a href="#footer">Contact Us</a></li>
-        <li class="admin-label" th:if="${isAdmin}" style="color:#e2e8f0; font-weight:600;">
-          <span th:text="${currentUser != null && currentUser.fullName != null ? ((#strings.startsWith(currentUser.fullName, 'Admin ') ? currentUser.fullName : ('Admin ' + currentUser.fullName))) : (currentUser != null ? ('Admin ' + currentUser.email) : 'Admin')}">Admin</span>
-        </li>
-            <li class="user-menu-item">
-              <button type="button" class="user-trigger" aria-label="User menu">
-                <img 
-                  th:src="${currentUser != null && currentUser.profileImage != null ? '/profile/image' : '/frontend/logo.jpeg'}"
-                  src="/frontend/logo.jpeg"
-                  alt="User avatar" 
-                  class="user-avatar"
-                >
-                <span class="username" th:if="${isAdmin}"
-                      th:text="${currentUser != null && currentUser.fullName != null ? ((#strings.startsWith(currentUser.fullName, 'Admin ') ? currentUser.fullName : ('Admin ' + currentUser.fullName))) : (currentUser != null ? ('Admin ' + currentUser.email) : 'Admin')}">Admin</span>
-                <span class="username" th:if="${!isAdmin}"
-                      th:text="${currentUser != null && currentUser.fullName != null ? currentUser.fullName : (currentUser != null ? currentUser.username : 'User')}">User</span>
-                <i class="fas fa-chevron-down chevron"></i>
-              </button>
-
-              <div class="user-dropdown-menu">
-                <a href="/profile" class="dropdown-link">
-                  <i class="fas fa-user"></i> Profile
-                </a>
-                <a href="/admin" class="dropdown-link" th:if="${isAdmin}">
-                  <i class="fas fa-shield-alt"></i> Admin Console
-                </a>
-                <a href="/dashboard" class="dropdown-link">
-                  <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
-                <div class="dropdown-divider"></div>
-                <a href="/logout" class="dropdown-link logout">
-                  <i class="fas fa-sign-out-alt"></i> Log out
-                </a>
-              </div>
-            </li>
+        <li><a href="/dashboard">User Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/admin" th:if="${isAdmin}">Admin Console</a></li>
+        <li><a href="/logout">Log out</a></li>
       </ul>
     </nav>
   </header>
