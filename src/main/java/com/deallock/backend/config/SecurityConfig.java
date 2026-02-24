@@ -8,10 +8,17 @@ import org.springframework.security.config.annotation.web.configurers.LogoutConf
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final UserDetailsService userDetailsService;
+
+    public SecurityConfig(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     @Bean
     @SuppressWarnings({"java:S112", "java:S1130"})
@@ -59,6 +66,11 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
+                )
+                .rememberMe(remember -> remember
+                        .key("deallock-remember-me")
+                        .tokenValiditySeconds(60 * 60 * 24 * 30)
+                        .userDetailsService(userDetailsService)
                 )
                 .build();
     }
