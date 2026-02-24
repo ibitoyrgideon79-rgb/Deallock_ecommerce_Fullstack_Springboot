@@ -9,6 +9,7 @@ import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -91,7 +92,13 @@ public class DealApiController {
         }
 
         dealRepository.save(deal);
-        notifyAdminsAndUserOnCreate(deal);
+        CompletableFuture.runAsync(() -> {
+            try {
+                notifyAdminsAndUserOnCreate(deal);
+            } catch (Exception ignored) {
+                // Avoid blocking the request if email sending fails
+            }
+        });
         return ResponseEntity.ok(Map.of("message", "Deal created", "id", deal.getId()));
     }
 
