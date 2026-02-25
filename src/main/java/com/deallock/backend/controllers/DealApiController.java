@@ -161,6 +161,13 @@ public class DealApiController {
         return ResponseEntity.ok(Map.of("message", "Deal deleted"));
     }
 
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelDeal(@PathVariable("id") Long id,
+                                        Principal principal,
+                                        Authentication authentication) {
+        return deleteDeal(id, principal, authentication);
+    }
+
     private void notifyAdminsAndUserOnCreate(Deal deal) {
         String detailsLink = baseUrl + "/dashboard/deal/" + deal.getId();
         String baseText = "Deal created.\n\n"

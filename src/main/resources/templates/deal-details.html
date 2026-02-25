@@ -24,18 +24,11 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-      text-decoration: none;
-      color: #0b5bd3;
-      font-weight: 600;
-    }
     @media (max-width: 768px) {
       .deal-grid { grid-template-columns: 1fr; }
-      .nav-links { gap: 10px; flex-wrap: wrap; }
+      .navbar { flex-wrap: wrap; }
+      .nav-links { gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+      .nav-links li a { display: inline-flex; }
     }
   </style>
 </head>
@@ -55,8 +48,7 @@
     </nav>
   </header>
 
-  <main class="dashboard-container" style="padding: 32px 24px;">
-    <a class="back-link" href="/dashboard">← Back to Dashboard</a>
+  <main class="dashboard-container" style="padding: 24px;">
     <section class="deal-card" style="width:100%; max-width:900px; margin:0 auto;">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
         <h2 class="deal-title" th:text="${deal.title}">Deal Title</h2>

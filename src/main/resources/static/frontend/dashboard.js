@@ -426,8 +426,8 @@ async function handleCancelDealClick(btn) {
   btn.textContent = 'Canceling...';
   if (dealsMessage) dealsMessage.textContent = '';
   try {
-    const res = await fetch(`${API_DEALS}/${dealId}`, {
-      method: 'DELETE',
+    const res = await fetch(`${API_DEALS}/${dealId}/cancel`, {
+      method: 'POST',
       credentials: 'include',
       redirect: 'follow'
     });
