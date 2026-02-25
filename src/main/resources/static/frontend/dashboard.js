@@ -416,32 +416,42 @@ function confirmCancelDialog() {
   });
 }
 
+async function handleCancelDealClick(btn) {
+  const dealId = btn.getAttribute('data-deal-id');
+  if (!dealId) return;
+  const ok = await confirmCancelDialog();
+  if (!ok) return;
+  try {
+    const res = await fetch(`${API_DEALS}/${dealId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      redirect: 'follow'
+    });
+    if (!res.ok) {
+      if (dealsMessage) dealsMessage.textContent = 'Failed to cancel deal.';
+      return;
+    }
+    if (dealsMessage) dealsMessage.textContent = 'Deal canceled.';
+    await loadDeals();
+  } catch (e) {
+    if (dealsMessage) dealsMessage.textContent = 'Failed to cancel deal.';
+  }
+}
+
 function wireCancelButtons() {
   const buttons = document.querySelectorAll('.cancel-deal-btn');
   buttons.forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const dealId = btn.getAttribute('data-deal-id');
-      if (!dealId) return;
-      const ok = await confirmCancelDialog();
-      if (!ok) return;
-      try {
-        const res = await fetch(`${API_DEALS}/${dealId}`, {
-          method: 'DELETE',
-          credentials: 'include',
-          redirect: 'follow'
-        });
-        if (!res.ok) {
-          if (dealsMessage) dealsMessage.textContent = 'Failed to cancel deal.';
-          return;
-        }
-        if (dealsMessage) dealsMessage.textContent = 'Deal canceled.';
-        await loadDeals();
-      } catch (e) {
-        if (dealsMessage) dealsMessage.textContent = 'Failed to cancel deal.';
-      }
-    });
+    btn.addEventListener('click', () => handleCancelDealClick(btn));
   });
 }
+
+dealsList?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.cancel-deal-btn');
+  if (btn) {
+    e.preventDefault();
+    handleCancelDealClick(btn);
+  }
+});
 
 
 document.addEventListener('DOMContentLoaded', makeDealsClickable);
