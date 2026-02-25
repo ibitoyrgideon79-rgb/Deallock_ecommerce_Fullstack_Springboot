@@ -48,9 +48,9 @@
     </nav>
   </header>
 
-  <main class="dashboard-container" style="padding: 24px;">
+  <main class="dashboard-container" style="padding: 40px 24px;">
     <section class="deal-card" style="width:100%; max-width:900px; margin:0 auto;">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
         <h2 class="deal-title" th:text="${deal.title}">Deal Title</h2>
         <span class="deal-status" th:text="${deal.status}">Approved</span>
       </div>
