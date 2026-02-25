@@ -58,8 +58,6 @@
 
   <main class="dashboard-container" style="padding: 24px;">
     <section style="width:100%;">
-      <h2 class="admin-section-title" style="margin-bottom:16px;">Pending Deals</h2>
-
       <form method="get" action="/admin" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
         <div style="display:flex; flex-direction:column; gap:6px;">
           <label for="start-date" style="color:#e2e8f0;">Start Date</label>
@@ -72,6 +70,8 @@
         <button type="submit" class="btn-submit" style="align-self:flex-end;">Filter</button>
         <a href="/admin" class="btn-cancel" style="align-self:flex-end; text-decoration:none;">Clear</a>
       </form>
+
+      <h2 class="admin-section-title" style="margin-bottom:16px;">Pending Deals</h2>
 
       <div th:if="${message}" class="signup-error" style="margin-bottom:12px;">
         <span th:if="${message == 'approved'}">Deal approved.</span>
@@ -179,5 +179,13 @@
     </section>
   </main>
   <script src="/frontend/home.js" defer></script>
+  <script>
+    const flash = document.querySelector('.signup-error');
+    if (flash) {
+      setTimeout(() => {
+        flash.style.display = 'none';
+      }, 2500);
+    }
+  </script>
 </body>
 </html>
