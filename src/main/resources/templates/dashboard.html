@@ -210,6 +210,16 @@
     <div class="confirm-actions">
       <button type="button" class="btn-cancel" id="confirm-no">No</button>
       <button type="button" class="btn-submit" id="confirm-yes">Yes, cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="form-row payment-plan-section">
+  <label>Payment Plan <span class="required">*</span></label>
+
+  <div class="payment-summary-box">
+    <div class="row">
       <span>Item Value (NGN)</span>
       <strong id="display-value">0</strong>
     </div>
@@ -243,12 +253,12 @@
 
   <div class="form-group mt-2" id="custom-weeks-group" style="display:none;">
     <label for="custom-weeks">Requested weeks (3 or more)</label>
-    <input 
-      type="number" 
-      id="custom-weeks" 
-      name="customWeeks" 
-      min="3" 
-      placeholder="e.g. 4, 6, 8..." 
+    <input
+      type="number"
+      id="custom-weeks"
+      name="customWeeks"
+      min="3"
+      placeholder="e.g. 4, 6, 8..."
       class="input-small"
       required
     >
@@ -262,21 +272,19 @@
       <strong id="upfront-amount">NGN 0</strong>
     </div>
     <div class="breakdown-row">
-      <span>Weekly payment (× <span id="weekly-count">0</span>)</span>
+      <span>Weekly payment (? <span id="weekly-count">0</span>)</span>
       <strong id="weekly-amount">NGN 0</strong>
     </div>
   </div>
 
   <div class="form-group mt-3">
     <small class="text-muted">
-      • First 50% due immediately<br>
-      • Remaining 50% spread over selected weeks<br>
-      • Plans > 2 weeks require approval and add 5% extra fee
+      ? First 50% due immediately<br>
+      ? Remaining 50% spread over selected weeks<br>
+      ? Plans > 2 weeks require approval and add 5% extra fee
     </small>
   </div>
 </div>
-    
-
       <div class="form-actions">
         <button type="button" class="btn-cancel" id="cancel-create">Cancel</button>
         <button type="submit" class="btn-submit">Lock Deal</button>
