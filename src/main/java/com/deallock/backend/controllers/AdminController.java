@@ -3,7 +3,6 @@ package com.deallock.backend.controllers;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
-import com.deallock.backend.repositories.NotificationRepository;
 import com.deallock.backend.services.EmailService;
 import com.deallock.backend.services.SmsService;
 import com.deallock.backend.services.NotificationService;
@@ -24,20 +23,17 @@ public class AdminController {
 
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
-    private final NotificationRepository notificationRepository;
     private final EmailService emailService;
     private final SmsService smsService;
     private final NotificationService notificationService;
 
     public AdminController(DealRepository dealRepository,
                            UserRepository userRepository,
-                           NotificationRepository notificationRepository,
                            EmailService emailService,
                            SmsService smsService,
                            NotificationService notificationService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
-        this.notificationRepository = notificationRepository;
         this.emailService = emailService;
         this.smsService = smsService;
         this.notificationService = notificationService;
@@ -79,7 +75,7 @@ public class AdminController {
             userRepository.findByEmail(principal.getName()).ifPresent(user -> {
                 model.addAttribute("currentUser", user);
                 model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
-                model.addAttribute("notificationCount", notificationRepository.countByUserAndReadFalse(user));
+                model.addAttribute("notificationCount", notificationService.countUnread(user));
             });
         }
         return "admin";

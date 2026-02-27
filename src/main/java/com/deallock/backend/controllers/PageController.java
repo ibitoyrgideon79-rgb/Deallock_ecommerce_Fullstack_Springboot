@@ -2,7 +2,7 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.repositories.DealRepository;
-import com.deallock.backend.repositories.NotificationRepository;
+import com.deallock.backend.services.NotificationService;
 import java.security.Principal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class PageController {
     private final UserRepository userRepository;
     private final DealRepository dealRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationService notificationService;
 
     public PageController(UserRepository userRepository,
                           DealRepository dealRepository,
-                          NotificationRepository notificationRepository) {
+                          NotificationService notificationService) {
         this.userRepository = userRepository;
         this.dealRepository = dealRepository;
-        this.notificationRepository = notificationRepository;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/login")     public String login()     { return "login"; }
@@ -36,7 +36,7 @@ public class PageController {
         userOpt.ifPresent(user -> {
             model.addAttribute("currentUser", user);
             model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
-            model.addAttribute("notificationCount", notificationRepository.countByUserAndReadFalse(user));
+            model.addAttribute("notificationCount", notificationService.countUnread(user));
         });
         return "dashboard";
     }
