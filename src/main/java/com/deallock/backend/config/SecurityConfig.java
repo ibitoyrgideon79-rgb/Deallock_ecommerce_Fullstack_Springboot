@@ -31,7 +31,6 @@ public class SecurityConfig {
                                 "/login",
                                 "/register",
                                 "/terms",
-                                "/dashboard",
                                 "/send-otp",
                                 "/ourteam",
                                 "/api/send-otp",

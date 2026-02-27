@@ -24,13 +24,14 @@ public class PageController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, Principal principal) {
-        if (principal != null) {
-            var userOpt = userRepository.findByEmail(principal.getName());
-            userOpt.ifPresent(user -> {
-                model.addAttribute("currentUser", user);
-                model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
-            });
+        if (principal == null) {
+            return "redirect:/login";
         }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        userOpt.ifPresent(user -> {
+            model.addAttribute("currentUser", user);
+            model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
+        });
         return "dashboard";
     }
 
