@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,5 +29,7 @@ public class Notification {
 
     private String message;
     private Instant createdAt;
+
+    @Column(name = "is_read")
     private boolean read;
 }

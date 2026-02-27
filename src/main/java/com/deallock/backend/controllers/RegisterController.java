@@ -5,7 +5,7 @@ import com.deallock.backend.dtos.RegisterDto;
 import com.deallock.backend.entities.User;
 import com.deallock.backend.repositories.UserRepository;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.Instant;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Controller
 @RequestMapping("/register")
 public class RegisterController {

@@ -3,6 +3,6 @@ CREATE TABLE notifications (
   user_id INT NOT NULL,
   message VARCHAR(1000) NOT NULL,
   created_at DATETIME(6) NOT NULL,
-  `read` BIT(1) NOT NULL DEFAULT 0,
+  is_read BIT(1) NOT NULL DEFAULT b'0',
   CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
