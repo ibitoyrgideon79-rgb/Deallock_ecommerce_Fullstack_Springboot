@@ -5,7 +5,9 @@ import com.deallock.backend.entities.User;
 import com.deallock.backend.repositories.NotificationRepository;
 import com.deallock.backend.repositories.UserRepository;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotificationService {
@@ -20,7 +22,9 @@ public class NotificationService {
     }
 
     public void notifyUser(User user, String message) {
-        if (user == null) return;
+        if (user == null || message == null || message.isBlank()) {
+            return;
+        }
         Notification n = new Notification();
         n.setUser(user);
         n.setMessage(message);
@@ -30,6 +34,25 @@ public class NotificationService {
     }
 
     public void notifyAdmins(String message) {
-        userRepository.findByRole("ROLE_ADMIN").forEach(admin -> notifyUser(admin, message));
+        if (message == null || message.isBlank()) {
+            return;
+        }
+        List<User> admins = userRepository.findByRole("ROLE_ADMIN");
+        admins.forEach(admin -> notifyUser(admin, message));
+    }
+
+    public long countUnread(User user) {
+        if (user == null) {
+            return 0;
+        }
+        return notificationRepository.countByUserAndReadIsFalse(user);
+    }
+
+    @Transactional
+    public void markAllRead(User user) {
+        if (user == null) {
+            return;
+        }
+        notificationRepository.markAllReadByUser(user);
     }
 }
