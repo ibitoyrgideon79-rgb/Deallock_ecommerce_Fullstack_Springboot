@@ -152,9 +152,19 @@ form?.addEventListener('submit', async e => {
   const client = formData.get('client-name');
   const value = formData.get('deal-value');
   const photo = formData.get('itemPhoto');
+  const weeks = formData.get('weeks');
+  const customWeeksValue = formData.get('customWeeks');
 
   if (!title || !client || !value) {
     if (dealsMessage) dealsMessage.textContent = 'Please fill all required fields.';
+    return;
+  }
+  if (!weeks || weeks === '') {
+    if (dealsMessage) dealsMessage.textContent = 'Please select the number of weekly installments.';
+    return;
+  }
+  if (weeks === 'custom' && (!customWeeksValue || Number(customWeeksValue) < 3)) {
+    if (dealsMessage) dealsMessage.textContent = 'Please enter requested weeks (3 or more).';
     return;
   }
   if (photo && photo.size && photo.size > MAX_PHOTO_BYTES) {

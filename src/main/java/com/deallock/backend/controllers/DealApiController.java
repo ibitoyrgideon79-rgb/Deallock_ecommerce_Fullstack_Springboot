@@ -46,6 +46,9 @@ public class DealApiController {
 
     @GetMapping
     public ResponseEntity<?> listDeals(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         var user = userRepository.findByEmail(principal.getName());
         if (user.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
