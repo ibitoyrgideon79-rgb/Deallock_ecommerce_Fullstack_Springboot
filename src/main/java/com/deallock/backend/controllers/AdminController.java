@@ -64,15 +64,35 @@ public class AdminController {
         } else {
             allDeals = dealRepository.findAllByOrderByCreatedAtDesc();
         }
+        List<Deal> paymentConfirmedDeals = allDeals.stream()
+                .filter(d -> "Approved".equalsIgnoreCase(d.getStatus()))
+                .filter(d -> "PAID_CONFIRMED".equalsIgnoreCase(d.getPaymentStatus()))
+                .toList();
+        List<Deal> paymentNotReceivedDeals = allDeals.stream()
+                .filter(d -> "Approved".equalsIgnoreCase(d.getStatus()))
+                .filter(d -> "NOT_PAID".equalsIgnoreCase(d.getPaymentStatus()))
+                .toList();
+        List<Deal> securedDeals = allDeals.stream()
+                .filter(d -> "Approved".equalsIgnoreCase(d.getStatus()))
+                .filter(Deal::isSecured)
+                .toList();
+
         model.addAttribute("pendingDeals", allDeals.stream()
                 .filter(d -> d.getStatus() == null || "Pending Approval".equalsIgnoreCase(d.getStatus()))
                 .toList());
         model.addAttribute("approvedDeals", allDeals.stream()
                 .filter(d -> "Approved".equalsIgnoreCase(d.getStatus()))
+                .filter(d -> !d.isSecured())
+                .filter(d -> d.getPaymentStatus() == null
+                        || (!"PAID_CONFIRMED".equalsIgnoreCase(d.getPaymentStatus())
+                        && !"NOT_PAID".equalsIgnoreCase(d.getPaymentStatus())))
                 .toList());
         model.addAttribute("rejectedDeals", allDeals.stream()
                 .filter(d -> "Rejected".equalsIgnoreCase(d.getStatus()))
                 .toList());
+        model.addAttribute("paymentConfirmedDeals", paymentConfirmedDeals);
+        model.addAttribute("paymentNotReceivedDeals", paymentNotReceivedDeals);
+        model.addAttribute("securedDeals", securedDeals);
         model.addAttribute("message", message);
         model.addAttribute("start", start);
         model.addAttribute("end", end);

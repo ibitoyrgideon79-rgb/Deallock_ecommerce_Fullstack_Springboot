@@ -74,6 +74,21 @@
 
       <ul class="nav-links" id="nav-links">
           <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+        <li class="notification-item">
+          <button type="button" class="notification-link" id="notifToggle">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-badge" th:if="${notificationCount != null && notificationCount > 0}" th:text="${notificationCount}">0</span>
+          </button>
+          <div class="notification-pop" id="notifPop">
+            <div class="notification-pop-header">
+              <span>Notifications</span>
+              <a href="/notifications">View all</a>
+            </div>
+            <div class="notification-pop-body" id="notifList">
+              <div class="notification-empty">No notifications yet.</div>
+            </div>
+          </div>
+        </li>
         <li><a href="/">Home</a></li>
         <li><a href="/dashboard">User Dashboard</a></li>
         <li><a href="/profile">Profile</a></li>
@@ -359,5 +374,6 @@
 
   <script src="/frontend/home.js" defer></script>
   <script src="/frontend/dashboard.js" defer></script>
+  <script src="/frontend/notifications.js" defer></script>
 </body>
 </html>
