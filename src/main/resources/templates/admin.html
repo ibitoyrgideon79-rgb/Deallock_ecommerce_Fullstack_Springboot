@@ -62,6 +62,78 @@
       color: #60a5fa;
       border-color: rgba(96, 165, 250, 0.5);
     }
+    .admin-layout {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .admin-sidebar {
+      width: 220px;
+      background: #0f1b2b;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      position: sticky;
+      top: 90px;
+      height: fit-content;
+    }
+    .admin-nav-title {
+      color: #cbd5f5;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+    .admin-nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: transparent;
+      color: #e2e8f0;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+    }
+    .admin-nav-btn.active {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+    .admin-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: #e2e8f0;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .admin-nav-link:hover,
+    .admin-nav-btn:hover {
+      background: rgba(148, 163, 184, 0.15);
+    }
+    .admin-main {
+      flex: 1;
+      min-width: 0;
+    }
+    .admin-section {
+      display: none;
+    }
+    .admin-section.active {
+      display: block;
+    }
+    @media (max-width: 980px) {
+      .admin-layout {
+        flex-direction: column;
+      }
+      .admin-sidebar {
+        width: 100%;
+        position: static;
+      }
+    }
   </style>
 </head>
 <body>
@@ -103,7 +175,19 @@
   </header>
 
   <main class="dashboard-container" style="padding: 24px;">
-    <section style="width:100%;">
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <div class="admin-nav-title">Sections</div>
+        <button class="admin-nav-btn active" data-target="section-pending"><i class="fa-regular fa-clock"></i> Pending Deals</button>
+        <button class="admin-nav-btn" data-target="section-approved"><i class="fa-regular fa-circle-check"></i> Approved Deals</button>
+        <button class="admin-nav-btn" data-target="section-confirmed"><i class="fa-solid fa-check-double"></i> Confirmed Payments</button>
+        <button class="admin-nav-btn" data-target="section-not-received"><i class="fa-regular fa-circle-xmark"></i> Payment Not Received</button>
+        <button class="admin-nav-btn" data-target="section-secured"><i class="fa-solid fa-lock"></i> Secured Deals</button>
+        <button class="admin-nav-btn" data-target="section-rejected"><i class="fa-regular fa-circle-xmark"></i> Rejected Deals</button>
+        <a class="admin-nav-link" href="/admin/payment-proofs"><i class="fa-regular fa-folder-open"></i> Payment Proofs</a>
+      </aside>
+
+      <section class="admin-main">
       <div class="admin-folder-row">
         <a href="/admin/payment-proofs" class="admin-folder"><i class="fa-regular fa-folder-open"></i> Payment Proofs</a>
         <a href="#confirmed-payments" class="admin-folder"><i class="fa-regular fa-circle-check"></i> Confirmed Payments</a>
@@ -123,6 +207,7 @@
         <a href="/admin" class="btn-cancel" style="align-self:flex-end; text-decoration:none;">Clear</a>
       </form>
 
+      <div class="admin-section active" id="section-pending">
       <h2 class="admin-section-title" style="margin-bottom:16px;">Pending Deals</h2>
 
       <div th:if="${message}" class="signup-error" style="margin-bottom:12px;">
@@ -132,6 +217,7 @@
         <span th:if="${message == 'payment-confirmed'}">Payment confirmed.</span>
         <span th:if="${message == 'payment-not-received'}">Payment not received.</span>
         <span th:if="${message == 'secured'}">Deal secured.</span>
+        <span th:if="${message == 'action-error'}">Action failed. Please retry.</span>
       </div>
 
       <div th:if="${#lists.isEmpty(pendingDeals)}">
@@ -173,9 +259,9 @@
           </div>
         </div>
       </div>
-    </section>
+      </div>
 
-    <section style="width:100%; margin-top:28px;">
+    <div class="admin-section" id="section-approved" style="margin-top:28px;">
       <h2 class="admin-section-title" style="margin-bottom:16px;">Approved Deals</h2>
       <div th:if="${#lists.isEmpty(approvedDeals)}">
         <p>No approved deals yet.</p>
@@ -223,9 +309,10 @@
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section style="width:100%; margin-top:28px;" id="confirmed-payments">
+    <div class="admin-section" id="section-confirmed" style="margin-top:28px;">
+    <section style="width:100%;" id="confirmed-payments">
       <h2 class="admin-section-title" style="margin-bottom:16px;">Confirmed Payments</h2>
       <div th:if="${#lists.isEmpty(paymentConfirmedDeals)}">
         <p>No confirmed payments yet.</p>
@@ -248,8 +335,10 @@
         </div>
       </div>
     </section>
+    </div>
 
-    <section style="width:100%; margin-top:28px;" id="payment-not-received">
+    <div class="admin-section" id="section-not-received" style="margin-top:28px;">
+    <section style="width:100%;" id="payment-not-received">
       <h2 class="admin-section-title" style="margin-bottom:16px;">Payment Not Received</h2>
       <div th:if="${#lists.isEmpty(paymentNotReceivedDeals)}">
         <p>No payment issues logged yet.</p>
@@ -272,8 +361,10 @@
         </div>
       </div>
     </section>
+    </div>
 
-    <section style="width:100%; margin-top:28px;" id="secured-deals">
+    <div class="admin-section" id="section-secured" style="margin-top:28px;">
+    <section style="width:100%;" id="secured-deals">
       <h2 class="admin-section-title" style="margin-bottom:16px;">Secured Deals</h2>
       <div th:if="${#lists.isEmpty(securedDeals)}">
         <p>No secured deals yet.</p>
@@ -295,8 +386,9 @@
         </div>
       </div>
     </section>
+    </div>
 
-    <section style="width:100%; margin-top:28px;">
+    <div class="admin-section" id="section-rejected" style="margin-top:28px;">
       <h2 class="admin-section-title" style="margin-bottom:16px;">Rejected Deals</h2>
       <div th:if="${#lists.isEmpty(rejectedDeals)}">
         <p>No rejected deals yet.</p>
@@ -323,7 +415,9 @@
           </div>
         </div>
       </div>
+    </div>
     </section>
+    </div>
   </main>
   <script src="/frontend/home.js" defer></script>
   <script src="/frontend/notifications.js" defer></script>
@@ -348,6 +442,17 @@
         else if (action === 'payment-confirmed') btn.textContent = 'Confirming...';
         else if (action === 'payment-not-received') btn.textContent = 'Updating...';
         else if (action === 'secured') btn.textContent = 'Securing...';
+      });
+    });
+
+    document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
+        const section = document.getElementById(target);
+        if (section) section.classList.add('active');
       });
     });
   </script>

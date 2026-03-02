@@ -123,59 +123,86 @@ public class AdminController {
 
     @PostMapping("/admin/deals/{id}/approve")
     public String approve(@PathVariable("id") Long id) {
-        dealRepository.findById(id).ifPresent(deal -> {
-            deal.setStatus("Approved");
-            dealRepository.save(deal);
-            notifyApproval(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal was approved.");
-            notificationService.notifyAdmins("Deal approved: " + safe(deal.getTitle()));
-        });
-        return "redirect:/admin?message=approved";
+        try {
+            dealRepository.findById(id).ifPresent(deal -> {
+                deal.setStatus("Approved");
+                dealRepository.save(deal);
+                runSafely(() -> notifyApproval(deal));
+                runSafely(() -> notificationService.notifyUser(deal.getUser(), "Your deal was approved."));
+                runSafely(() -> notificationService.notifyAdmins("Deal approved: " + safe(deal.getTitle())));
+            });
+            return "redirect:/admin?message=approved";
+        } catch (Exception ex) {
+            return "redirect:/admin?message=action-error";
+        }
     }
 
     @PostMapping("/admin/deals/{id}/reject")
     public String reject(@PathVariable("id") Long id) {
-        dealRepository.findById(id).ifPresent(deal -> {
-            deal.setStatus("Rejected");
-            dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal was rejected.");
-            notificationService.notifyAdmins("Deal rejected: " + safe(deal.getTitle()));
-        });
-        return "redirect:/admin?message=rejected";
+        try {
+            dealRepository.findById(id).ifPresent(deal -> {
+                deal.setStatus("Rejected");
+                dealRepository.save(deal);
+                runSafely(() -> notificationService.notifyUser(deal.getUser(), "Your deal was rejected."));
+                runSafely(() -> notificationService.notifyAdmins("Deal rejected: " + safe(deal.getTitle())));
+            });
+            return "redirect:/admin?message=rejected";
+        } catch (Exception ex) {
+            return "redirect:/admin?message=action-error";
+        }
     }
 
     @PostMapping("/admin/deals/{id}/payment-confirmed")
     public String paymentConfirmed(@PathVariable("id") Long id) {
-        dealRepository.findById(id).ifPresent(deal -> {
-            deal.setPaymentStatus("PAID_CONFIRMED");
-            dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Payment confirmed for your deal.");
-            notificationService.notifyAdmins("Payment confirmed: " + safe(deal.getTitle()));
-        });
-        return "redirect:/admin?message=payment-confirmed";
+        try {
+            dealRepository.findById(id).ifPresent(deal -> {
+                deal.setPaymentStatus("PAID_CONFIRMED");
+                dealRepository.save(deal);
+                runSafely(() -> notificationService.notifyUser(deal.getUser(), "Payment confirmed for your deal."));
+                runSafely(() -> notificationService.notifyAdmins("Payment confirmed: " + safe(deal.getTitle())));
+            });
+            return "redirect:/admin?message=payment-confirmed";
+        } catch (Exception ex) {
+            return "redirect:/admin?message=action-error";
+        }
     }
 
     @PostMapping("/admin/deals/{id}/payment-not-received")
     public String paymentNotReceived(@PathVariable("id") Long id) {
-        dealRepository.findById(id).ifPresent(deal -> {
-            deal.setPaymentStatus("NOT_PAID");
-            dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Payment not received for your deal.");
-            notificationService.notifyAdmins("Payment not received: " + safe(deal.getTitle()));
-        });
-        return "redirect:/admin?message=payment-not-received";
+        try {
+            dealRepository.findById(id).ifPresent(deal -> {
+                deal.setPaymentStatus("NOT_PAID");
+                dealRepository.save(deal);
+                runSafely(() -> notificationService.notifyUser(deal.getUser(), "Payment not received for your deal."));
+                runSafely(() -> notificationService.notifyAdmins("Payment not received: " + safe(deal.getTitle())));
+            });
+            return "redirect:/admin?message=payment-not-received";
+        } catch (Exception ex) {
+            return "redirect:/admin?message=action-error";
+        }
     }
 
     @PostMapping("/admin/deals/{id}/secured")
     public String dealSecured(@PathVariable("id") Long id) {
-        dealRepository.findById(id).ifPresent(deal -> {
-            deal.setSecured(true);
-            deal.setSecuredAt(Instant.now());
-            dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal has been secured.");
-            notificationService.notifyAdmins("Deal secured: " + safe(deal.getTitle()));
-        });
-        return "redirect:/admin?message=secured";
+        try {
+            dealRepository.findById(id).ifPresent(deal -> {
+                deal.setSecured(true);
+                deal.setSecuredAt(Instant.now());
+                dealRepository.save(deal);
+                runSafely(() -> notificationService.notifyUser(deal.getUser(), "Your deal has been secured."));
+                runSafely(() -> notificationService.notifyAdmins("Deal secured: " + safe(deal.getTitle())));
+            });
+            return "redirect:/admin?message=secured";
+        } catch (Exception ex) {
+            return "redirect:/admin?message=action-error";
+        }
+    }
+
+    private void runSafely(Runnable action) {
+        try {
+            action.run();
+        } catch (Exception ignored) {
+        }
     }
 
     @PostMapping("/admin/deals/{id}/delete")
