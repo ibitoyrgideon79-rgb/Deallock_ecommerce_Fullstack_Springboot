@@ -3,7 +3,6 @@ const API_BASE = "/api";
     let emailVerified = false;
     let isSendingOtp  = false;
     let countdownTimer = null;
-    let emailjsReady = false;
 
     const els = {
         email:        document.getElementById("email"),
@@ -32,25 +31,6 @@ const API_BASE = "/api";
     };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    function getEmailJsConfig() {
-        const serviceId = document.querySelector('meta[name="emailjs-service-id"]')?.content?.trim();
-        const templateId = document.querySelector('meta[name="emailjs-template-id"]')?.content?.trim();
-        const publicKey = document.querySelector('meta[name="emailjs-public-key"]')?.content?.trim();
-        return { serviceId, templateId, publicKey };
-    }
-
-    (function initEmailJs() {
-        const cfg = getEmailJsConfig();
-        if (window.emailjs && cfg.publicKey) {
-            try {
-                window.emailjs.init(cfg.publicKey);
-                emailjsReady = true;
-            } catch (e) {
-                emailjsReady = false;
-            }
-        }
-    })();
 
     function showError(el, msg) {
         el.textContent = msg;
@@ -85,13 +65,6 @@ const API_BASE = "/api";
         const email = els.email.value.trim();
         if (!emailRegex.test(email)) return;
 
-        const cfg = getEmailJsConfig();
-        if (!emailjsReady || !cfg.serviceId || !cfg.templateId) {
-            showError(errors.email, "Email service not configured.");
-            if (els.status) els.status.textContent = "Email service not configured.";
-            return;
-        }
-
         isSendingOtp = true;
         els.getCodeBtn.disabled = true;
         els.getCodeBtn.textContent = "Sending...";
@@ -109,17 +82,6 @@ const API_BASE = "/api";
             if (!res.ok) {
                 throw new Error(data.message || "Failed to send code");
             }
-
-            const otp = data.otp;
-            if (!otp) {
-                throw new Error("OTP not generated");
-            }
-
-            await window.emailjs.send(cfg.serviceId, cfg.templateId, {
-                to_email: email,
-                subject: "Your OTP Code",
-                message: "Your OTP is: " + otp
-            });
 
             els.otpSection.style.display = "block";
             els.otpInput.value = "";
@@ -270,19 +232,6 @@ const API_BASE = "/api";
                 throw new Error(data.message || "Registration failed");
             }
 
-            const activationLink = data.activationLink;
-            if (activationLink) {
-                const cfg = getEmailJsConfig();
-                if (emailjsReady && cfg.serviceId && cfg.templateId) {
-                    await window.emailjs.send(cfg.serviceId, cfg.templateId, {
-                        to_email: values.email,
-                        subject: "Activate your account",
-                        message: "Click to activate: " + activationLink
-                    });
-                }
-            }
-
-            
             els.successPopup.style.display = "flex";
             let sec = 8;
             els.countdown.textContent = sec;

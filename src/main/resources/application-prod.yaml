@@ -15,16 +15,21 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 app:
   base-url: https://deallockecommercefullstackspringboot-production.up.railway.app
   admin-phones: ""
-
-emailjs:
-  service-id: service_1zcjm5s
-  template-id: template_q5fd69o
-  public-key: BAh34rQaol2wbi-fC
-  private-key: yIYRSv0JkxnjeBGgSO9nP
 
 twilio:
   account-sid: ""

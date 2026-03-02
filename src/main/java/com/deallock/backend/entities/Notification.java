@@ -29,7 +29,6 @@ public class Notification {
 
     private String message;
     private Instant createdAt;
-
     @Column(name = "is_read")
     private boolean read;
 }

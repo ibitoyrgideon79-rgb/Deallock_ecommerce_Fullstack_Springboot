@@ -66,9 +66,9 @@ public class AuthApiController {
 
         otpRepo.save(entry);
 
-        // OTP email is sent from the browser (EmailJS) to avoid server-side EmailJS restrictions.
+        emailService.sendOtp(req.email, otp);
         auditLogService.log("OTP_SENT", req.email, request, true, null);
-        return ResponseEntity.ok(Map.of("message", "OTP generated", "otp", otp));
+        return ResponseEntity.ok(Map.of("message", "OTP sent"));
     }
 
     @PostMapping("/verify-otp")
@@ -146,10 +146,10 @@ public class AuthApiController {
         // Consume the OTP that was used for verification now that signup is successful
         otpRepo.delete(entryOpt.get());
 
+        emailService.sendActivationLink(req.email, link);
         auditLogService.log("SIGNUP", req.email, request, true, null);
         return ResponseEntity.ok(Map.of(
-                "message", "Account created",
-                "activationLink", link
+                "message", "Account created. Check your email to activate your account."
         ));
     }
 }
