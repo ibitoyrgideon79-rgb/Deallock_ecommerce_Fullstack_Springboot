@@ -4,6 +4,7 @@ import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.EmailService;
+import com.deallock.backend.services.NotificationService;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.Instant;
@@ -32,16 +33,19 @@ public class DealApiController {
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
     public DealApiController(DealRepository dealRepository,
                              UserRepository userRepository,
-                             EmailService emailService) {
+                             EmailService emailService,
+                             NotificationService notificationService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -107,6 +111,8 @@ public class DealApiController {
                 // Avoid blocking the request if email sending fails
             }
         });
+        runSafely(() -> notificationService.notifyAdmins("New deal created: " + safe(deal.getTitle())));
+        runSafely(() -> notificationService.notifyUser(deal.getUser(), "Deal created. Awaiting admin approval."));
         return ResponseEntity.ok(Map.of("message", "Deal created", "id", deal.getId()));
     }
 
@@ -299,11 +305,18 @@ public class DealApiController {
                 .forEach(e -> emailService.sendDealCreatedToAdmin(e, baseText));
 
         if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-            emailService.sendDealCreatedToUser(deal.getUser().getEmail(), baseText);
+            emailService.sendDealCreatedToUser(deal.getUser().getEmail(), baseText + "\nAwaiting admin approval.");
         }
     }
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private void runSafely(Runnable action) {
+        try {
+            action.run();
+        } catch (Exception ignored) {
+        }
     }
 }

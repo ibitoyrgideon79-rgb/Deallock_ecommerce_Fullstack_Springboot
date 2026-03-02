@@ -70,7 +70,7 @@ public class AdminController {
                 .toList();
         List<Deal> paymentNotReceivedDeals = allDeals.stream()
                 .filter(d -> "Approved".equalsIgnoreCase(d.getStatus()))
-                .filter(d -> "NOT_PAID".equalsIgnoreCase(d.getPaymentStatus()))
+                .filter(d -> "PAYMENT_NOT_RECEIVED".equalsIgnoreCase(d.getPaymentStatus()))
                 .toList();
         List<Deal> securedDeals = allDeals.stream()
                 .filter(d -> "Approved".equalsIgnoreCase(d.getStatus()))
@@ -85,7 +85,7 @@ public class AdminController {
                 .filter(d -> !d.isSecured())
                 .filter(d -> d.getPaymentStatus() == null
                         || (!"PAID_CONFIRMED".equalsIgnoreCase(d.getPaymentStatus())
-                        && !"NOT_PAID".equalsIgnoreCase(d.getPaymentStatus())))
+                        && !"PAYMENT_NOT_RECEIVED".equalsIgnoreCase(d.getPaymentStatus())))
                 .toList());
         model.addAttribute("rejectedDeals", allDeals.stream()
                 .filter(d -> "Rejected".equalsIgnoreCase(d.getStatus()))
@@ -171,7 +171,7 @@ public class AdminController {
     public String paymentNotReceived(@PathVariable("id") Long id) {
         try {
             dealRepository.findById(id).ifPresent(deal -> {
-                deal.setPaymentStatus("NOT_PAID");
+                deal.setPaymentStatus("PAYMENT_NOT_RECEIVED");
                 dealRepository.save(deal);
                 runSafely(() -> notificationService.notifyUser(deal.getUser(), "Payment not received for your deal."));
                 runSafely(() -> notificationService.notifyAdmins("Payment not received: " + safe(deal.getTitle())));
