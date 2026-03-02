@@ -40,9 +40,16 @@ public class Deal {
     private String paymentStatus;
     private boolean secured;
     private Instant securedAt;
+    private BigDecimal paymentProofAmount;
+    private Instant paymentProofUploadedAt;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] itemPhoto;
     private String itemPhotoContentType;
+
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] paymentProof;
+    private String paymentProofContentType;
 }

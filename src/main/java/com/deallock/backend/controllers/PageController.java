@@ -86,6 +86,9 @@ public class PageController {
         }
 
         model.addAttribute("deal", deal);
+        if (deal.getValue() != null) {
+            model.addAttribute("halfPayment", deal.getValue().multiply(java.math.BigDecimal.valueOf(0.5)));
+        }
         return "deal-pay";
     }
 

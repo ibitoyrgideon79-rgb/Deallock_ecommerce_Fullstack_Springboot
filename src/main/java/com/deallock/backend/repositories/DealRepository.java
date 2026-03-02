@@ -10,4 +10,5 @@ public interface DealRepository extends JpaRepository<Deal, Long> {
     List<Deal> findByUserOrderByCreatedAtDesc(User user);
     List<Deal> findAllByOrderByCreatedAtDesc();
     List<Deal> findByCreatedAtBetweenOrderByCreatedAtDesc(Instant start, Instant end);
+    List<Deal> findByPaymentProofIsNotNullOrderByPaymentProofUploadedAtDesc();
 }

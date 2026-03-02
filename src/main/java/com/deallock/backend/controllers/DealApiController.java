@@ -206,6 +206,84 @@ public class DealApiController {
         return ResponseEntity.ok(Map.of("message", "Payment marked as processing"));
     }
 
+    @PostMapping(path = "/{id}/payment-proof", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadPaymentProof(@PathVariable("id") Long id,
+                                                @RequestParam("paymentProof") MultipartFile paymentProof,
+                                                Principal principal,
+                                                Authentication authentication) throws Exception {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (paymentProof == null || paymentProof.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof is required"));
+        }
+
+        var dealOpt = dealRepository.findById(id);
+        if (dealOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        var deal = dealOpt.get();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+
+        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (deal.getStatus() == null || !"Approved".equalsIgnoreCase(deal.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Deal not approved"));
+        }
+
+        deal.setPaymentProof(paymentProof.getBytes());
+        deal.setPaymentProofContentType(paymentProof.getContentType());
+        deal.setPaymentProofUploadedAt(Instant.now());
+        if (deal.getValue() != null) {
+            deal.setPaymentProofAmount(deal.getValue().multiply(BigDecimal.valueOf(0.5)));
+        }
+        deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
+        dealRepository.save(deal);
+
+        return ResponseEntity.ok(Map.of("message", "Payment proof uploaded"));
+    }
+
+    @GetMapping("/{id}/payment-proof")
+    public ResponseEntity<byte[]> paymentProof(@PathVariable("id") Long id,
+                                               Principal principal,
+                                               Authentication authentication) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var dealOpt = dealRepository.findById(id);
+        if (dealOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        var deal = dealOpt.get();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (deal.getPaymentProof() == null || deal.getPaymentProof().length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM;
+        if (deal.getPaymentProofContentType() != null) {
+            type = MediaType.parseMediaType(deal.getPaymentProofContentType());
+        }
+        return ResponseEntity.ok().contentType(type).body(deal.getPaymentProof());
+    }
+
     private void notifyAdminsAndUserOnCreate(Deal deal) {
         String detailsLink = baseUrl + "/dashboard/deal/" + deal.getId();
         String baseText = "Deal created.\n\n"

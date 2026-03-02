@@ -45,16 +45,22 @@ public class AdminController {
                         @RequestParam(value = "start", required = false) String start,
                         @RequestParam(value = "end", required = false) String end,
                         Principal principal) {
+        start = sanitizeDateParam(start);
+        end = sanitizeDateParam(end);
         List<Deal> allDeals;
         if ((start != null && !start.isBlank()) || (end != null && !end.isBlank())) {
             ZoneId zone = ZoneId.systemDefault();
-            Instant startInstant = start != null && !start.isBlank()
-                    ? LocalDate.parse(start).atStartOfDay(zone).toInstant()
-                    : Instant.EPOCH;
-            Instant endInstant = end != null && !end.isBlank()
-                    ? LocalDate.parse(end).plusDays(1).atStartOfDay(zone).toInstant()
-                    : Instant.now().plusSeconds(60L * 60L * 24L * 365L * 10L);
-            allDeals = dealRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startInstant, endInstant);
+            try {
+                Instant startInstant = start != null && !start.isBlank()
+                        ? LocalDate.parse(start).atStartOfDay(zone).toInstant()
+                        : Instant.EPOCH;
+                Instant endInstant = end != null && !end.isBlank()
+                        ? LocalDate.parse(end).plusDays(1).atStartOfDay(zone).toInstant()
+                        : Instant.now().plusSeconds(60L * 60L * 24L * 365L * 10L);
+                allDeals = dealRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startInstant, endInstant);
+            } catch (Exception ex) {
+                allDeals = dealRepository.findAllByOrderByCreatedAtDesc();
+            }
         } else {
             allDeals = dealRepository.findAllByOrderByCreatedAtDesc();
         }
@@ -79,6 +85,20 @@ public class AdminController {
             });
         }
         return "admin";
+    }
+
+    @GetMapping("/admin/payment-proofs")
+    public String paymentProofs(Model model, Principal principal) {
+        var proofs = dealRepository.findByPaymentProofIsNotNullOrderByPaymentProofUploadedAtDesc();
+        model.addAttribute("proofs", proofs);
+        if (principal != null) {
+            userRepository.findByEmail(principal.getName()).ifPresent(user -> {
+                model.addAttribute("currentUser", user);
+                model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
+                model.addAttribute("notificationCount", notificationService.countUnread(user));
+            });
+        }
+        return "payment-proofs";
     }
 
     @PostMapping("/admin/deals/{id}/approve")
@@ -176,5 +196,14 @@ public class AdminController {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private String sanitizeDateParam(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        if (trimmed.isEmpty() || "null".equalsIgnoreCase(trimmed)) {
+            return null;
+        }
+        return trimmed;
     }
 }

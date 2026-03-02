@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/style.css">
+  <link rel="stylesheet" href="/frontend/dashboard.css">
+  <link rel="icon" type="image/x-icon" href="/frontend/logo.jpeg">
+  <title>Payment Proofs - DealLock</title>
+  <style>
+    body { background:#ffffff; color:#111111; }
+    .proof-card { background:#ffffff; border:1px solid #e5e7eb; border-radius:14px; padding:16px; box-shadow:0 10px 20px rgba(0,0,0,0.06); }
+    .proof-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+    .proof-images { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+    .proof-images img { max-width:240px; border-radius:10px; border:1px solid #e5e7eb; }
+    .proof-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+    .proof-meta div { color:#475569; font-size:14px; }
+    .proof-meta strong { color:#111111; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo-wrapper">
+        <a href="/" class="logo">
+          <img src="/frontend/logo.jpeg" alt="DealLock Logo">
+        </a>
+        <span class="slogan">Payment Proofs</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/admin">Back to Admin</a></li>
+        <li><a href="/logout">Log out</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard-container" style="padding:24px;">
+    <div class="proof-grid" th:if="${!#lists.isEmpty(proofs)}">
+      <div class="proof-card" th:each="deal : ${proofs}">
+        <div class="deal-title" th:text="${deal.title}">Deal Title</div>
+        <div class="proof-meta">
+          <div><strong>Client</strong><br><span th:text="${deal.clientName}">Client</span></div>
+          <div><strong>User</strong><br><span th:text="${deal.user != null ? deal.user.email : 'N/A'}">user@email.com</span></div>
+          <div><strong>Deal Value</strong><br><span th:text="${deal.value != null ? 'NGN ' + deal.value : 'NGN 0'}">NGN 0</span></div>
+          <div><strong>50% Paid</strong><br><span th:text="${deal.paymentProofAmount != null ? 'NGN ' + deal.paymentProofAmount : 'NGN 0'}">NGN 0</span></div>
+          <div><strong>Uploaded</strong><br><span th:text="${deal.paymentProofUploadedAt != null ? #temporals.format(deal.paymentProofUploadedAt, 'dd MMM yyyy HH:mm') : 'N/A'}">N/A</span></div>
+          <div><strong>Status</strong><br><span th:text="${deal.paymentStatus}">Status</span></div>
+        </div>
+        <div class="proof-images">
+          <div th:if="${deal.itemPhoto != null}">
+            <div style="font-weight:600; margin-bottom:6px;">Item Photo</div>
+            <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Item photo">
+          </div>
+          <div>
+            <div style="font-weight:600; margin-bottom:6px;">Payment Receipt</div>
+            <img th:if="${deal.paymentProof != null}" th:src="@{'/api/deals/' + ${deal.id} + '/payment-proof'}" alt="Payment proof">
+            <div th:if="${deal.paymentProof == null}" style="color:#94a3b8;">No receipt uploaded</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(proofs)}" style="color:#64748b;">No payment proofs yet.</div>
+  </main>
+</body>
+</html>

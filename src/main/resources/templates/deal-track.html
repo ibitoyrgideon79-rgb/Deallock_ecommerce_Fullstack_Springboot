@@ -11,11 +11,26 @@
     body { background:#ffffff; color:#111111; }
     .track-card { max-width: 800px; margin: 0 auto; padding: 20px; border:1px solid #e5e7eb; border-radius:16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
     .track-item { display:flex; gap:12px; align-items:flex-start; margin:12px 0; }
-    .track-dot { width:10px; height:10px; border-radius:50%; margin-top:6px; background:#cbd5e1; }
-    .track-item.active .track-dot { background:#22c55e; }
-    .track-item.blocked .track-dot { background:#ef4444; }
-    .track-title { font-weight:600; }
-    .track-sub { color:#64748b; font-size: 13px; }
+    .track-dot {
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      margin-top:4px;
+      background:#e2e8f0;
+      border:2px solid #cbd5e1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:11px;
+      color:#16a34a;
+      font-weight:700;
+    }
+    .track-item.active .track-dot { background:#22c55e; border-color:#22c55e; color:#ffffff; }
+    .track-item.active .track-dot::after { content: "✓"; }
+    .track-title { font-weight:600; color:#94a3b8; }
+    .track-item.active .track-title { color:#111111; }
+    .track-sub { color:#94a3b8; font-size: 13px; }
+    .track-item.active .track-sub { color:#64748b; }
   </style>
 </head>
 <body>
