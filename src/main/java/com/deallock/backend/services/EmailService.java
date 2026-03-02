@@ -33,6 +33,7 @@ public class EmailService {
 
         Map<String, Object> params = new HashMap<>();
         params.put("to_email", to);
+        params.put("email", to);
         params.put("subject", subject);
         params.put("message", text);
 
