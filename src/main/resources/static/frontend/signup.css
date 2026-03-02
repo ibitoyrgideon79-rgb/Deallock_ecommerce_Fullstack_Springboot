@@ -46,6 +46,51 @@
             box-sizing: border-box;
         }
 
+        .password-wrapper {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0 4px;
+            background: white;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .password-wrapper .signup-input {
+            border: none;
+            padding: 12px 14px;
+            flex: 1;
+        }
+
+        .password-toggle {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+        }
+
+        .password-toggle:hover {
+            background: #f0f0f0;
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
         .signup-page .signup-input:focus {
             outline: none;
             border-color: #3b82f6;

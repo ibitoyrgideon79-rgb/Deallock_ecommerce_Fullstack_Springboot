@@ -59,8 +59,15 @@
 
             <div class="login-form-group">
                 <label class="login-label" for="loginPassword">Password</label>
-                <input class="login-input" type="password" id="loginPassword" name="password">
-                <i class="fas fa-eye" id="togglePassword"></i>
+                <div class="password-wrapper">
+                    <input class="login-input" type="password" id="loginPassword" name="password">
+                    <button type="button" class="password-toggle" id="toggleLoginPassword" aria-label="Show password" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M22 12c-2.667 4.667-6 7-10 7s-7.333-2.333-10-7c2.667-4.667 6-7 10-7s7.333 2.333 10 7z" />
+                        </svg>
+                    </button>
+                </div>
                 <div class="login-error" id="passwordError"></div>
             </div>
 

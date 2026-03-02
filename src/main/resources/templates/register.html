@@ -99,13 +99,29 @@
 
             <div class="signup-form-group">
                 <label class="signup-label">Password</label>
-                <input th:field = "${registerDto.password}" class="signup-input" type="password" id="password" required>
+                <div class="password-wrapper">
+                    <input th:field = "${registerDto.password}" class="signup-input" type="password" id="password" required>
+                    <button type="button" class="password-toggle" id="toggleSignupPassword" aria-label="Show password" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M22 12c-2.667 4.667-6 7-10 7s-7.333-2.333-10-7c2.667-4.667 6-7 10-7s7.333 2.333 10 7z" />
+                        </svg>
+                    </button>
+                </div>
                 <div class="signup-error" id="passwordError"></div>
             </div>
 
             <div class="signup-form-group">
                 <label class="signup-label">Confirm Password</label>
-                <input th:field = "${registerDto.confirmPassword}"class="signup-input" type="password" id="confirmPassword" required>
+                <div class="password-wrapper">
+                    <input th:field = "${registerDto.confirmPassword}"class="signup-input" type="password" id="confirmPassword" required>
+                    <button type="button" class="password-toggle" id="toggleSignupConfirm" aria-label="Show password" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M22 12c-2.667 4.667-6 7-10 7s-7.333-2.333-10-7c2.667-4.667 6-7 10-7s7.333 2.333 10 7z" />
+                        </svg>
+                    </button>
+                </div>
                 <div class="signup-error" id="confirmPasswordError"></div>
             </div>
 

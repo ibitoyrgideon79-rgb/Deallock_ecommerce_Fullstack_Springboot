@@ -41,6 +41,55 @@
     transition: 0.3s;
 }
 
+.password-wrapper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0 4px;
+    background: white;
+    width: 100%;
+}
+
+.password-wrapper .login-input {
+    border: none;
+    padding: 10px;
+    flex: 1;
+}
+
+.password-toggle {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+}
+
+.password-toggle:hover {
+    background: #f0f0f0;
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.password-wrapper:focus-within {
+    border-color: #66afe9;
+    box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+}
+
 .login-page .login-input:focus {
     border-color: #007bff;
 }
