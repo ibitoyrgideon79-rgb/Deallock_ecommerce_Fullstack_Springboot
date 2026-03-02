@@ -5,8 +5,8 @@ spring:
     baseline-version: 1
   datasource:
     url: jdbc:mysql://mysql-uavu.railway.internal:3306/railway?useSSL=true&requireSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: jqqlgVmhXZiFWPMspGOYFaqAxGfyQALO
+    username: ${DB_USER:root}
+    password: ${DB_PASS:}
   jpa:
     show-sql: false
     hibernate:
@@ -32,9 +32,9 @@ app:
   admin-phones: ""
 
 twilio:
-  account-sid: ""
-  auth-token: ""
-  phone-number: ""
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  phone-number: ${TWILIO_PHONE_NUMBER:}
 
 
 server:
