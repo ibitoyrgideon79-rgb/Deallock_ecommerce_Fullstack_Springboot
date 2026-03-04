@@ -52,7 +52,7 @@
         <form class="login-form" id="loginForm" method="post" action="/login">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <div class="login-form-group">
-                <label class="login-label" for="loginUsername">Username</label>
+                <label class="login-label" for="loginUsername">Email</label>
                 <input class="login-input" type="text" id="loginUsername" name="email">
                 <div class="login-error" id="usernameError"></div>
             </div>
