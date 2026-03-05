@@ -89,10 +89,14 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #ffffff;
+  color: #22c55e;
   text-decoration: none;
   padding: 6px 10px;
   border-radius: 999px;
+}
+
+.notification-link i {
+  color: #22c55e;
 }
 
 .notification-link:hover {
@@ -363,8 +367,8 @@
 
 .modal-header h3 {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  color: #0b1220;
 }
 
 .modal-close-btn {

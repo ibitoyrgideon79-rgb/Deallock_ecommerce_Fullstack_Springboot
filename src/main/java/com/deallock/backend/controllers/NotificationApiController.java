@@ -45,4 +45,3 @@ public class NotificationApiController {
         return ResponseEntity.ok(payload);
     }
 }
-
