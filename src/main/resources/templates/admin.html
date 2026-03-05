@@ -53,6 +53,13 @@
       background: #1e3a5f;
       color: #93c5fd;
     }
+    .admin-side-link.is-active {
+      background: linear-gradient(180deg, #ecfdf3 0%, #dcfce7 100%);
+      border-color: #86efac;
+      color: #14532d;
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.16);
+      font-weight: 600;
+    }
     .admin-content {
       min-width: 0;
     }
@@ -61,9 +68,14 @@
     }
     .admin-panel {
       display: none;
+      animation: fadeIn 0.18s ease;
     }
     .admin-panel.is-active {
       display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .admin-top-filter {
       display: flex;
@@ -444,6 +456,7 @@
 
     function activatePanel(panelId) {
       panels.forEach(panel => panel.classList.toggle('is-active', panel.id === panelId));
+      panelLinks.forEach(link => link.classList.toggle('is-active', link.dataset.panel === panelId));
     }
 
     panelLinks.forEach(link => {
