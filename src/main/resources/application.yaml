@@ -7,24 +7,21 @@ spring:
   flyway:
     enabled: false
   datasource:
-    url: jdbc:mysql://localhost:3306/deallock?createDatabaseIfNotExist=true
-    username: root
-    password: Profisic1.
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/deallock?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:deallock}
+    password: ${SPRING_DATASOURCE_PASSWORD:deallock_pass}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${SMTP_USER:}
-    password: ${SMTP_PASS:}
     properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
 
 app:
   base-url: http://localhost:8080
