@@ -24,17 +24,28 @@ public class CustomUserDetailsService implements UserDetailsService {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        // Guard against malformed legacy rows causing 500 during login.
+        String username = user.getEmail();
+        String password = user.getPassword();
+        String role = user.getRole();
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new UsernameNotFoundException("Invalid user record");
+        }
+        if (role == null || role.isBlank() || !role.startsWith("ROLE_")) {
+            role = "ROLE_USER";
+        }
+
         boolean accountNonLocked = user.getLockoutUntil() == null
                 || user.getLockoutUntil().isBefore(Instant.now());
 
         return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
+                username,
+                password,
                 user.isEnabled(),
                 true,
                 true,
                 accountNonLocked,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
+                Collections.singletonList(new SimpleGrantedAuthority(role))
         );
     }
 }
