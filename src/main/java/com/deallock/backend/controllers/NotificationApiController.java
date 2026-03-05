@@ -3,6 +3,7 @@ package com.deallock.backend.controllers;
 import com.deallock.backend.repositories.NotificationRepository;
 import com.deallock.backend.repositories.UserRepository;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -37,11 +38,13 @@ public class NotificationApiController {
         }
         int size = limit == null ? 6 : Math.max(1, Math.min(20, limit));
         var notes = notificationRepository.findByUserOrderByCreatedAtDesc(userOpt.get());
-        List<Map<String, Object>> payload = notes.stream().limit(size).map(n -> Map.<String, Object>of(
-                "message", n.getMessage(),
-                "createdAt", n.getCreatedAt(),
-                "read", n.isRead()
-        )).toList();
+        List<Map<String, Object>> payload = notes.stream().limit(size).map(n -> {
+            Map<String, Object> row = new HashMap<>();
+            row.put("message", n.getMessage() == null ? "" : n.getMessage());
+            row.put("createdAt", n.getCreatedAt());
+            row.put("read", n.isRead());
+            return row;
+        }).toList();
         return ResponseEntity.ok(payload);
     }
 }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -65,15 +66,17 @@ public class DealApiController {
         }
 
         List<Map<String, Object>> deals = dealRepository.findByUserOrderByCreatedAtDesc(user.get()).stream()
-                .map(d -> Map.<String, Object>of(
-                        "id", d.getId(),
-                        "title", d.getTitle(),
-                        "status", d.getStatus(),
-                        "value", d.getValue() == null ? 0 : d.getValue(),
-                        "paymentStatus", d.getPaymentStatus(),
-                        "secured", d.isSecured(),
-                        "createdAt", d.getCreatedAt()
-                ))
+                .map(d -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("id", d.getId());
+                    row.put("title", d.getTitle() == null ? "Untitled Deal" : d.getTitle());
+                    row.put("status", d.getStatus() == null ? "Pending Approval" : d.getStatus());
+                    row.put("value", d.getValue() == null ? 0 : d.getValue());
+                    row.put("paymentStatus", d.getPaymentStatus() == null ? "NOT_PAID" : d.getPaymentStatus());
+                    row.put("secured", d.isSecured());
+                    row.put("createdAt", d.getCreatedAt());
+                    return row;
+                })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(deals);
