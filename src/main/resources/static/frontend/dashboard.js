@@ -150,12 +150,16 @@ form?.addEventListener('submit', async e => {
   const originalBtnText = submitBtn ? submitBtn.textContent : '';
   const title = formData.get('deal-title');
   const client = formData.get('client-name');
+  const sellerPhone = formData.get('seller-phone');
+  const sellerAddress = formData.get('seller-address');
+  const deliveryAddress = formData.get('delivery-address');
+  const itemSize = formData.get('item-size');
   const value = formData.get('deal-value');
   const photo = formData.get('itemPhoto');
   const weeks = formData.get('weeks');
   const customWeeksValue = formData.get('customWeeks');
 
-  if (!title || !client || !value) {
+  if (!title || !client || !sellerPhone || !sellerAddress || !deliveryAddress || !itemSize || !value) {
     if (dealsMessage) dealsMessage.textContent = 'Please fill all required fields.';
     return;
   }
@@ -264,13 +268,16 @@ const valueInput     = document.getElementById('deal-value');
 const weeksSelect    = document.getElementById('weeks');
 const customWeeks    = document.getElementById('custom-weeks');
 const customGroup    = document.getElementById('custom-weeks-group');
-const extraFeeRow    = document.getElementById('extra-fee-row');
+const sellerAddressInput = document.getElementById('seller-address');
+const deliveryAddressInput = document.getElementById('delivery-address');
+const itemSizeInput = document.getElementById('item-size');
+const courierPartnerInput = document.getElementById('courier-partner');
 const breakdown      = document.getElementById('breakdown');
 
 const displayValue   = document.getElementById('display-value');
 const displayService = document.getElementById('display-service-fee');
-const displayExtra   = document.getElementById('display-extra-fee');
-const displayVat     = document.getElementById('display-vat');
+const displayLogistics = document.getElementById('display-logistics-fee');
+const displayUpfrontDue = document.getElementById('display-upfront-due');
 const displayTotal   = document.getElementById('display-total');
 
 const upfrontEl      = document.getElementById('upfront-amount');
@@ -286,13 +293,11 @@ function updatePaymentPreview() {
 
   let weeks = parseInt(weeksSelect.value) || 0;
   let isCustom = weeksSelect.value === 'custom';
-  let extraFeePercent = 0;
 
   if (isCustom) {
     customGroup.style.display = 'block';
     customWeeks.required = true;
     weeks = parseInt(customWeeks.value) || 0;
-    if (weeks > 2) extraFeePercent = 0.05; 
   } else {
     customGroup.style.display = 'none';
     customWeeks.required = false;
@@ -304,30 +309,23 @@ function updatePaymentPreview() {
     return;
   }
 
-  const serviceFee = value * 0.05 * weeks;               
-  const extraFee   = (value + serviceFee) * extraFeePercent;
-  const subTotal   = value + serviceFee + extraFee;
-  const vat        = subTotal * 0.075;                    
-  const grandTotal = subTotal + vat;
+  const serviceFee = value * 0.05 * weeks;
+  const vatBase    = serviceFee;
+  const vat        = vatBase * 0.075;
+  const logistics  = estimateLogisticsFee();
+  const upfrontDue = (value * 0.5) + logistics;
+  const grandTotal = value + serviceFee + vat + logistics;
+  const remaining  = grandTotal - upfrontDue;
 
   displayValue.textContent   = 'NGN ' + value.toLocaleString();
-  displayService.textContent = 'NGN ' + serviceFee.toLocaleString();
-  
-  if (extraFeePercent > 0) {
-    extraFeeRow.style.display = 'flex';
-    displayExtra.textContent  = 'NGN ' + extraFee.toLocaleString();
-  } else {
-    extraFeeRow.style.display = 'none';
-  }
-
-  displayVat.textContent     = 'NGN ' + vat.toLocaleString();
+  displayService.textContent = 'NGN ' + (serviceFee + vat).toLocaleString();
+  displayLogistics.textContent = 'NGN ' + logistics.toLocaleString();
+  displayUpfrontDue.textContent = 'NGN ' + upfrontDue.toLocaleString();
   displayTotal.textContent   = 'NGN ' + grandTotal.toLocaleString();
 
-  const upfront = grandTotal * 0.5;
-  const remaining = grandTotal * 0.5;
   const weekly = weeks > 0 ? remaining / weeks : 0;
 
-  upfrontEl.textContent     = 'NGN ' + upfront.toFixed(0).toLocaleString();
+  upfrontEl.textContent     = 'NGN ' + upfrontDue.toFixed(0).toLocaleString();
   weeklyCountEl.textContent = weeks;
   weeklyAmountEl.textContent = 'NGN ' + weekly.toFixed(0).toLocaleString();
 
@@ -336,10 +334,10 @@ function updatePaymentPreview() {
 
 function resetAllDisplays() {
   displayValue.textContent = displayService.textContent = 
-  displayVat.textContent = displayTotal.textContent = 
+  displayTotal.textContent = 
+  displayLogistics.textContent = displayUpfrontDue.textContent =
   upfrontEl.textContent = weeklyAmountEl.textContent = 'NGN 0';
   
-  extraFeeRow.style.display = 'none';
   breakdown.style.display = 'none';
 }
 
@@ -347,9 +345,40 @@ function resetAllDisplays() {
 valueInput.addEventListener('input', updatePaymentPreview);
 weeksSelect.addEventListener('change', updatePaymentPreview);
 customWeeks.addEventListener('input', updatePaymentPreview);
+sellerAddressInput?.addEventListener('input', updatePaymentPreview);
+deliveryAddressInput?.addEventListener('input', updatePaymentPreview);
+itemSizeInput?.addEventListener('change', updatePaymentPreview);
+courierPartnerInput?.addEventListener('change', updatePaymentPreview);
 
 
 updatePaymentPreview();
+
+function estimateLogisticsFee() {
+  const itemSize = (itemSizeInput?.value || '').toLowerCase();
+  const sellerAddress = (sellerAddressInput?.value || '').toLowerCase();
+  const deliveryAddress = (deliveryAddressInput?.value || '').toLowerCase();
+  const courierPartner = (courierPartnerInput?.value || '').toLowerCase();
+
+  let baseFee = 5000;
+  if (itemSize === 'medium') baseFee = 9000;
+  if (itemSize === 'large') baseFee = 15000;
+
+  let distanceFactor = 1.0;
+  if (sellerAddress && deliveryAddress) {
+    const sellerAbuja = sellerAddress.includes('abuja') || sellerAddress.includes('fct');
+    const deliveryAbuja = deliveryAddress.includes('abuja') || deliveryAddress.includes('fct');
+    if (sellerAbuja && deliveryAbuja) distanceFactor = 1.0;
+    else if (sellerAbuja || deliveryAbuja) distanceFactor = 1.45;
+    else distanceFactor = 1.65;
+  }
+
+  let courierFactor = 1.0;
+  if (courierPartner.includes('gig')) courierFactor = 1.1;
+  else if (courierPartner.includes('kwik')) courierFactor = 1.08;
+  else if (courierPartner.includes('dhl')) courierFactor = 1.2;
+
+  return Math.round(baseFee * distanceFactor * courierFactor);
+}
 
 
 function makeDealsClickable() {

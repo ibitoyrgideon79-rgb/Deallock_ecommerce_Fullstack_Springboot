@@ -86,7 +86,9 @@ public class PageController {
         }
 
         model.addAttribute("deal", deal);
-        if (deal.getValue() != null) {
+        if (deal.getUpfrontPaymentAmount() != null) {
+            model.addAttribute("halfPayment", deal.getUpfrontPaymentAmount());
+        } else if (deal.getValue() != null) {
             model.addAttribute("halfPayment", deal.getValue().multiply(java.math.BigDecimal.valueOf(0.5)));
         }
         return "deal-pay";
@@ -113,3 +115,6 @@ public class PageController {
     }
 
 }
+
+
+

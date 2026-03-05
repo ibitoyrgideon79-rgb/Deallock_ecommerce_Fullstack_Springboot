@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface OtpCodeRepository extends JpaRepository<OtpCode, Long> {
     Optional<OtpCode> findTopByEmailOrderByIdDesc(String email);
+    Optional<OtpCode> findTopByPhoneOrderByIdDesc(String phone);
     long deleteByExpiresAtBefore(Instant cutoff);
 }

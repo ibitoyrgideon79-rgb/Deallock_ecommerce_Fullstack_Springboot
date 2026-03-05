@@ -37,12 +37,11 @@ public class NotificationApiController {
         }
         int size = limit == null ? 6 : Math.max(1, Math.min(20, limit));
         var notes = notificationRepository.findByUserOrderByCreatedAtDesc(userOpt.get());
-        return ResponseEntity.ok(
-                notes.stream().limit(size).map(n -> Map.<String, Object>of(
-                        "message", n.getMessage(),
-                        "createdAt", n.getCreatedAt(),
-                        "read", n.isRead()
-                )).toList()
-        );
+        List<Map<String, Object>> payload = notes.stream().limit(size).map(n -> Map.of(
+                "message", n.getMessage(),
+                "createdAt", n.getCreatedAt(),
+                "read", n.isRead()
+        )).toList();
+        return ResponseEntity.ok(payload);
     }
 }

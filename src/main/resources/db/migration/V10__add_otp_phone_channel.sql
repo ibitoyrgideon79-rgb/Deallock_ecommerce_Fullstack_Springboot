@@ -1,0 +1,3 @@
+ALTER TABLE otp_codes
+  ADD COLUMN phone VARCHAR(40) NULL,
+  ADD COLUMN channel VARCHAR(20) NULL;

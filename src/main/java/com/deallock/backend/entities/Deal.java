@@ -32,7 +32,22 @@ public class Deal {
     private String title;
     private String link;
     private String clientName;
+    private String sellerPhoneNumber;
+    @Column(length = 1000)
+    private String sellerAddress;
+    @Column(length = 1000)
+    private String deliveryAddress;
+    private String itemSize;
+    private String courierPartner;
+    private Integer installmentWeeks;
     private BigDecimal value;
+    private BigDecimal holdingFeeAmount;
+    private BigDecimal vatAmount;
+    private BigDecimal logisticsFeeAmount;
+    private BigDecimal upfrontPaymentAmount;
+    private BigDecimal remainingBalanceAmount;
+    private BigDecimal weeklyPaymentAmount;
+    private BigDecimal totalAmount;
     @Column(length = 2000)
     private String description;
     private String status;

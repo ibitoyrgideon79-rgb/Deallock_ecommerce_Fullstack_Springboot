@@ -11,6 +11,7 @@ import com.deallock.backend.repositories.OtpCodeRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.AuditLogService;
 import com.deallock.backend.services.EmailService;
+import com.deallock.backend.services.SmsService;
 import java.security.SecureRandom;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,7 @@ public class AuthApiController {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+    private final SmsService smsService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -45,57 +47,90 @@ public class AuthApiController {
                              ActivationTokenRepository activationRepo,
                              EmailService emailService,
                              PasswordEncoder passwordEncoder,
-                             AuditLogService auditLogService) {
+                             AuditLogService auditLogService,
+                             SmsService smsService) {
         this.userRepository = userRepository;
         this.otpRepo = otpRepo;
         this.activationRepo = activationRepo;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.auditLogService = auditLogService;
+        this.smsService = smsService;
     }
 
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody OtpRequest req, HttpServletRequest request) {
+        String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
+        if ("phone".equals(channel)) {
+            if (req.phone == null || req.phone.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
+            }
+        } else {
+            if (req.email == null || req.email.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+            }
+        }
+
         String otp = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
 
         OtpCode entry = new OtpCode();
         entry.setEmail(req.email);
+        entry.setPhone(req.phone);
+        entry.setChannel(channel);
         entry.setCode(otp);
         entry.setExpiresAt(Instant.now().plusSeconds(300));
         entry.setVerified(false);
 
         otpRepo.save(entry);
 
-        emailService.sendOtp(req.email, otp);
+        if ("phone".equals(channel)) {
+            smsService.sendToUser(req.phone, "Your DealLock OTP is: " + otp);
+            auditLogService.log("OTP_SENT", req.phone, request, true, null);
+            return ResponseEntity.ok(Map.of("message", "OTP sent to phone"));
+        }
+
+        // OTP email is sent from the browser (EmailJS) to avoid server-side EmailJS restrictions.
         auditLogService.log("OTP_SENT", req.email, request, true, null);
-        return ResponseEntity.ok(Map.of("message", "OTP sent"));
+        return ResponseEntity.ok(Map.of("message", "OTP generated", "otp", otp));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody OtpverifyRequest req, HttpServletRequest request) {
-        var entryOpt = otpRepo.findTopByEmailOrderByIdDesc(req.email);
+        String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
+        if ("phone".equals(channel)) {
+            if (req.phone == null || req.phone.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
+            }
+        } else {
+            if (req.email == null || req.email.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+            }
+        }
+        var entryOpt = "phone".equals(channel)
+                ? otpRepo.findTopByPhoneOrderByIdDesc(req.phone)
+                : otpRepo.findTopByEmailOrderByIdDesc(req.email);
 
         if (entryOpt.isEmpty()) {
-            auditLogService.log("OTP_VERIFY", req.email, request, false, "no_otp");
+            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, false, "no_otp");
             return ResponseEntity.badRequest().body(Map.of("message", "No OTP found"));
         }
 
         var entry = entryOpt.get();
 
         if (entry.getExpiresAt().isBefore(Instant.now())) {
-            auditLogService.log("OTP_VERIFY", req.email, request, false, "expired");
+            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, false, "expired");
             return ResponseEntity.badRequest().body(Map.of("message", "OTP expired"));
         }
 
         if (!entry.getCode().equals(req.otp)) {
-            auditLogService.log("OTP_VERIFY", req.email, request, false, "invalid");
+            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, false, "invalid");
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
         }
 
         entry.setVerified(true);
         otpRepo.save(entry);
 
-        auditLogService.log("OTP_VERIFY", req.email, request, true, null);
+        auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, true, null);
         return ResponseEntity.ok(Map.of("message", "OTP verified"));
     }
 
@@ -107,9 +142,12 @@ public class AuthApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));
         }
 
-        var entryOpt = otpRepo.findTopByEmailOrderByIdDesc(req.email);
+        var emailEntry = otpRepo.findTopByEmailOrderByIdDesc(req.email);
+        var phoneEntry = otpRepo.findTopByPhoneOrderByIdDesc(req.phone);
+        boolean verified = emailEntry.isPresent() && emailEntry.get().isVerified()
+                || phoneEntry.isPresent() && phoneEntry.get().isVerified();
 
-        if (entryOpt.isEmpty() || !entryOpt.get().isVerified()) {
+        if (!verified) {
             auditLogService.log("SIGNUP", req.email, request, false, "email_not_verified");
             return ResponseEntity.badRequest().body(Map.of("message", "Email not verified"));
         }
@@ -144,12 +182,13 @@ public class AuthApiController {
 
         String link = baseUrl + "/activate?token=" + token;
         // Consume the OTP that was used for verification now that signup is successful
-        otpRepo.delete(entryOpt.get());
+        emailEntry.ifPresent(otpRepo::delete);
+        phoneEntry.ifPresent(otpRepo::delete);
 
-        emailService.sendActivationLink(req.email, link);
         auditLogService.log("SIGNUP", req.email, request, true, null);
         return ResponseEntity.ok(Map.of(
-                "message", "Account created. Check your email to activate your account."
+                "message", "Account created",
+                "activationLink", link
         ));
     }
 }

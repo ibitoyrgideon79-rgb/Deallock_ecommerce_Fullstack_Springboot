@@ -39,10 +39,10 @@
       <div class="proof-card" th:each="deal : ${proofs}">
         <div class="deal-title" th:text="${deal.title}">Deal Title</div>
         <div class="proof-meta">
-          <div><strong>Client</strong><br><span th:text="${deal.clientName}">Client</span></div>
+          <div><strong>Seller</strong><br><span th:text="${deal.clientName}">Seller</span></div>
           <div><strong>User</strong><br><span th:text="${deal.user != null ? deal.user.email : 'N/A'}">user@email.com</span></div>
           <div><strong>Deal Value</strong><br><span th:text="${deal.value != null ? 'NGN ' + deal.value : 'NGN 0'}">NGN 0</span></div>
-          <div><strong>50% Paid</strong><br><span th:text="${deal.paymentProofAmount != null ? 'NGN ' + deal.paymentProofAmount : 'NGN 0'}">NGN 0</span></div>
+          <div><strong>Upfront Paid</strong><br><span th:text="${deal.paymentProofAmount != null ? 'NGN ' + deal.paymentProofAmount : 'NGN 0'}">NGN 0</span></div>
           <div><strong>Uploaded</strong><br><span th:text="${deal.paymentProofUploadedAt != null ? #temporals.format(deal.paymentProofUploadedAt, 'dd MMM yyyy HH:mm') : 'N/A'}">N/A</span></div>
           <div><strong>Status</strong><br><span th:text="${deal.paymentStatus}">Status</span></div>
         </div>

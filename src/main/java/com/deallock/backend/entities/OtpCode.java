@@ -12,6 +12,8 @@ public class OtpCode {
     private Long id;
 
     private String email;
+    private String phone;
+    private String channel;
     private String code;
     private Instant expiresAt;
     private boolean verified;
@@ -30,6 +32,22 @@ public class OtpCode {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 
     public String getCode() {

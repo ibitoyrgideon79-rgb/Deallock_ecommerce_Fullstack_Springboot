@@ -175,8 +175,43 @@
       </div>
 
       <div class="form-row">
-        <label for="client-name">Client Name</label>
+        <label for="client-name">Seller Name</label>
         <input type="text" id="client-name" name="client-name" placeholder="Full name or Business name" required>
+      </div>
+
+      <div class="form-row">
+        <label for="seller-phone">Seller Phone Number</label>
+        <input type="tel" id="seller-phone" name="seller-phone" placeholder="e.g. 08012345678" required>
+      </div>
+
+      <div class="form-row">
+        <label for="seller-address">Seller Address</label>
+        <textarea id="seller-address" name="seller-address" rows="3" placeholder="Full pickup address" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="delivery-address">Delivery Address</label>
+        <textarea id="delivery-address" name="delivery-address" rows="3" placeholder="Where item should be delivered" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <label for="item-size">Item Size</label>
+        <select id="item-size" name="item-size" class="select-input" required>
+          <option value="">Select size</option>
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="courier-partner">Courier Partner</label>
+        <select id="courier-partner" name="courier-partner" class="select-input">
+          <option value="Auto-select">Auto-select</option>
+          <option value="GIG Logistics">GIG Logistics</option>
+          <option value="Kwik Delivery">Kwik Delivery</option>
+          <option value="DHL Nigeria">DHL Nigeria</option>
+        </select>
       </div>
 
       <div class="form-row">
@@ -239,20 +274,20 @@
       <strong id="display-value">0</strong>
     </div>
     <div class="row">
-      <span>Service Fee (5% per week)</span>
+      <span>Holding Fee + VAT</span>
       <strong id="display-service-fee">NGN 0</strong>
     </div>
-    <div class="row" id="extra-fee-row" style="display:none;">
-      <span>Extra 5% (extended plan)</span>
-      <strong id="display-extra-fee">NGN 0</strong>
-    </div>
     <div class="row">
-      <span>VAT (7.5%)</span>
-      <strong id="display-vat">NGN 0</strong>
+      <span>Logistics Fee</span>
+      <strong id="display-logistics-fee">NGN 0</strong>
     </div>
     <div class="row total">
       <span>Total Amount to Pay</span>
       <strong id="display-total">NGN 0</strong>
+    </div>
+    <div class="row">
+      <span>Upfront Due Now (50% item value + logistics)</span>
+      <strong id="display-upfront-due">NGN 0</strong>
     </div>
   </div>
 
@@ -277,13 +312,13 @@
       class="input-small"
       required
     >
-    <small class="text-muted mt-1">Plans longer than 2 weeks attract an extra 5% fee</small>
+    <small class="text-muted mt-1">Plans longer than 2 weeks require approval</small>
   </div>
 
   <div class="payment-breakdown mt-4" id="breakdown" style="display:none;">
     <h4>Payment Schedule Preview</h4>
     <div class="breakdown-row">
-      <span>Upfront (50% of total)</span>
+      <span>Upfront (50% item value + logistics)</span>
       <strong id="upfront-amount">NGN 0</strong>
     </div>
     <div class="breakdown-row">
@@ -294,9 +329,9 @@
 
   <div class="form-group mt-3">
     <small class="text-muted">
-      ? First 50% due immediately<br>
-      ? Remaining 50% spread over selected weeks<br>
-      ? Plans > 2 weeks require approval and add 5% extra fee
+      ? Upfront is 50% of item value plus logistics fee<br>
+      ? Remaining balance spread over selected weeks<br>
+      ? Plans > 2 weeks require approval
     </small>
   </div>
 </div>

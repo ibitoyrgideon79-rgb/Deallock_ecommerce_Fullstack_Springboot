@@ -4,11 +4,14 @@ import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.EmailService;
+import com.deallock.backend.services.SmsService;
 import com.deallock.backend.services.NotificationService;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -33,6 +36,7 @@ public class DealApiController {
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final SmsService smsService;
     private final NotificationService notificationService;
 
     @Value("${app.base-url:http://localhost:8080}")
@@ -41,10 +45,12 @@ public class DealApiController {
     public DealApiController(DealRepository dealRepository,
                              UserRepository userRepository,
                              EmailService emailService,
+                             SmsService smsService,
                              NotificationService notificationService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+        this.smsService = smsService;
         this.notificationService = notificationService;
     }
 
@@ -77,6 +83,13 @@ public class DealApiController {
     public ResponseEntity<?> createDeal(@RequestParam("deal-title") String title,
                                         @RequestParam(value = "deal-link", required = false) String link,
                                         @RequestParam("client-name") String clientName,
+                                        @RequestParam(value = "seller-phone", required = false) String sellerPhone,
+                                        @RequestParam("seller-address") String sellerAddress,
+                                        @RequestParam("delivery-address") String deliveryAddress,
+                                        @RequestParam("item-size") String itemSize,
+                                        @RequestParam(value = "courier-partner", required = false) String courierPartner,
+                                        @RequestParam("weeks") String weeksSelection,
+                                        @RequestParam(value = "customWeeks", required = false) Integer customWeeks,
                                         @RequestParam("deal-value") BigDecimal value,
                                         @RequestParam(value = "description", required = false) String description,
                                         @RequestParam(value = "itemPhoto", required = false) MultipartFile itemPhoto,
@@ -85,18 +98,49 @@ public class DealApiController {
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        int weeks = resolveWeeks(weeksSelection, customWeeks);
+        if (weeks < 1) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid installment weeks."));
+        }
+        if (value == null || value.compareTo(BigDecimal.valueOf(1000)) < 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid item value."));
+        }
 
         Deal deal = new Deal();
         deal.setUser(userOpt.get());
         deal.setTitle(title);
         deal.setLink(link);
         deal.setClientName(clientName);
+        deal.setSellerPhoneNumber(sellerPhone);
+        deal.setSellerAddress(sellerAddress);
+        deal.setDeliveryAddress(deliveryAddress);
+        deal.setItemSize(itemSize);
+        deal.setCourierPartner(courierPartner == null || courierPartner.isBlank() ? "Auto-select" : courierPartner);
+        deal.setInstallmentWeeks(weeks);
         deal.setValue(value);
         deal.setDescription(description);
         deal.setStatus("Pending Approval");
         deal.setCreatedAt(Instant.now());
         deal.setPaymentStatus("NOT_PAID");
         deal.setSecured(false);
+
+        BigDecimal holdingFee = roundMoney(value.multiply(BigDecimal.valueOf(0.05)).multiply(BigDecimal.valueOf(weeks)));
+        BigDecimal vatAmount = roundMoney(holdingFee.multiply(BigDecimal.valueOf(0.075)));
+        BigDecimal logisticsFee = calculateLogisticsFee(sellerAddress, deliveryAddress, itemSize, deal.getCourierPartner());
+        BigDecimal upfront = roundMoney(value.multiply(BigDecimal.valueOf(0.5)).add(logisticsFee));
+        BigDecimal total = roundMoney(value.add(holdingFee).add(vatAmount).add(logisticsFee));
+        BigDecimal remaining = roundMoney(total.subtract(upfront));
+        BigDecimal weekly = weeks > 0
+                ? roundMoney(remaining.divide(BigDecimal.valueOf(weeks), 2, RoundingMode.HALF_UP))
+                : BigDecimal.ZERO;
+
+        deal.setHoldingFeeAmount(holdingFee);
+        deal.setVatAmount(vatAmount);
+        deal.setLogisticsFeeAmount(logisticsFee);
+        deal.setUpfrontPaymentAmount(upfront);
+        deal.setTotalAmount(total);
+        deal.setRemainingBalanceAmount(remaining);
+        deal.setWeeklyPaymentAmount(weekly);
 
         if (itemPhoto != null && !itemPhoto.isEmpty()) {
             deal.setItemPhoto(itemPhoto.getBytes());
@@ -111,9 +155,18 @@ public class DealApiController {
                 // Avoid blocking the request if email sending fails
             }
         });
-        runSafely(() -> notificationService.notifyAdmins("New deal created: " + safe(deal.getTitle())));
-        runSafely(() -> notificationService.notifyUser(deal.getUser(), "Deal created. Awaiting admin approval."));
-        return ResponseEntity.ok(Map.of("message", "Deal created", "id", deal.getId()));
+        notificationService.notifyUser(userOpt.get(), "Deal sent. We received your deal.");
+        notificationService.notifyAdmins("New deal submitted: " + safe(deal.getTitle()));
+        if (userOpt.get().getPhone() != null) {
+            smsService.sendToUser(userOpt.get().getPhone(), "Deal received. Awaiting approval.");
+        }
+        return ResponseEntity.ok(Map.of(
+                "message", "Deal created",
+                "id", deal.getId(),
+                "upfrontPaymentAmount", deal.getUpfrontPaymentAmount(),
+                "logisticsFeeAmount", deal.getLogisticsFeeAmount(),
+                "totalAmount", deal.getTotalAmount()
+        ));
     }
 
     @GetMapping("/{id}/photo")
@@ -171,6 +224,15 @@ public class DealApiController {
         }
 
         dealRepository.deleteById(id);
+        String actor = isAdmin ? "admin" : "user";
+        notificationService.notifyAdmins("Deal canceled by " + actor + ": " + safe(deal.getTitle()));
+        if (deal.getUser() != null) {
+            notificationService.notifyUser(deal.getUser(), "Deal canceled: " + safe(deal.getTitle()));
+            if (deal.getUser().getPhone() != null) {
+                smsService.sendToUser(deal.getUser().getPhone(), "Deal canceled: " + safe(deal.getTitle()));
+            }
+        }
+        smsService.sendToAdmins("Deal canceled by " + actor + ": " + safe(deal.getTitle()));
         return ResponseEntity.ok(Map.of("message", "Deal deleted"));
     }
 
@@ -249,10 +311,29 @@ public class DealApiController {
         deal.setPaymentProofContentType(paymentProof.getContentType());
         deal.setPaymentProofUploadedAt(Instant.now());
         if (deal.getValue() != null) {
-            deal.setPaymentProofAmount(deal.getValue().multiply(BigDecimal.valueOf(0.5)));
+            if (deal.getUpfrontPaymentAmount() != null) {
+                deal.setPaymentProofAmount(deal.getUpfrontPaymentAmount());
+            } else {
+                deal.setPaymentProofAmount(deal.getValue().multiply(BigDecimal.valueOf(0.5)));
+            }
         }
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
         dealRepository.save(deal);
+        notificationService.notifyUser(deal.getUser(), "Payment proof received. We are verifying your payment.");
+        notificationService.notifyAdmins("Payment proof uploaded: " + safe(deal.getTitle()));
+        if (deal.getUser() != null && deal.getUser().getEmail() != null) {
+            emailService.sendPaymentProofReceivedToUser(deal.getUser().getEmail(),
+                    "Payment proof received for: " + safe(deal.getTitle()));
+        }
+        userRepository.findByRole("ROLE_ADMIN").stream()
+                .map(u -> u.getEmail())
+                .filter(e -> e != null && !e.isBlank())
+                .forEach(e -> emailService.sendPaymentProofReceivedToAdmin(e,
+                        "Payment proof uploaded for: " + safe(deal.getTitle())));
+        if (deal.getUser() != null && deal.getUser().getPhone() != null) {
+            smsService.sendToUser(deal.getUser().getPhone(), "Payment proof received. Verifying payment.");
+        }
+        smsService.sendToAdmins("Payment proof uploaded: " + safe(deal.getTitle()));
 
         return ResponseEntity.ok(Map.of("message", "Payment proof uploaded"));
     }
@@ -294,8 +375,16 @@ public class DealApiController {
         String detailsLink = baseUrl + "/dashboard/deal/" + deal.getId();
         String baseText = "Deal created.\n\n"
                 + "Title: " + safe(deal.getTitle()) + "\n"
-                + "Client: " + safe(deal.getClientName()) + "\n"
+                + "Seller: " + safe(deal.getClientName()) + "\n"
+                + "Seller Phone: " + safe(deal.getSellerPhoneNumber()) + "\n"
+                + "Seller Address: " + safe(deal.getSellerAddress()) + "\n"
+                + "Delivery Address: " + safe(deal.getDeliveryAddress()) + "\n"
+                + "Item Size: " + safe(deal.getItemSize()) + "\n"
+                + "Courier Partner: " + safe(deal.getCourierPartner()) + "\n"
+                + "Installment Weeks: " + (deal.getInstallmentWeeks() != null ? deal.getInstallmentWeeks() : 0) + "\n"
                 + "Value: NGN " + (deal.getValue() != null ? deal.getValue() : "0") + "\n"
+                + "Logistics Fee: NGN " + (deal.getLogisticsFeeAmount() != null ? deal.getLogisticsFeeAmount() : "0") + "\n"
+                + "Upfront: NGN " + (deal.getUpfrontPaymentAmount() != null ? deal.getUpfrontPaymentAmount() : "0") + "\n"
                 + "Status: " + safe(deal.getStatus()) + "\n"
                 + "Details: " + detailsLink + "\n";
 
@@ -305,18 +394,65 @@ public class DealApiController {
                 .forEach(e -> emailService.sendDealCreatedToAdmin(e, baseText));
 
         if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-            emailService.sendDealCreatedToUser(deal.getUser().getEmail(), baseText + "\nAwaiting admin approval.");
+            emailService.sendDealCreatedToUser(deal.getUser().getEmail(), baseText);
         }
+        smsService.sendToAdmins("New deal created: " + safe(deal.getTitle()));
     }
 
     private String safe(String value) {
         return value == null ? "" : value;
     }
 
-    private void runSafely(Runnable action) {
-        try {
-            action.run();
-        } catch (Exception ignored) {
+    private int resolveWeeks(String weeksSelection, Integer customWeeks) {
+        if ("custom".equalsIgnoreCase(weeksSelection)) {
+            return customWeeks == null ? 0 : customWeeks;
         }
+        try {
+            return Integer.parseInt(weeksSelection);
+        } catch (Exception ignored) {
+            return 0;
+        }
+    }
+
+    private BigDecimal calculateLogisticsFee(String sellerAddress,
+                                             String deliveryAddress,
+                                             String itemSize,
+                                             String courierPartner) {
+        BigDecimal baseFee = switch ((itemSize == null ? "" : itemSize).toLowerCase(Locale.ROOT)) {
+            case "medium" -> BigDecimal.valueOf(9000);
+            case "large" -> BigDecimal.valueOf(15000);
+            default -> BigDecimal.valueOf(5000);
+        };
+
+        String seller = sellerAddress == null ? "" : sellerAddress.toLowerCase(Locale.ROOT);
+        String buyer = deliveryAddress == null ? "" : deliveryAddress.toLowerCase(Locale.ROOT);
+        BigDecimal distanceFactor = BigDecimal.valueOf(1.0);
+        if (!seller.isBlank() && !buyer.isBlank()) {
+            boolean sellerAbuja = seller.contains("abuja") || seller.contains("fct");
+            boolean buyerAbuja = buyer.contains("abuja") || buyer.contains("fct");
+            if (sellerAbuja && buyerAbuja) {
+                distanceFactor = BigDecimal.valueOf(1.0);
+            } else if (sellerAbuja || buyerAbuja) {
+                distanceFactor = BigDecimal.valueOf(1.45);
+            } else {
+                distanceFactor = BigDecimal.valueOf(1.65);
+            }
+        }
+
+        BigDecimal courierFactor = BigDecimal.valueOf(1.0);
+        String partner = courierPartner == null ? "" : courierPartner.toLowerCase(Locale.ROOT);
+        if (partner.contains("gig")) {
+            courierFactor = BigDecimal.valueOf(1.1);
+        } else if (partner.contains("dhl")) {
+            courierFactor = BigDecimal.valueOf(1.2);
+        } else if (partner.contains("kwik")) {
+            courierFactor = BigDecimal.valueOf(1.08);
+        }
+
+        return roundMoney(baseFee.multiply(distanceFactor).multiply(courierFactor));
+    }
+
+    private BigDecimal roundMoney(BigDecimal amount) {
+        return amount.setScale(2, RoundingMode.HALF_UP);
     }
 }

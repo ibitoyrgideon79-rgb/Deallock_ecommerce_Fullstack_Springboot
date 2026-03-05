@@ -62,8 +62,40 @@
 
       <div class="deal-grid">
         <div>
-          <strong>Client Name</strong>
-          <div th:text="${deal.clientName}">Client</div>
+          <strong>Seller Name</strong>
+          <div th:text="${deal.clientName}">Seller</div>
+        </div>
+        <div>
+          <strong>Seller Phone Number</strong>
+          <div th:text="${deal.sellerPhoneNumber != null && !#strings.isEmpty(deal.sellerPhoneNumber) ? deal.sellerPhoneNumber : '-'}">-</div>
+        </div>
+        <div>
+          <strong>Seller Address</strong>
+          <div th:text="${deal.sellerAddress != null && !#strings.isEmpty(deal.sellerAddress) ? deal.sellerAddress : '-'}">-</div>
+        </div>
+        <div>
+          <strong>Delivery Address</strong>
+          <div th:text="${deal.deliveryAddress != null && !#strings.isEmpty(deal.deliveryAddress) ? deal.deliveryAddress : '-'}">-</div>
+        </div>
+        <div>
+          <strong>Item Size</strong>
+          <div th:text="${deal.itemSize != null && !#strings.isEmpty(deal.itemSize) ? deal.itemSize : '-'}">-</div>
+        </div>
+        <div>
+          <strong>Courier Partner</strong>
+          <div th:text="${deal.courierPartner != null && !#strings.isEmpty(deal.courierPartner) ? deal.courierPartner : 'Auto-select'}">Auto-select</div>
+        </div>
+        <div>
+          <strong>Logistics Fee</strong>
+          <div th:text="${deal.logisticsFeeAmount != null ? 'NGN ' + deal.logisticsFeeAmount : 'NGN 0'}">NGN 0</div>
+        </div>
+        <div>
+          <strong>Upfront Due Now</strong>
+          <div th:text="${deal.upfrontPaymentAmount != null ? 'NGN ' + deal.upfrontPaymentAmount : 'NGN 0'}">NGN 0</div>
+        </div>
+        <div>
+          <strong>Weekly Payment</strong>
+          <div th:text="${deal.weeklyPaymentAmount != null ? 'NGN ' + deal.weeklyPaymentAmount : 'NGN 0'}">NGN 0</div>
         </div>
         <div>
           <strong>Deal Link</strong>

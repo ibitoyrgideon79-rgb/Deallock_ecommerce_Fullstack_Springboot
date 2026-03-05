@@ -1,37 +1,59 @@
 package com.deallock.backend.services;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${spring.mail.username:}")
-    private String fromAddress;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    @Value("${emailjs.service-id:}")
+    private String serviceId;
+    @Value("${emailjs.template-id:}")
+    private String templateId;
+    @Value("${emailjs.public-key:}")
+    private String publicKey;
+    @Value("${emailjs.private-key:}")
+    private String privateKey;
 
     private void send(String to, String subject, String text) {
-        if (fromAddress == null || fromAddress.isBlank()) {
-            System.out.println("[DEV] SMTP not configured. To: " + to + " | " + subject + " | " + text);
+        if (serviceId == null || serviceId.isBlank()
+                || templateId == null || templateId.isBlank()
+                || publicKey == null || publicKey.isBlank()) {
+            System.out.println("[DEV] EmailJS not configured. To: " + to + " | " + subject + " | " + text);
             return;
         }
 
+        Map<String, Object> params = new HashMap<>();
+        params.put("to_email", to);
+        params.put("email", to);
+        params.put("subject", subject);
+        params.put("message", text);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("service_id", serviceId);
+        payload.put("template_id", templateId);
+        payload.put("user_id", publicKey);
+        payload.put("template_params", params);
+        if (privateKey != null && !privateKey.isBlank()) {
+            payload.put("accessToken", privateKey);
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setFrom(fromAddress);
-            message.setSubject(subject);
-            message.setText(text);
-            mailSender.send(message);
+            restTemplate.postForEntity("https://api.emailjs.com/api/v1.0/email/send", entity, String.class);
         } catch (Exception ex) {
-            System.out.println("[DEV] SMTP send failed: " + ex.getMessage());
+            System.out.println("[DEV] EmailJS send failed: " + ex.getMessage());
         }
     }
 
@@ -61,5 +83,29 @@ public class EmailService {
 
     public void sendDealApprovedToAdmin(String email, String details) {
         send(email, "Deal Approved", details);
+    }
+
+    public void sendDealRejectedToUser(String email, String details) {
+        send(email, "Deal Rejected", details);
+    }
+
+    public void sendPaymentConfirmedToUser(String email, String details) {
+        send(email, "Payment Confirmed", details);
+    }
+
+    public void sendPaymentNotReceivedToUser(String email, String details) {
+        send(email, "Payment Not Received", details);
+    }
+
+    public void sendDealSecuredToUser(String email, String details) {
+        send(email, "Deal Secured", details);
+    }
+
+    public void sendPaymentProofReceivedToUser(String email, String details) {
+        send(email, "Payment Proof Received", details);
+    }
+
+    public void sendPaymentProofReceivedToAdmin(String email, String details) {
+        send(email, "Payment Proof Uploaded", details);
     }
 }

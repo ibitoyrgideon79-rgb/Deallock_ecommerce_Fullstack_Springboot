@@ -3,10 +3,13 @@ const API_BASE = "/api";
     let emailVerified = false;
     let isSendingOtp  = false;
     let countdownTimer = null;
+    let resendCooldown = 0;
+    let emailjsReady = false;
 
     const els = {
         email:        document.getElementById("email"),
         getCodeBtn:   document.getElementById("getCodeBtn"),
+        otpChannel:   document.querySelector('input[name="otpChannel"]:checked'),
         otpSection:   document.getElementById("otpSection"),
         otpInput:     document.getElementById("otpInput"),
         verifyOtpBtn: document.getElementById("verifyOtpBtn"),
@@ -31,33 +34,26 @@ const API_BASE = "/api";
     };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[0-9]{7,15}$/;
 
-    function wireToggle(btnId, inputId) {
-        const btn = document.getElementById(btnId);
-        const input = document.getElementById(inputId);
-        if (!btn || !input) return;
-
-        const eyeOpenSVG = '<svg viewBox="0 0 24 24" width="20" height="20">' +
-          '<circle cx="12" cy="12" r="3" />' +
-          '<path d="M22 12c-2.667 4.667-6 7-10 7s-7.333-2.333-10-7c2.667-4.667 6-7 10-7s7.333 2.333 10 7z" />' +
-          '</svg>';
-
-        const eyeClosedSVG = '<svg viewBox="0 0 24 24" width="20" height="20">' +
-          '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />' +
-          '<line x1="1" y1="1" x2="23" y2="23" />' +
-          '</svg>';
-
-        btn.addEventListener('click', () => {
-            const isPassword = input.type === 'password';
-            input.type = isPassword ? 'text' : 'password';
-            btn.innerHTML = isPassword ? eyeClosedSVG : eyeOpenSVG;
-            btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-            btn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
-        });
+    function getEmailJsConfig() {
+        const serviceId = document.querySelector('meta[name="emailjs-service-id"]')?.content?.trim();
+        const templateId = document.querySelector('meta[name="emailjs-template-id"]')?.content?.trim();
+        const publicKey = document.querySelector('meta[name="emailjs-public-key"]')?.content?.trim();
+        return { serviceId, templateId, publicKey };
     }
 
-    wireToggle('toggleSignupPassword', 'password');
-    wireToggle('toggleSignupConfirm', 'confirmPassword');
+    (function initEmailJs() {
+        const cfg = getEmailJsConfig();
+        if (window.emailjs && cfg.publicKey) {
+            try {
+                window.emailjs.init(cfg.publicKey);
+                emailjsReady = true;
+            } catch (e) {
+                emailjsReady = false;
+            }
+        }
+    })();
 
     function showError(el, msg) {
         el.textContent = msg;
@@ -74,8 +70,14 @@ const API_BASE = "/api";
 
     function updateGetCodeButton() {
         const valid = emailRegex.test(els.email.value.trim());
+        const channel = document.querySelector('input[name="otpChannel"]:checked')?.value || "email";
+        const phoneValue = document.getElementById("phone")?.value?.trim() || "";
+        const phoneOk = channel !== "phone" || phoneRegex.test(phoneValue);
         els.getCodeBtn.style.display = valid ? "block" : "none";
-        els.getCodeBtn.disabled = !valid || isSendingOtp;
+        els.getCodeBtn.disabled = !valid || !phoneOk || isSendingOtp || resendCooldown > 0;
+        if (!isSendingOtp && resendCooldown <= 0) {
+            els.getCodeBtn.textContent = "Get Verification Code";
+        }
 
         if (!valid) {
             els.otpSection.style.display = "none";
@@ -86,11 +88,60 @@ const API_BASE = "/api";
 
     els.email.addEventListener("input", updateGetCodeButton);
     els.email.addEventListener("change", updateGetCodeButton);
+    document.getElementById("phone")?.addEventListener("input", updateGetCodeButton);
+    document.querySelectorAll('input[name="otpChannel"]').forEach(r => {
+        r.addEventListener("change", updateGetCodeButton);
+    });
+
+    function startResendCooldown(seconds) {
+        resendCooldown = seconds;
+        if (els.resendLink) {
+            els.resendLink.style.pointerEvents = "none";
+            els.resendLink.style.opacity = "0.6";
+        }
+        if (els.status) {
+            els.status.textContent = `OTP sent. You can resend in ${resendCooldown}s.`;
+        }
+        const tick = () => {
+            resendCooldown -= 1;
+            if (resendCooldown <= 0) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+                if (els.resendLink) {
+                    els.resendLink.style.pointerEvents = "";
+                    els.resendLink.style.opacity = "";
+                    els.resendLink.textContent = "Didn't receive code? Resend";
+                }
+                updateGetCodeButton();
+                if (els.status) els.status.textContent = "";
+                return;
+            }
+            if (els.resendLink) {
+                els.resendLink.textContent = `Resend in ${resendCooldown}s`;
+            }
+            updateGetCodeButton();
+        };
+        if (countdownTimer) clearInterval(countdownTimer);
+        countdownTimer = setInterval(tick, 1000);
+    }
 
     async function sendOtp() {
         if (isSendingOtp) return;
         const email = els.email.value.trim();
+        const channel = document.querySelector('input[name="otpChannel"]:checked')?.value || "email";
+        const phone = document.getElementById("phone")?.value?.trim() || "";
         if (!emailRegex.test(email)) return;
+        if (channel === "phone" && !phoneRegex.test(phone)) {
+            showError(errors.phone, "Please enter a valid phone number");
+            return;
+        }
+
+        const cfg = getEmailJsConfig();
+        if (channel === "email" && (!emailjsReady || !cfg.serviceId || !cfg.templateId)) {
+            showError(errors.email, "Email service not configured.");
+            if (els.status) els.status.textContent = "Email service not configured.";
+            return;
+        }
 
         isSendingOtp = true;
         els.getCodeBtn.disabled = true;
@@ -101,7 +152,7 @@ const API_BASE = "/api";
             const res = await fetch(`${API_BASE}/send-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email, phone, channel })
             });
 
             const data = await res.json();
@@ -110,14 +161,28 @@ const API_BASE = "/api";
                 throw new Error(data.message || "Failed to send code");
             }
 
+            if (channel === "email") {
+                const otp = data.otp;
+                if (!otp) {
+                    throw new Error("OTP not generated");
+                }
+                await window.emailjs.send(cfg.serviceId, cfg.templateId, {
+                    to_email: email,
+                    email: email,
+                    subject: "Your OTP Code",
+                    message: "Your OTP is: " + otp
+                });
+            }
+
             els.otpSection.style.display = "block";
             els.otpInput.value = "";
             els.verifyOtpBtn.disabled = false;
             els.getCodeBtn.textContent = "Resend Code";
-            if (els.status) els.status.textContent = "OTP sent. Check your email.";
+            startResendCooldown(60);
         } catch (err) {
             showError(errors.email, err.message || "Could not send verification code");
             if (els.status) els.status.textContent = err.message || "Could not send verification code";
+            els.getCodeBtn.textContent = "Get Verification Code";
         } finally {
             isSendingOtp = false;
             updateGetCodeButton();
@@ -133,6 +198,8 @@ const API_BASE = "/api";
             showError(errors.otp, "Please enter the code");
             return;
         }
+        const channel = document.querySelector('input[name="otpChannel"]:checked')?.value || "email";
+        const phone = document.getElementById("phone")?.value?.trim() || "";
 
         els.verifyOtpBtn.disabled = true;
         errors.otp.textContent = "";
@@ -143,6 +210,8 @@ const API_BASE = "/api";
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: els.email.value.trim(),
+                    phone,
+                    channel,
                     otp
                 })
             });
@@ -259,6 +328,20 @@ const API_BASE = "/api";
                 throw new Error(data.message || "Registration failed");
             }
 
+            const activationLink = data.activationLink;
+            if (activationLink) {
+                const cfg = getEmailJsConfig();
+                if (emailjsReady && cfg.serviceId && cfg.templateId) {
+                    await window.emailjs.send(cfg.serviceId, cfg.templateId, {
+                        to_email: values.email,
+                        email: values.email,
+                        subject: "Activate your account",
+                        message: "Click to activate: " + activationLink
+                    });
+                }
+            }
+
+            
             els.successPopup.style.display = "flex";
             let sec = 8;
             els.countdown.textContent = sec;
@@ -277,4 +360,19 @@ const API_BASE = "/api";
                 els.status.textContent = err.message || "Something went wrong during registration";
             }
         }
+    });
+
+    document.querySelectorAll(".toggle-password").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const targetId = btn.getAttribute("data-target");
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            const icon = btn.querySelector("i");
+            if (icon) {
+                icon.classList.toggle("fa-eye", !isHidden);
+                icon.classList.toggle("fa-eye-slash", isHidden);
+            }
+        });
     });
