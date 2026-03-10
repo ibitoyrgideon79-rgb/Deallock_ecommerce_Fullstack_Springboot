@@ -1,11 +1,5 @@
 package com.deallock.backend.services;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -14,28 +8,12 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final HttpClient httpClient;
-
-    @Value("${RESEND_API_KEY:}")
-    private String resendApiKey;
-
-    @Value("${RESEND_FROM:no-reply@send.deallock.ng}")
-    private String resendFrom;
 
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
-        this.httpClient = HttpClient.newHttpClient();
     }
 
     private void send(String to, String subject, String text) {
-        if (!isBlank(resendApiKey)) {
-            try {
-                sendViaResend(to, subject, text);
-                return;
-            } catch (Exception ex) {
-                System.out.println("[WARN] Resend send failed, falling back to SMTP: " + ex.getMessage());
-            }
-        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(to);
@@ -45,39 +23,6 @@ public class EmailService {
         } catch (Exception ex) {
             System.out.println("[WARN] SMTP send failed: " + ex.getMessage());
         }
-    }
-
-    private void sendViaResend(String to, String subject, String text) throws Exception {
-        String from = isBlank(resendFrom) ? "no-reply@send.deallock.ng" : resendFrom;
-        String payload = "{\"from\":\"" + escapeJson(from) + "\","
-                + "\"to\":[\"" + escapeJson(to) + "\"],"
-                + "\"subject\":\"" + escapeJson(subject) + "\","
-                + "\"text\":\"" + escapeJson(text) + "\"}";
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.resend.com/emails"))
-                .header("Authorization", "Bearer " + resendApiKey)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-                .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        int code = response.statusCode();
-        if (code < 200 || code >= 300) {
-            throw new IllegalStateException("Resend HTTP " + code + ": " + response.body());
-        }
-    }
-
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) return "";
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r");
     }
 
     public void sendOtp(String email, String otp) {
