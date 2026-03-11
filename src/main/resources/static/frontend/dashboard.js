@@ -77,9 +77,13 @@ async function loadDeals() {
       const statusLower = status.toLowerCase();
       const isApproved = statusLower === 'approved';
       const isPending = statusLower.includes('pending');
+      const isRejected = statusLower === 'rejected';
       const paymentStatus = (deal.paymentStatus || 'NOT_PAID').toLowerCase();
       const isPaymentPending = paymentStatus === 'paid_pending_confirmation';
       const isPaymentConfirmed = paymentStatus === 'paid_confirmed';
+      const rejectionReason = deal.rejectionReason && String(deal.rejectionReason).trim()
+        ? String(deal.rejectionReason)
+        : '';
       card.className = `deal-card ${status.toLowerCase().replace(/\s+/g, '-')}`;
       card.dataset.dealId = deal.id;
       card.dataset.status = status;
@@ -87,6 +91,7 @@ async function loadDeals() {
         <div class="deal-title">${deal.title || 'Untitled Deal'}</div>
         <div class="deal-status">${status}</div>
         <div class="deal-value">NGN ${Number(deal.value || 0).toLocaleString()}</div>
+        ${isRejected ? `<div class="deal-status" style="color:#b91c1c;">Rejection reason: ${rejectionReason || 'No reason provided.'}</div>` : ''}
         <div class="deal-actions" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
           <a class="btn-submit deal-details-link" href="/dashboard/deal/${deal.id}">See Details</a>
           <a class="btn-submit deal-details-link" href="/dashboard/deal/${deal.id}/track">Track Deal</a>

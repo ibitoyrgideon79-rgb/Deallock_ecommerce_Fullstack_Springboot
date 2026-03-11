@@ -73,6 +73,7 @@ public class DealApiController {
                     row.put("status", d.getStatus() == null ? "Pending Approval" : d.getStatus());
                     row.put("value", d.getValue() == null ? 0 : d.getValue());
                     row.put("paymentStatus", d.getPaymentStatus() == null ? "NOT_PAID" : d.getPaymentStatus());
+                    row.put("rejectionReason", d.getRejectionReason());
                     row.put("secured", d.isSecured());
                     row.put("createdAt", d.getCreatedAt());
                     return row;

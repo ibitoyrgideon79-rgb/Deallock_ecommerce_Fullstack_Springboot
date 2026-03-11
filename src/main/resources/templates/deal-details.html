@@ -133,6 +133,12 @@
           <strong>Status</strong>
           <div th:text="${deal.status}">Approved</div>
         </div>
+        <div th:if="${deal.status != null && deal.status.equalsIgnoreCase('Rejected')}">
+          <strong>Rejection Reason</strong>
+          <div th:text="${deal.rejectionReason != null && !#strings.isEmpty(deal.rejectionReason) ? deal.rejectionReason : 'No reason provided.'}">
+            No reason provided.
+          </div>
+        </div>
       </div>
 
       <div style="margin-top:16px;">

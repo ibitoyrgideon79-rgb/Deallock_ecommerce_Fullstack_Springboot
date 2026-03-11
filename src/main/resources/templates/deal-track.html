@@ -82,6 +82,10 @@
         <div>
           <div class="track-title">Deal approved</div>
           <div class="track-sub" th:text="${deal.status != null && deal.status.equalsIgnoreCase('Rejected')} ? 'Deal rejected' : 'Approved by admin'">Approved by admin</div>
+          <div class="track-sub" th:if="${deal.status != null && deal.status.equalsIgnoreCase('Rejected')}"
+               th:text="${deal.rejectionReason != null && !#strings.isEmpty(deal.rejectionReason) ? 'Reason: ' + deal.rejectionReason : 'Reason: No reason provided.'}">
+            Reason: No reason provided.
+          </div>
         </div>
       </div>
 

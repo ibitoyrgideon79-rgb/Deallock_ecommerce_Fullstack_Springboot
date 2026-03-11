@@ -25,11 +25,11 @@
 
       <ul class="nav-links" id="nav-links">
           <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
-        <li><a href="#about">About Us</a></li>
-        <li><a href="#products">Items We Buy</a></li>
-        <li><a href="#how-it-works">How It Works</a></li>
-        <li><a href="/terms">Terms and Conditions</a></li>
-        <li><a href="#footer">Contact Us</a></li>
+        <li th:if="${currentUser == null}"><a href="#about">About Us</a></li>
+        <li th:if="${currentUser == null}"><a href="#products">Items We Buy</a></li>
+        <li th:if="${currentUser == null}"><a href="#how-it-works">How It Works</a></li>
+        <li th:if="${currentUser == null}"><a href="/terms">Terms and Conditions</a></li>
+        <li th:if="${currentUser == null}"><a href="#footer">Contact Us</a></li>
         <li th:if="${currentUser != null}"><a href="/dashboard">Dashboard</a></li>
         <li th:if="${currentUser != null}"><a href="/profile">Profile</a></li>
         <li th:if="${currentUser != null && isAdmin}"><a href="/admin">Admin Console</a></li>

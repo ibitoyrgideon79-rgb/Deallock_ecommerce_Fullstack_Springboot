@@ -53,6 +53,8 @@ public class Deal {
     private String status;
     private Instant createdAt;
     private String paymentStatus;
+    @Column(name = "rejection_reason", length = 2000)
+    private String rejectionReason;
     private boolean secured;
     private Instant securedAt;
     private BigDecimal paymentProofAmount;

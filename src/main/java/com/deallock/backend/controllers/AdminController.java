@@ -130,19 +130,25 @@ public class AdminController {
     }
 
     @PostMapping("/admin/deals/{id}/reject")
-    public String reject(@PathVariable("id") Long id) {
+    public String reject(@PathVariable("id") Long id,
+                         @RequestParam(value = "rejectionReason", required = false) String rejectionReason) {
         dealRepository.findById(id).ifPresent(deal -> {
             deal.setStatus("Rejected");
+            String reason = rejectionReason == null ? "" : rejectionReason.trim();
+            if (reason.isBlank()) {
+                reason = "No reason provided.";
+            }
+            deal.setRejectionReason(reason);
             dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal was rejected.");
+            notificationService.notifyUser(deal.getUser(), "Your deal was rejected. Reason: " + safe(reason));
             notificationService.notifyAdmins("Deal rejected: " + safe(deal.getTitle()));
             if (deal.getUser() != null && deal.getUser().getPhone() != null) {
-                smsService.sendToUser(deal.getUser().getPhone(), "Your deal was rejected.");
+                smsService.sendToUser(deal.getUser().getPhone(), "Your deal was rejected. Reason: " + safe(reason));
             }
             smsService.sendToAdmins("Deal rejected: " + safe(deal.getTitle()));
             if (deal.getUser() != null && deal.getUser().getEmail() != null) {
                 emailService.sendDealRejectedToUser(deal.getUser().getEmail(),
-                        "Your deal was rejected: " + safe(deal.getTitle()));
+                        "Your deal was rejected: " + safe(deal.getTitle()) + "\nReason: " + safe(reason));
             }
         });
         return "redirect:/admin?message=rejected";
