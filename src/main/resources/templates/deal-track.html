@@ -36,6 +36,23 @@
     .track-item.active .track-title { color:#111111; }
     .track-sub { color:#94a3b8; font-size: 13px; }
     .track-item.active .track-sub { color:#64748b; }
+    .close-link {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid #dbe7df;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #111111;
+      background: #ffffff;
+      font-size: 20px;
+      line-height: 1;
+      text-decoration: none;
+    }
+    .close-link:hover {
+      background: #f8fafc;
+    }
     @media (max-width: 768px) {
       .subpage-main { padding-top: 130px; }
     }
@@ -52,6 +69,7 @@
       </div>
       <ul class="nav-links">
         <li><a href="/dashboard">Back to Dashboard</a></li>
+        <li><a href="/dashboard" class="close-link" aria-label="Close">×</a></li>
         <li><a href="/logout">Log out</a></li>
       </ul>
     </nav>
