@@ -47,6 +47,13 @@ public class EmailService {
         }
     }
 
+    public void sendGeneric(String email, String subject, String body) {
+        if (isBlank(email) || isBlank(subject) || isBlank(body)) {
+            return;
+        }
+        send(email, subject, body);
+    }
+
     private void sendViaResend(String to, String subject, String text) throws Exception {
         String from = isBlank(resendFrom) ? "no-reply@send.deallock.ng" : resendFrom;
         String payload = "{\"from\":\"" + escapeJson(from) + "\","

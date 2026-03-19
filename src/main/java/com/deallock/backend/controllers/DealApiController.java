@@ -3,9 +3,8 @@ package com.deallock.backend.controllers;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
-import com.deallock.backend.services.EmailService;
+import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.SmsService;
-import com.deallock.backend.services.NotificationService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
@@ -34,25 +33,24 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/deals")
 public class DealApiController {
 
+    private static final long MAX_UPLOAD_BYTES = 500L * 1024L;
+
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
-    private final EmailService emailService;
     private final SmsService smsService;
-    private final NotificationService notificationService;
+    private final NotificationDispatchService notifier;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
     public DealApiController(DealRepository dealRepository,
                              UserRepository userRepository,
-                             EmailService emailService,
                              SmsService smsService,
-                             NotificationService notificationService) {
+                             NotificationDispatchService notifier) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
-        this.emailService = emailService;
         this.smsService = smsService;
-        this.notificationService = notificationService;
+        this.notifier = notifier;
     }
 
     @GetMapping
@@ -150,6 +148,9 @@ public class DealApiController {
         deal.setWeeklyPaymentAmount(weekly);
 
         if (itemPhoto != null && !itemPhoto.isEmpty()) {
+            if (itemPhoto.getSize() > MAX_UPLOAD_BYTES) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Item photo must be at most 500KB."));
+            }
             deal.setItemPhoto(itemPhoto.getBytes());
             deal.setItemPhotoContentType(itemPhoto.getContentType());
         }
@@ -161,8 +162,16 @@ public class DealApiController {
             } catch (Exception ignored) {
             }
             try {
-                notificationService.notifyUser(userOpt.get(), "Deal sent. We received your deal.");
-                notificationService.notifyAdmins("New deal submitted: " + safe(deal.getTitle()));
+                notifier.notifyUser(userOpt.get(),
+                        "Deal sent. We received your deal.",
+                        "Your Deal Was Created",
+                        "Deal received. We are reviewing: " + safe(deal.getTitle()),
+                        "Deal received. We are reviewing: " + safe(deal.getTitle()));
+                notifier.notifyAdmins(
+                        "New deal submitted: " + safe(deal.getTitle()),
+                        "New Deal Created",
+                        "New deal submitted: " + safe(deal.getTitle()),
+                        "New deal submitted: " + safe(deal.getTitle()));
             } catch (Exception ignored) {
             }
             try {
@@ -214,6 +223,38 @@ public class DealApiController {
         return ResponseEntity.ok().contentType(type).body(deal.getItemPhoto());
     }
 
+    @GetMapping("/{id}/secured-photo")
+    public ResponseEntity<byte[]> securedPhoto(@PathVariable("id") Long id,
+                                               Principal principal,
+                                               Authentication authentication) {
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        var dealOpt = dealRepository.findById(id);
+        if (dealOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        var deal = dealOpt.get();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!isAdmin && deal.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (deal.getSecuredItemPhoto() == null || deal.getSecuredItemPhoto().length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM;
+        if (deal.getSecuredItemPhotoContentType() != null) {
+            type = MediaType.parseMediaType(deal.getSecuredItemPhotoContentType());
+        }
+        return ResponseEntity.ok().contentType(type).body(deal.getSecuredItemPhoto());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDeal(@PathVariable("id") Long id,
                                         Principal principal,
@@ -238,16 +279,18 @@ public class DealApiController {
 
         dealRepository.deleteById(id);
         String actor = isAdmin ? "admin" : "user";
-        notificationService.notifyAdmins("Deal canceled by " + actor + ": " + safe(deal.getTitle()));
+        notifier.notifyAdmins(
+                "Deal canceled by " + actor + ": " + safe(deal.getTitle()),
+                "Deal Canceled",
+                "Deal canceled by " + actor + ": " + safe(deal.getTitle()),
+                "Deal canceled by " + actor + ": " + safe(deal.getTitle()));
         if (deal.getUser() != null) {
-            notificationService.notifyUser(deal.getUser(), "Deal canceled: " + safe(deal.getTitle()));
-            if (deal.getUser().getPhone() != null) {
-                smsService.sendToUser(deal.getUser().getPhone(), "Deal canceled: " + safe(deal.getTitle()));
-                smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Deal canceled: " + safe(deal.getTitle()));
-            }
+            notifier.notifyUser(deal.getUser(),
+                    "Deal canceled: " + safe(deal.getTitle()),
+                    "Deal Canceled",
+                    "Deal canceled: " + safe(deal.getTitle()),
+                    "Deal canceled: " + safe(deal.getTitle()));
         }
-        smsService.sendToAdmins("Deal canceled by " + actor + ": " + safe(deal.getTitle()));
-        smsService.sendWhatsAppToAdmins("Deal canceled by " + actor + ": " + safe(deal.getTitle()));
         return ResponseEntity.ok(Map.of("message", "Deal deleted"));
     }
 
@@ -304,6 +347,9 @@ public class DealApiController {
         if (paymentProof == null || paymentProof.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment proof is required"));
         }
+        if (paymentProof.getSize() > MAX_UPLOAD_BYTES) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 500KB."));
+        }
 
         var dealOpt = dealRepository.findById(id);
         if (dealOpt.isEmpty()) {
@@ -334,23 +380,16 @@ public class DealApiController {
         }
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
         dealRepository.save(deal);
-        notificationService.notifyUser(deal.getUser(), "Payment proof received. We are verifying your payment.");
-        notificationService.notifyAdmins("Payment proof uploaded: " + safe(deal.getTitle()));
-        if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-            emailService.sendPaymentProofReceivedToUser(deal.getUser().getEmail(),
-                    "Payment proof received for: " + safe(deal.getTitle()));
-        }
-        userRepository.findByRole("ROLE_ADMIN").stream()
-                .map(u -> u.getEmail())
-                .filter(e -> e != null && !e.isBlank())
-                .forEach(e -> emailService.sendPaymentProofReceivedToAdmin(e,
-                        "Payment proof uploaded for: " + safe(deal.getTitle())));
-        if (deal.getUser() != null && deal.getUser().getPhone() != null) {
-            smsService.sendToUser(deal.getUser().getPhone(), "Payment proof received. Verifying payment.");
-            smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Payment proof received. Verifying payment.");
-        }
-        smsService.sendToAdmins("Payment proof uploaded: " + safe(deal.getTitle()));
-        smsService.sendWhatsAppToAdmins("Payment proof uploaded: " + safe(deal.getTitle()));
+        notifier.notifyUser(deal.getUser(),
+                "Payment proof received. We are verifying your payment.",
+                "Payment Proof Received",
+                "Payment proof received for: " + safe(deal.getTitle()),
+                "Payment proof received. Verifying payment.");
+        notifier.notifyAdmins(
+                "Payment proof uploaded: " + safe(deal.getTitle()),
+                "Payment Proof Uploaded",
+                "Payment proof uploaded for: " + safe(deal.getTitle()),
+                "Payment proof uploaded: " + safe(deal.getTitle()));
 
         return ResponseEntity.ok(Map.of("message", "Payment proof uploaded"));
     }
@@ -405,16 +444,19 @@ public class DealApiController {
                 + "Status: " + safe(deal.getStatus()) + "\n"
                 + "Details: " + detailsLink + "\n";
 
-        userRepository.findByRole("ROLE_ADMIN").stream()
-                .map(u -> u.getEmail())
-                .filter(e -> e != null && !e.isBlank())
-                .forEach(e -> emailService.sendDealCreatedToAdmin(e, baseText));
+        notifier.notifyAdmins(
+                "New deal created: " + safe(deal.getTitle()),
+                "New Deal Created",
+                baseText,
+                "New deal created: " + safe(deal.getTitle()));
 
-        if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-            emailService.sendDealCreatedToUser(deal.getUser().getEmail(), baseText);
+        if (deal.getUser() != null) {
+            notifier.notifyUser(deal.getUser(),
+                    "Your deal was created: " + safe(deal.getTitle()),
+                    "Your Deal Was Created",
+                    baseText,
+                    "Your deal was created: " + safe(deal.getTitle()));
         }
-        smsService.sendToAdmins("New deal created: " + safe(deal.getTitle()));
-        smsService.sendWhatsAppToAdmins("New deal created: " + safe(deal.getTitle()));
     }
 
     private String safe(String value) {

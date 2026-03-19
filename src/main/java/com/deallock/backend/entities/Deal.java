@@ -69,4 +69,9 @@ public class Deal {
     @Column(columnDefinition = "LONGBLOB")
     private byte[] paymentProof;
     private String paymentProofContentType;
+
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] securedItemPhoto;
+    private String securedItemPhotoContentType;
 }

@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 public class ProfileController {
 
+    private static final long MAX_UPLOAD_BYTES = 500L * 1024L;
+
     private final UserRepository userRepository;
 
     public ProfileController(UserRepository userRepository) {
@@ -31,6 +33,9 @@ public class ProfileController {
                                      Principal principal) throws IOException {
         if (principal == null || file == null || file.isEmpty()) {
             return "redirect:/dashboard?upload=failed";
+        }
+        if (file.getSize() > MAX_UPLOAD_BYTES) {
+            return "redirect:/dashboard?upload=too-large";
         }
 
         var userOpt = userRepository.findByEmail(principal.getName());

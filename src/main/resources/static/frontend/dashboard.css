@@ -494,15 +494,14 @@
   font-weight: 500;
 }
 
-.terms-text {
-  margin-bottom: 8px;
-  color: #111827;
-  font-weight: 600;
-}
-
 .terms-check input {
   width: auto;
-  margin-top: 2px;
+  margin-top: 0;
+}
+
+.terms-inline {
+  align-items: center;
+  gap: 8px;
 }
 
 .terms-link {

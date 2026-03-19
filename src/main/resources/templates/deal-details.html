@@ -154,6 +154,13 @@
           <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal item photo">
         </div>
       </div>
+
+      <div style="margin-top:16px;" th:if="${deal.securedItemPhoto != null}">
+        <strong>Secured Item Photo</strong>
+        <div class="deal-photo-box">
+          <img th:src="@{'/api/deals/' + ${deal.id} + '/secured-photo'}" alt="Secured item photo">
+        </div>
+      </div>
     </section>
   </main>
 </body>

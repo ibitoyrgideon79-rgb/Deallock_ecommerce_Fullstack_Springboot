@@ -3,8 +3,7 @@ package com.deallock.backend.controllers;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
-import com.deallock.backend.services.EmailService;
-import com.deallock.backend.services.SmsService;
+import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.NotificationService;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,22 +20,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AdminController {
 
+    private static final long MAX_UPLOAD_BYTES = 500L * 1024L;
+
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
-    private final EmailService emailService;
-    private final SmsService smsService;
     private final NotificationService notificationService;
+    private final NotificationDispatchService notifier;
 
     public AdminController(DealRepository dealRepository,
                            UserRepository userRepository,
-                           EmailService emailService,
-                           SmsService smsService,
-                           NotificationService notificationService) {
+                           NotificationService notificationService,
+                           NotificationDispatchService notifier) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
-        this.emailService = emailService;
-        this.smsService = smsService;
         this.notificationService = notificationService;
+        this.notifier = notifier;
     }
 
     @GetMapping("/admin")
@@ -123,8 +121,16 @@ public class AdminController {
             deal.setStatus("Approved");
             dealRepository.save(deal);
             notifyApproval(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal was approved.");
-            notificationService.notifyAdmins("Deal approved: " + safe(deal.getTitle()));
+            notifier.notifyUser(deal.getUser(),
+                    "Your deal was approved.",
+                    "Your Deal Was Approved",
+                    "Your deal was approved: " + safe(deal.getTitle()),
+                    "Your deal was approved. Please proceed to payment.");
+            notifier.notifyAdmins(
+                    "Deal approved: " + safe(deal.getTitle()),
+                    "Deal Approved",
+                    "Deal approved: " + safe(deal.getTitle()),
+                    "Deal approved: " + safe(deal.getTitle()));
         });
         return "redirect:/admin?message=approved";
     }
@@ -140,18 +146,16 @@ public class AdminController {
             }
             deal.setRejectionReason(reason);
             dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal was rejected. Reason: " + safe(reason));
-            notificationService.notifyAdmins("Deal rejected: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getPhone() != null) {
-                smsService.sendToUser(deal.getUser().getPhone(), "Your deal was rejected. Reason: " + safe(reason));
-                smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Your deal was rejected. Reason: " + safe(reason));
-            }
-            smsService.sendToAdmins("Deal rejected: " + safe(deal.getTitle()));
-            smsService.sendWhatsAppToAdmins("Deal rejected: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-                emailService.sendDealRejectedToUser(deal.getUser().getEmail(),
-                        "Your deal was rejected: " + safe(deal.getTitle()) + "\nReason: " + safe(reason));
-            }
+            notifier.notifyUser(deal.getUser(),
+                    "Your deal was rejected. Reason: " + safe(reason),
+                    "Deal Rejected",
+                    "Your deal was rejected: " + safe(deal.getTitle()) + "\nReason: " + safe(reason),
+                    "Your deal was rejected. Reason: " + safe(reason));
+            notifier.notifyAdmins(
+                    "Deal rejected: " + safe(deal.getTitle()),
+                    "Deal Rejected",
+                    "Deal rejected: " + safe(deal.getTitle()),
+                    "Deal rejected: " + safe(deal.getTitle()));
         });
         return "redirect:/admin?message=rejected";
     }
@@ -161,18 +165,16 @@ public class AdminController {
         dealRepository.findById(id).ifPresent(deal -> {
             deal.setPaymentStatus("PAID_CONFIRMED");
             dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Payment confirmed for your deal.");
-            notificationService.notifyAdmins("Payment confirmed: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getPhone() != null) {
-                smsService.sendToUser(deal.getUser().getPhone(), "Payment confirmed for your deal.");
-                smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Payment confirmed for your deal.");
-            }
-            smsService.sendToAdmins("Payment confirmed: " + safe(deal.getTitle()));
-            smsService.sendWhatsAppToAdmins("Payment confirmed: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-                emailService.sendPaymentConfirmedToUser(deal.getUser().getEmail(),
-                        "Payment confirmed for your deal: " + safe(deal.getTitle()));
-            }
+            notifier.notifyUser(deal.getUser(),
+                    "Payment confirmed for your deal.",
+                    "Payment Confirmed",
+                    "Payment confirmed for your deal: " + safe(deal.getTitle()),
+                    "Payment confirmed for your deal.");
+            notifier.notifyAdmins(
+                    "Payment confirmed: " + safe(deal.getTitle()),
+                    "Payment Confirmed",
+                    "Payment confirmed: " + safe(deal.getTitle()),
+                    "Payment confirmed: " + safe(deal.getTitle()));
         });
         return "redirect:/admin?message=payment-confirmed";
     }
@@ -182,40 +184,48 @@ public class AdminController {
         dealRepository.findById(id).ifPresent(deal -> {
             deal.setPaymentStatus("NOT_PAID");
             dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Payment not received for your deal.");
-            notificationService.notifyAdmins("Payment not received: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getPhone() != null) {
-                smsService.sendToUser(deal.getUser().getPhone(), "Payment not received for your deal.");
-                smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Payment not received for your deal.");
-            }
-            smsService.sendToAdmins("Payment not received: " + safe(deal.getTitle()));
-            smsService.sendWhatsAppToAdmins("Payment not received: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-                emailService.sendPaymentNotReceivedToUser(deal.getUser().getEmail(),
-                        "Payment not received for your deal: " + safe(deal.getTitle()));
-            }
+            notifier.notifyUser(deal.getUser(),
+                    "Payment not received for your deal.",
+                    "Payment Not Received",
+                    "Payment not received for your deal: " + safe(deal.getTitle()),
+                    "Payment not received for your deal.");
+            notifier.notifyAdmins(
+                    "Payment not received: " + safe(deal.getTitle()),
+                    "Payment Not Received",
+                    "Payment not received: " + safe(deal.getTitle()),
+                    "Payment not received: " + safe(deal.getTitle()));
         });
         return "redirect:/admin?message=payment-not-received";
     }
 
     @PostMapping("/admin/deals/{id}/secured")
-    public String dealSecured(@PathVariable("id") Long id) {
+    public String dealSecured(@PathVariable("id") Long id,
+                              @RequestParam(value = "securedPhoto", required = false) org.springframework.web.multipart.MultipartFile securedPhoto) {
+        if (securedPhoto != null && !securedPhoto.isEmpty() && securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
+            return "redirect:/admin?message=secured-too-large";
+        }
         dealRepository.findById(id).ifPresent(deal -> {
             deal.setSecured(true);
             deal.setSecuredAt(Instant.now());
+            if (securedPhoto != null && !securedPhoto.isEmpty()) {
+                try {
+                    deal.setSecuredItemPhoto(securedPhoto.getBytes());
+                    deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
+                } catch (Exception ex) {
+                    System.out.println("[WARN] Failed to read secured photo: " + ex.getMessage());
+                }
+            }
             dealRepository.save(deal);
-            notificationService.notifyUser(deal.getUser(), "Your deal has been secured.");
-            notificationService.notifyAdmins("Deal secured: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getPhone() != null) {
-                smsService.sendToUser(deal.getUser().getPhone(), "Your deal has been secured.");
-                smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Your deal has been secured.");
-            }
-            smsService.sendToAdmins("Deal secured: " + safe(deal.getTitle()));
-            smsService.sendWhatsAppToAdmins("Deal secured: " + safe(deal.getTitle()));
-            if (deal.getUser() != null && deal.getUser().getEmail() != null) {
-                emailService.sendDealSecuredToUser(deal.getUser().getEmail(),
-                        "Your deal has been secured: " + safe(deal.getTitle()));
-            }
+            notifier.notifyUser(deal.getUser(),
+                    "Your deal has been secured.",
+                    "Deal Secured",
+                    "Your deal has been secured: " + safe(deal.getTitle()),
+                    "Your deal has been secured.");
+            notifier.notifyAdmins(
+                    "Deal secured: " + safe(deal.getTitle()),
+                    "Deal Secured",
+                    "Deal secured: " + safe(deal.getTitle()),
+                    "Deal secured: " + safe(deal.getTitle()));
         });
         return "redirect:/admin?message=secured";
     }
@@ -239,23 +249,18 @@ public class AdminController {
                 + "\nValue: NGN " + (deal.getValue() != null ? deal.getValue() : "0")
                 + "\nStatus: " + safe(deal.getStatus());
 
-            if (deal.getUser() != null) {
-                if (deal.getUser().getEmail() != null) {
-                    emailService.sendDealApprovedToUser(deal.getUser().getEmail(), details);
-                }
-                if (deal.getUser().getPhone() != null) {
-                    smsService.sendToUser(deal.getUser().getPhone(), "Your deal was approved. Please proceed to payment.");
-                    smsService.sendWhatsAppToUser(deal.getUser().getPhone(), "Your deal was approved. Please proceed to payment.");
-                }
-            }
-
-        userRepository.findByRole("ROLE_ADMIN").forEach(u -> {
-            if (u.getEmail() != null) {
-                emailService.sendDealApprovedToAdmin(u.getEmail(), details);
-            }
-        });
-        smsService.sendToAdmins("A deal has been approved.");
-        smsService.sendWhatsAppToAdmins("A deal has been approved.");
+        if (deal.getUser() != null) {
+            notifier.notifyUser(deal.getUser(),
+                    "Your deal was approved. Please proceed to payment.",
+                    "Your Deal Was Approved",
+                    details,
+                    "Your deal was approved. Please proceed to payment.");
+        }
+        notifier.notifyAdmins(
+                "A deal has been approved.",
+                "Deal Approved",
+                details,
+                "A deal has been approved.");
     }
 
     private String safe(String value) {

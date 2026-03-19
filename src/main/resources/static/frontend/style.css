@@ -168,6 +168,26 @@ header {
   transform: translateY(-2px);
 }
 
+.login-sphere-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.sphere-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid #86efac;
+  background: linear-gradient(180deg, #ecfdf3 0%, #dcfce7 100%);
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.18);
+  cursor: pointer;
+}
+
+.sphere-button:hover {
+  transform: translateY(-1px);
+  background: #dcfce7;
+}
 
 
 section {
