@@ -200,8 +200,11 @@ public class AdminController {
 
     @PostMapping("/admin/deals/{id}/secured")
     public String dealSecured(@PathVariable("id") Long id,
-                              @RequestParam(value = "securedPhoto", required = false) org.springframework.web.multipart.MultipartFile securedPhoto) {
-        if (securedPhoto != null && !securedPhoto.isEmpty() && securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
+                              @RequestParam(value = "securedPhoto") org.springframework.web.multipart.MultipartFile securedPhoto) {
+        if (securedPhoto == null || securedPhoto.isEmpty()) {
+            return "redirect:/admin?message=secured-photo-required";
+        }
+        if (securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
             return "redirect:/admin?message=secured-too-large";
         }
         var dealOpt = dealRepository.findById(id);
@@ -215,13 +218,11 @@ public class AdminController {
         if (!deal.isSecured()) {
             deal.setSecured(true);
             deal.setSecuredAt(Instant.now());
-            if (securedPhoto != null && !securedPhoto.isEmpty()) {
-                try {
-                    deal.setSecuredItemPhoto(securedPhoto.getBytes());
-                    deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
-                } catch (Exception ex) {
-                    System.out.println("[WARN] Failed to read secured photo: " + ex.getMessage());
-                }
+            try {
+                deal.setSecuredItemPhoto(securedPhoto.getBytes());
+                deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
+            } catch (Exception ex) {
+                System.out.println("[WARN] Failed to read secured photo: " + ex.getMessage());
             }
             dealRepository.save(deal);
             notifier.notifyUser(deal.getUser(),
