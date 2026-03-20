@@ -65,8 +65,9 @@ public class ActivationController {
     private String buildWelcomeMessage(String fullName) {
         String name = (fullName == null || fullName.isBlank()) ? "there" : fullName;
         return "Hi " + name + ",\n\n"
-                + "Welcome to DealLock. We secure your deals and support your purchases with speed, trust, and transparency.\n"
-                + "We’re glad to have you with us — thanks for choosing DealLock.\n\n"
+                + "We're glad to have you with us - thanks for choosing DealLock. We secure your deals and support your purchases with speed, trust, and transparency.\n"
+                + "We're glad to have you with us - thanks for choosing DealLock.\n\n"
                 + "DealLock Team";
     }
 }
+
