@@ -15,6 +15,7 @@
       padding: 120px 24px 32px;
     }
     .track-card { max-width: 800px; margin: 0 auto; padding: 20px; border:1px solid #dbe7df; border-radius:16px; box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08); }
+    .track-card { position: relative; }
     .track-item { display:flex; gap:12px; align-items:flex-start; margin:12px 0; }
     .track-dot {
       width:16px;
@@ -36,9 +37,12 @@
     .track-item.active .track-title { color:#111111; }
     .track-sub { color:#94a3b8; font-size: 13px; }
     .track-item.active .track-sub { color:#64748b; }
-    .close-link {
-      width: 36px;
-      height: 36px;
+    .subpage-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: 1px solid #dbe7df;
       display: inline-flex;
@@ -46,11 +50,12 @@
       justify-content: center;
       color: #111111;
       background: #ffffff;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1;
       text-decoration: none;
+      z-index: 2;
     }
-    .close-link:hover {
+    .subpage-close:hover {
       background: #f8fafc;
     }
     @media (max-width: 768px) {
@@ -69,7 +74,6 @@
       </div>
       <ul class="nav-links">
         <li><a href="/dashboard">Back to Dashboard</a></li>
-        <li><a href="/dashboard" class="close-link" aria-label="Close">&times;</a></li>
         <li><a href="/logout">Log out</a></li>
       </ul>
     </nav>
@@ -77,6 +81,7 @@
 
   <main class="dashboard-container subpage-main">
     <div class="track-card">
+      <a href="/dashboard" class="subpage-close" aria-label="Close">&times;</a>
       <div class="deal-title" th:text="${deal.title}">Deal Title</div>
 
       <div class="track-item active">

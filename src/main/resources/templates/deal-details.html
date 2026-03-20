@@ -16,6 +16,7 @@
       padding: 120px 24px 32px;
     }
     .deal-card {
+      position: relative;
       background: #ffffff;
       border: 1px solid #dbe7df;
       box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
@@ -44,9 +45,12 @@
       border-radius: 10px;
       object-fit: cover;
     }
-    .close-link {
-      width: 36px;
-      height: 36px;
+    .subpage-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: 1px solid #dbe7df;
       display: inline-flex;
@@ -54,11 +58,12 @@
       justify-content: center;
       color: #111111;
       background: #ffffff;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1;
       text-decoration: none;
+      z-index: 2;
     }
-    .close-link:hover {
+    .subpage-close:hover {
       background: #f8fafc;
     }
     @media (max-width: 768px) {
@@ -83,7 +88,6 @@
       <ul class="nav-links">
         <li><a href="/dashboard">Back to Dashboard</a></li>
         <li><a th:href="@{'/dashboard/deal/' + ${deal.id} + '/track'}">Track Deal</a></li>
-        <li><a href="/dashboard" class="close-link" aria-label="Close">&times;</a></li>
         <li><a href="/logout">Log out</a></li>
       </ul>
     </nav>
@@ -91,6 +95,7 @@
 
   <main class="dashboard-container subpage-main">
     <section class="deal-card" style="width:100%; max-width:900px; margin:0 auto;">
+      <a href="/dashboard" class="subpage-close" aria-label="Close">&times;</a>
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
         <h2 class="deal-title" th:text="${deal.title}">Deal Title</h2>
         <span class="deal-status" th:text="${deal.status}">Approved</span>

@@ -15,6 +15,7 @@
       padding: 120px 24px 32px;
     }
     .pay-card {
+      position: relative;
       background: #ffffff;
       border: 1px solid #dbe7df;
       box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
@@ -29,9 +30,12 @@
     .pay-actions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
     .pay-proof { margin-top: 18px; padding-top: 12px; border-top:1px solid #f1f5f9; }
     .pay-proof input[type="file"] { display:block; margin-top:8px; }
-    .close-link {
-      width: 36px;
-      height: 36px;
+    .subpage-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: 1px solid #dbe7df;
       display: inline-flex;
@@ -39,11 +43,12 @@
       justify-content: center;
       color: #111111;
       background: #ffffff;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1;
       text-decoration: none;
+      z-index: 2;
     }
-    .close-link:hover {
+    .subpage-close:hover {
       background: #f8fafc;
     }
     @media (max-width: 768px) {
@@ -62,7 +67,6 @@
       </div>
       <ul class="nav-links">
         <li><a href="/dashboard">Back to Dashboard</a></li>
-        <li><a href="/dashboard" class="close-link" aria-label="Close">&times;</a></li>
         <li><a href="/logout">Log out</a></li>
       </ul>
     </nav>
@@ -70,6 +74,7 @@
 
   <main class="dashboard-container subpage-main">
     <div class="pay-card">
+      <a href="/dashboard" class="subpage-close" aria-label="Close">&times;</a>
       <div class="pay-title">Transfer to the account below</div>
       <div style="margin:12px 0; color:#475569;">
         Please make the required upfront payment (50% item value + logistics) of
