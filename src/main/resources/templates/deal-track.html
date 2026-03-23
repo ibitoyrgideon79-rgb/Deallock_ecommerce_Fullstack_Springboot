@@ -168,18 +168,18 @@
       <div class="track-item" th:classappend="${deal.deliveryInitiatedAt != null} ? 'active' : ''">
         <div class="track-dot"></div>
         <div>
-          <div class="track-title">Delivery Initiated</div>
-          <div class="track-sub">We have initiated delivery</div>
+          <div class="track-title">Items in Transit</div>
+          <div class="track-sub">Your order is on the way</div>
         </div>
       </div>
 
       <div class="track-item" th:classappend="${deal.deliveryConfirmedByUser} ? 'active' : ''">
         <div class="track-dot"></div>
         <div>
-          <div class="track-title">Item Delivered</div>
-          <div class="track-sub" th:text="${deal.deliveryConfirmedByUser} ? 'You confirmed delivery' : 'Confirm when item arrives'">Confirm when item arrives</div>
+          <div class="track-title">Order Picked Up</div>
+          <div class="track-sub" th:text="${deal.deliveryConfirmedByUser} ? 'Order picked up confirmed' : 'Tap when you have received your item'">Tap when you have received your item</div>
           <div class="track-sub" th:if="${deal.deliveryInitiatedAt != null && !deal.deliveryConfirmedByUser}">
-            <button class="btn-submit" id="confirm-delivery-btn" th:data-deal-id="${deal.id}" type="button">Confirm Item Received</button>
+            <button class="btn-submit" id="confirm-delivery-btn" th:data-deal-id="${deal.id}" type="button">Order Picked Up</button>
           </div>
         </div>
       </div>
@@ -188,7 +188,7 @@
         <div class="track-dot"></div>
         <div>
           <div class="track-title">Drop Feedback</div>
-          <div class="track-sub">Tell us how it went</div>
+          <div class="track-sub">How was your experience with us?</div>
           <div class="track-sub" th:if="${deal.deliveryConfirmedByUser && (deal.feedback == null || #strings.isEmpty(deal.feedback))}">
             <form id="feedback-form" style="margin-top:8px;">
               <textarea id="feedback-text" rows="3" style="width:100%; max-width:420px; border:1px solid #cbd5e1; border-radius:8px; padding:8px;" placeholder="Share your experience"></textarea>
@@ -207,7 +207,7 @@
 
     confirmBtn?.addEventListener('click', async () => {
       confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Confirming...';
+      confirmBtn.textContent = 'Updating...';
       const res = await fetch(`/api/deals/${confirmBtn.dataset.dealId}/confirm-delivery`, {
         method: 'POST',
         credentials: 'include'
@@ -216,7 +216,7 @@
         window.location.reload();
       } else {
         confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Confirm Item Received';
+        confirmBtn.textContent = 'Order Picked Up';
       }
     });
 

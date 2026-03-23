@@ -570,7 +570,7 @@
             <div th:each="deal : ${inTransitDeals}" class="deal-card">
               <div class="deal-title" th:text="${deal.title}">Deal Title</div>
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
-              <div class="deal-status" th:text="${deal.deliveryConfirmedByUser ? 'User confirmed delivery' : 'Awaiting user confirmation'}">Transit Status</div>
+              <div class="deal-status" th:text="${deal.deliveryConfirmedByUser ? 'Order picked up confirmed' : 'In transit (waiting for pickup confirmation)'}">Transit Status</div>
               <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
                 <a th:href="@{'/dashboard/deal/' + ${deal.id}}" class="btn-submit">See Deal Details</a>
                 <form th:if="${deal.deliveryConfirmedByUser}"
