@@ -292,6 +292,18 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 260px;   
+  overflow-y: auto;
+  padding-right: 4px;  
+}
+
+.deals-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.deals-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
 }
 
 .deal-card {
