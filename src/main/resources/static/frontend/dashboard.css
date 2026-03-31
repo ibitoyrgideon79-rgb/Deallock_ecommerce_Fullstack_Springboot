@@ -1,4 +1,15 @@
+/* ====================== ROOT VARIABLES ====================== */
+:root {
+  --brand-green-700: #166534;
+  --brand-green-600: #15803d;
+  --brand-green-500: #16a34a;
+  --brand-green-100: #dcfce7;
+  --brand-surface: #f8fafb;
+  --brand-border: #dbe7df;
+  --header-height: 85px;
+}
 
+/* ====================== USER MENU & NOTIFICATIONS ====================== */
 .user-menu-item {
   position: relative;
   list-style: none;
@@ -22,13 +33,13 @@
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #22c55e; 
+  border: 2px solid #22c55e;
   background: #eee;
 }
 
 .username {
   font-weight: 500;
-  color: #ffffff; 
+  color: #ffffff;
 }
 
 .chevron {
@@ -47,8 +58,8 @@
   z-index: 100;
 }
 
-.user-dropdown-menu a{
-    color: #000000;
+.user-dropdown-menu a {
+  color: #000000;
 }
 
 .dropdown-link {
@@ -76,7 +87,7 @@
 
 .dropdown-divider {
   height: 1px;
-  background: #000000;
+  background: #e5e7eb;
   margin: 4px 0;
 }
 
@@ -95,14 +106,7 @@
   padding: 6px 10px;
   border-radius: 999px;
 }
-:root {
-  --brand-green-700: #166534;
-  --brand-green-600: #15803d;
-  --brand-green-500: #16a34a;
-  --brand-green-100: #dcfce7;
-  --brand-surface: #f8fafc;
-  --brand-border: #dbe7df;
-}
+
 .notification-link i {
   color: #22c55e;
 }
@@ -193,50 +197,64 @@
   text-align: center;
 }
 
-
+/* ====================== DASHBOARD LAYOUT ====================== */
 .dashboard-container {
   display: flex;
-  min-height: calc(100vh - var(--header-height, 70px));
+  gap: 20px;
+  min-height: calc(100vh - var(--header-height));
+  padding: 20px;
+  background: #f9fafb;
+  position: relative;
+  z-index: 1;
 }
 
-.sidebar {
+/* LEFT PANEL - PROFILE */
+.left-panel {
   width: 280px;
-  background: white;
-  border-right: 1px solid #e5e7eb;
-  padding: 24px 16px;
   flex-shrink: 0;
-  margin-top: 85px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 80px;
 }
 
+/* RIGHT PANEL - ACTIVE DEALS */
+.right-panel {
+  width: 280px;
+  flex-shrink: 0;
+  margin-top: 80px;
+}
+
+.right-panel .sidebar-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Common Card Style */
 .sidebar-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 20px 16px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-  margin-bottom: 18px;
 }
 
+/* ====================== PROFILE SECTION ====================== */
 .profile-section {
   text-align: center;
-  margin-bottom: 40px;
-  padding-top: 70px;
-}
-
-.profile-section.sidebar-card {
-  padding-top: 28px;
-  margin-bottom: 18px;
+  padding: 32px 20px 24px;
 }
 
 .profile-avatar-wrapper {
-  width: 90px;                  
+  width: 90px;
   height: 90px;
-  margin: 0 auto 16px;          
+  margin: 0 auto 16px;
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid #0f172a;    
-  background: #f3f4f6;          
-  display: flex;                
+  border: 4px solid #0f172a;
+  background: #f3f4f6;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -244,27 +262,22 @@
 .profile-avatar {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover;            
-  object-position: center;      
+  object-fit: cover;
+  object-position: center;
   display: block;
 }
 
 .greeting {
   font-size: 1.45rem;
   font-weight: 600;
+  margin: 0 0 8px 0;
 }
 
 .username {
   color: #0f172a;
 }
 
-.active-deals-section h3 {
-  font-size: 1.1rem;
-  color: #1f2937;
-  margin: 0 0 16px 8px;
-  font-weight: 700;
-}
-
+/* Photo Upload */
 .profile-upload-form {
   display: flex;
   flex-direction: column;
@@ -288,17 +301,39 @@
   margin-top: 4px;
 }
 
+/* ====================== ACTIVE DEALS ====================== */
+.active-deals-section h3 {
+  font-size: 1.1rem;
+  color: #1f2937;
+  margin: 0 0 16px 8px;
+  font-weight: 700;
+}
+
 .deals-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+  flex: 1;
 }
 
+.deals-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.deals-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+/* Deal Cards */
 .deal-card {
   padding: 14px 16px;
   border-radius: 12px;
   background: #ffffff;
-  border: 1px solid var(--brand-border);
+  border: 1px solid #e5e7eb;
   border-left: 4px solid #cbd5e1;
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
   transition: all 0.18s ease;
@@ -310,7 +345,7 @@
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
 }
 
-.deal-card.pending   { border-left-color: #f59e0b; }
+.deal-card.pending { border-left-color: #f59e0b; }
 .deal-card.in-progress { border-left-color: #3b82f6; }
 .deal-card.completed { border-left-color: #10b981; }
 
@@ -325,14 +360,15 @@
   color: #000000;
 }
 
+/* ====================== MAIN CONTENT - LOCK DEAL ====================== */
 .main-content {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
   background: #f9fafb;
-  color: #000000;
+  min-height: 400px;
+  padding: 40px 20px;
 }
 
 .create-deal-card {
@@ -340,7 +376,7 @@
   max-width: 520px;
   aspect-ratio: 5 / 3.2;
   background: white;
-  border: 2px dashed so #0f172a;
+  border: 2px dashed #0f172a;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
@@ -372,21 +408,22 @@
   color: #111827;
 }
 
-
+/* ====================== MODAL STYLES ====================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
+  background: rgba(0, 0, 0, 0.65);
+  display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .modal-overlay.active {
+  display: flex;
   opacity: 1;
   visibility: visible;
 }
@@ -394,49 +431,56 @@
 .modal-dialog {
   background: white;
   width: 90%;
-  max-width: 500px;
-  max-height: 90vh;                    
-  overflow-y: auto;                    
-  -webkit-overflow-scrolling: touch;   
+  max-width: 560px;
+  max-height: 92vh;
+  overflow-y: auto;
   border-radius: 16px;
   padding: 28px;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  transform: scale(0.92);
-  transition: transform 0.3s;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
 }
 
 .modal-overlay.active .modal-dialog {
   transform: scale(1);
 }
 
-
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .modal-header h3 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #0b1220;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
 }
 
 .modal-close-btn {
   background: none;
   border: none;
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: #9ca3af;
   cursor: pointer;
   line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-close-btn:hover {
   color: #374151;
 }
 
+/* ====================== FORM STYLES ====================== */
 .deal-form .form-row {
   margin-bottom: 20px;
 }
@@ -516,7 +560,8 @@
 
 
 .deal-form input,
-.deal-form textarea {
+.deal-form textarea,
+.select-input {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid #d1d5db;
@@ -564,6 +609,8 @@
   background: #0e162b;
 }
 
+/* File Upload */
+
 .file-upload-container {
   position: relative;
 }
@@ -575,7 +622,6 @@
   cursor: pointer;
   z-index: 2;
 }
-
 .upload-area {
   border: 2px dashed #cfe8d8;
   border-radius: 12px;
@@ -645,6 +691,7 @@
   margin-left: 4px;
 }
 
+/* Payment Summary */
 .payment-summary-box {
   background: linear-gradient(180deg, #ffffff 0%, #f7fcf8 100%);
   border: 1px solid #d7eadf;
@@ -675,7 +722,7 @@
   color: #14532d;
 }
 
-.breakdown-row {
+breakdown-row {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
@@ -699,15 +746,37 @@
   max-width: 140px;
 }
 
+/* Utility Classes */
 .mt-2 { margin-top: 0.5rem; }
 .mt-3 { margin-top: 0.75rem; }
 .mt-4 { margin-top: 1rem; }
 .text-muted { color: #6b7280; }
 
+/* ====================== RESPONSIVE ====================== */
+@media (max-width: 991px) {
+  .dashboard-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .left-panel, .right-panel {
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .main-content {
+    padding: 40px 16px;
+    min-height: 320px;
+  }
+  
+  .create-deal-card {
+    max-width: 100%;
+  }
+}
 
 @media (min-width: 992px) {
   .user-trigger:hover {
-    background: rgba(255,255,255,0.15); 
+    background: rgba(255,255,255,0.15);
   }
 
   .user-dropdown-menu {
@@ -729,61 +798,5 @@
 
   .user-menu-item:hover .chevron {
     transform: rotate(180deg);
-  }
-}
-
-
-@media (max-width: 991px) {
-  .user-trigger {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 12px 16px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.08);
-    color: white;
-  }
-
-  .username {
-    flex: 1;
-  }
-
-  .user-dropdown-menu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    border: none;
-    box-shadow: none;
-    background: rgba(0,0,0,0.15);
-    margin: 0;
-  }
-
-  .user-menu-item.open .user-dropdown-menu {
-    max-height: 220px; 
-  }
-
-  .user-menu-item.open .chevron {
-    transform: rotate(180deg);
-  }
-
-  .dropdown-link {
-    color: white;
-    padding-left: 52px; 
-  }
-
-  .dropdown-link:hover {
-    background: rgba(255,255,255,0.12);
-  }
-
-  .dashboard-container {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 20px;
-  }
-  .main-content {
-    padding: 60px 20px;
   }
 }

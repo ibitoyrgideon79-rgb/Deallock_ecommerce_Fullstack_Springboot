@@ -32,7 +32,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 1100;
     }
     .confirm-overlay.active {
       display: flex;
@@ -73,7 +73,8 @@
       </div>
 
       <ul class="nav-links" id="nav-links">
-          <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+        <button class="nav-close" id="nav-close" aria-label="Close menu"><i class="fas fa-xmark"></i></button>
+        
         <li class="notification-item">
           <button type="button" class="notification-link" id="notifToggle">
             <i class="fa-regular fa-bell"></i>
@@ -98,279 +99,259 @@
     </nav>
   </header>
 
-     
-<div class="dashboard-container">
+  <div class="dashboard-container">
 
-
-  <aside class="sidebar">
-
-    <div class="profile-section sidebar-card">
-      <div class="profile-avatar-wrapper">
-        <img 
-          th:src="${currentUser != null && currentUser.profileImage != null ? '/profile/image' : '/frontend/logo.jpeg'}"
-          src="/frontend/logo.jpeg"
-          alt="User avatar" 
-          class="profile-avatar"
-        >
+    <!-- LEFT: Profile Section -->
+    <aside class="left-panel">
+      <div class="sidebar-card profile-section">
+        <div class="profile-avatar-wrapper">
+          <img 
+            th:src="${currentUser != null && currentUser.profileImage != null ? '/profile/image' : '/frontend/logo.jpeg'}"
+            src="/frontend/logo.jpeg"
+            alt="User avatar" 
+            class="profile-avatar">
+        </div>
+        <h2 class="greeting">
+          Hi,
+          <span class="username" th:if="${isAdmin}"
+                th:text="${currentUser != null && currentUser.fullName != null ? ((#strings.startsWith(currentUser.fullName, 'Admin ') ? currentUser.fullName : ('Admin ' + currentUser.fullName))) : (currentUser != null ? ('Admin ' + currentUser.email) : 'Admin')}">Admin</span>
+          <span class="username" th:if="${!isAdmin}"
+                th:text="${currentUser != null && currentUser.fullName != null ? currentUser.fullName : (currentUser != null ? currentUser.username : 'User')}">User</span>
+        </h2>
       </div>
-      <h2 class="greeting">
-        Hi,
-        <span class="username" th:if="${isAdmin}"
-              th:text="${currentUser != null && currentUser.fullName != null ? ((#strings.startsWith(currentUser.fullName, 'Admin ') ? currentUser.fullName : ('Admin ' + currentUser.fullName))) : (currentUser != null ? ('Admin ' + currentUser.email) : 'Admin')}">Admin</span>
-        <span class="username" th:if="${!isAdmin}"
-              th:text="${currentUser != null && currentUser.fullName != null ? currentUser.fullName : (currentUser != null ? currentUser.username : 'User')}">User</span>
-      </h2>
-    </div>
 
-    <div class="active-deals-section sidebar-card">
-      <div th:if="${param.upload}" class="signup-error" style="margin-bottom:8px;">
-        <span th:if="${param.upload[0] == 'success'}">Profile photo updated.</span>
-        <span th:if="${param.upload[0] == 'failed'}">Profile photo upload failed.</span>
-        <span th:if="${param.upload[0] == 'too-large'}">Profile photo must be at most 500KB.</span>
+      <!-- Photo Upload Card -->
+      <div class="sidebar-card">
+        <div th:if="${param.upload}" class="signup-error" style="margin-bottom:8px;">
+          <span th:if="${param.upload[0] == 'success'}">Profile photo updated.</span>
+          <span th:if="${param.upload[0] == 'failed'}">Profile photo upload failed.</span>
+          <span th:if="${param.upload[0] == 'too-large'}">Profile photo must be at most 500KB.</span>
+        </div>
+        <form action="/profile/upload" method="post" enctype="multipart/form-data" class="profile-upload-form">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <label class="profile-upload-label" for="profileImage">Update Photo</label>
+          <input id="profileImage" class="profile-upload-input" type="file" name="profileImage" accept="image/*" required>
+          <button type="submit" class="btn-submit profile-upload-button">Save Photo</button>
+        </form>
       </div>
-      <form action="/profile/upload" method="post" enctype="multipart/form-data" class="profile-upload-form">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <label class="profile-upload-label" for="profileImage">Update Photo</label>
-        <input id="profileImage" class="profile-upload-input" type="file" name="profileImage" accept="image/*" required>
-        <button type="submit" class="btn-submit profile-upload-button">Save Photo</button>
+    </aside>
+
+    <!-- MIDDLE: Lock Deal Button -->
+    <main class="main-content">
+      <button type="button" class="create-deal-card" id="open-create-modal">
+        <div class="plus-icon">+</div>
+        <div class="create-label">Lock Deal</div>
+      </button>
+    </main>
+
+    <!-- RIGHT: Active Deals -->
+    <aside class="right-panel">
+      <div class="sidebar-card active-deals-section">
+        <h3>Your Deals</h3>
+        <div id="deals-message" class="signup-error" style="margin-bottom:8px;"></div>
+        <div class="deals-list" id="deals-list"></div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="create-deal-modal">
+    <div class="modal-dialog">
+
+      <div class="modal-header">
+        <h3>New Deal</h3>
+        <button type="button" class="modal-close-btn" id="close-modal">×</button>
+      </div>
+
+      <form class="deal-form" id="new-deal-form">
+
+        <div class="form-row">
+          <label for="deal-title">Deal / Item Name</label>
+          <input type="text" id="deal-title" name="deal-title" placeholder="e.g. iPhone 15 Pro Max 256GB" required>
+        </div>
+
+        <div class="form-row">
+          <label for="deal-link">Deal / Item Link</label>
+          <input type="text" id="deal-link" name="deal-link" placeholder="https://" required>
+        </div>
+
+        <div class="form-row">
+          <label for="client-name">Seller Name</label>
+          <input type="text" id="client-name" name="client-name" placeholder="Full name or Business name" required>
+        </div>
+
+        <div class="form-row">
+          <label for="seller-phone">Seller Phone Number</label>
+          <input type="tel" id="seller-phone" name="seller-phone" placeholder="e.g. 08012345678" required>
+        </div>
+
+        <div class="form-row">
+          <label for="seller-address">Seller Address</label>
+          <textarea id="seller-address" name="seller-address" rows="3" placeholder="Full pickup address" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="delivery-address">Delivery Address</label>
+          <textarea id="delivery-address" name="delivery-address" rows="3" placeholder="Where item should be delivered" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="item-size">Item Size</label>
+          <select id="item-size" name="item-size" class="select-input" required>
+            <option value="">Select size</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="deal-value">Expected Value (NGN)</label>
+          <input type="number" id="deal-value" name="deal-value" placeholder="e.g. 1250000" min="1000" required>
+        </div>
+
+        <div class="form-row">
+          <label for="description">Description / Details</label>
+          <textarea id="description" name="description" rows="5" placeholder="Item condition, location, delivery terms, payment method..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="item-photo">Upload Item Photo / Proof <span class="required">(required)</span></label>
+          <div class="file-upload-container">
+            <input type="file" id="item-photo" name="itemPhoto" accept="image/*" required class="file-input">
+            <div class="upload-area" id="upload-area">
+              <div class="upload-icon">+</div>
+              <div class="upload-text">
+                Click or drag photo here<br>
+                <small>Max 10 MB • JPG, PNG</small>
+              </div>
+            </div>
+            <div class="preview-container" id="preview-container" style="display: none;">
+              <img id="preview-img" alt="Preview" />
+              <button type="button" class="remove-preview" id="remove-preview">&times;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Plan Section -->
+        <div class="form-row payment-plan-section">
+          <div class="form-group">
+            <label for="weeks">Number of weekly installments</label>
+            <select id="weeks" name="weeks" class="select-input">
+              <option value="">Select duration</option>
+              <option value="1">1 week (full payment)</option>
+              <option value="2">2 weeks (standard max)</option>
+              <option value="custom">Request more than 2 weeks</option>
+            </select>
+          </div>
+
+          <div class="form-group mt-2" id="custom-weeks-group" style="display:none;">
+            <label for="custom-weeks">Requested weeks (3 or more)</label>
+            <input type="number" id="custom-weeks" name="customWeeks" min="3" placeholder="e.g. 4, 6, 8..." class="input-small" required>
+            <small class="text-muted mt-1">Plans longer than 2 weeks require approval</small>
+          </div>
+
+          <label class="mt-4">Payment Plan <span class="required">*</span></label>
+
+          <div class="payment-summary-box">
+            <div class="row">
+              <span>Item Value (NGN)</span>
+              <strong id="display-value">0</strong>
+            </div>
+            <div class="row">
+              <span>Holding Fee + VAT</span>
+              <strong id="display-service-fee">NGN 0</strong>
+            </div>
+            <div class="row">
+              <span>Logistics Fee</span>
+              <strong id="display-logistics-fee">NGN 0</strong>
+            </div>
+            <div class="row total">
+              <span>Total Amount to Pay</span>
+              <strong id="display-total">NGN 0</strong>
+            </div>
+            <div class="row">
+              <span>Upfront Due Now (50% item value + logistics)</span>
+              <strong id="display-upfront-due">NGN 0</strong>
+            </div>
+          </div>
+
+          <div class="payment-breakdown mt-4" id="breakdown" style="display:none;">
+            <h4>Payment Schedule Preview</h4>
+            <div class="breakdown-row">
+              <span>Upfront (50% item value + logistics)</span>
+              <strong id="upfront-amount">NGN 0</strong>
+            </div>
+            <div class="breakdown-row">
+              <span>Weekly payment (x <span id="weekly-count">0</span>)</span>
+              <strong id="weekly-amount">NGN 0</strong>
+            </div>
+          </div>
+
+          <div class="form-group mt-3">
+            <small class="text-muted">
+              - Upfront is 50% of item value plus logistics fee<br>
+              - Remaining balance spread over selected weeks<br>
+              - Plans above 2 weeks require approval
+            </small>
+          </div>
+        </div>
+
+        <div class="form-row listing-permission">
+          <label>Item Listing Permission</label>
+          <p class="form-help">Should DealLock list this item on our platform to secure secondary buyers in case you default on the balance payment?</p>
+          <div class="option-card">
+            <label class="option-row">
+              <input type="radio" name="listingPermission" value="YES" required>
+              <span><strong>Yes</strong> – You may list the item</span>
+            </label>
+            <p class="option-sub">
+              This allows DealLock to place the item on our platform with a waitlist option. If the primary buyer fails to complete payment within the agreed timeframe, the item may be reassigned to another interested buyer.
+            </p>
+          </div>
+          <div class="option-card">
+            <label class="option-row">
+              <input type="radio" name="listingPermission" value="NO" required>
+              <span><strong>No</strong> – Do not list the item</span>
+            </label>
+            <p class="option-sub">If you choose No, you agree that the following conditions will apply:</p>
+            <ul class="option-list">
+              <li>Additional default or storage fees may be charged if payment is not completed within the agreed timeframe.</li>
+              <li>A higher administrative deduction may be applied to any refund because DealLock will not be able to secure alternative buyers early.</li>
+            </ul>
+            <p class="option-sub">These measures help protect DealLock from financial loss after securing items on behalf of customers.</p>
+          </div>
+        </div>
+
+        <div class="form-row terms-check">
+          <label class="checkbox-row terms-inline">
+            <input type="checkbox" id="termsAccepted" required>
+            <span>I have read and agree to the <a class="terms-link" href="/terms">Terms and Conditions</a></span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="cancel-create">Cancel</button>
+          <button type="submit" class="btn-submit">Lock Deal</button>
+        </div>
+
       </form>
     </div>
-
-    <div class="active-deals-section sidebar-card">
-      <h3>Active Deals</h3>
-      <div id="deals-message" class="signup-error" style="margin-bottom:8px;"></div>
-      <div class="deals-list" id="deals-list"></div>
-    </div>
-
-  </aside>
-
-  
-  <main class="main-content">
-    <button type="button" class="create-deal-card" id="open-create-modal">
-      <div class="plus-icon">+</div>
-      <div class="create-label">Lock Deal</div>
-    </button>
-  </main>
-
-</div>
-
-
-<div class="modal-overlay" id="create-deal-modal">
-  <div class="modal-dialog">
-
-    <div class="modal-header">
-      <h3>New Deal</h3>
-      <button type="button" class="modal-close-btn" id="close-modal">×</button>
-    </div>
-
-    <form class="deal-form" id="new-deal-form">
-
-      <div class="form-row">
-        <label for="deal-title">Deal / Item Name</label>
-        <input type="text" id="deal-title" name="deal-title" placeholder="e.g. iPhone 15 Pro Max 256GB" required>
-      </div>
-
-       <div class="form-row">
-        <label for="deal-link">Deal / Item Link</label>
-        <input type="text" id="deal-link" name="deal-link" placeholder="" required>
-      </div>
-
-      <div class="form-row">
-        <label for="client-name">Seller Name</label>
-        <input type="text" id="client-name" name="client-name" placeholder="Full name or Business name" required>
-      </div>
-
-      <div class="form-row">
-        <label for="seller-phone">Seller Phone Number</label>
-        <input type="tel" id="seller-phone" name="seller-phone" placeholder="e.g. 08012345678" required>
-      </div>
-
-      <div class="form-row">
-        <label for="seller-address">Seller Address</label>
-        <textarea id="seller-address" name="seller-address" rows="3" placeholder="Full pickup address" required></textarea>
-      </div>
-
-      <div class="form-row">
-        <label for="delivery-address">Delivery Address</label>
-        <textarea id="delivery-address" name="delivery-address" rows="3" placeholder="Where item should be delivered" required></textarea>
-      </div>
-
-      <div class="form-row">
-        <label for="item-size">Item Size</label>
-        <select id="item-size" name="item-size" class="select-input" required>
-          <option value="">Select size</option>
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <label for="deal-value">Expected Value (NGN)</label>
-        <input type="number" id="deal-value" name="deal-value" placeholder="e.g. 1250000" min="1000" required>
-      </div>
-
-      <div class="form-row">
-        <label for="description">Description / Details</label>
-        <textarea id="description" name="description" rows="5" placeholder="Item condition, location, delivery terms, payment method..."></textarea>
-      </div>
-
-      <div class="form-row">
-  <label for="item-photo">Upload Item Photo / Proof <span class="required">(required)</span></label>
-  
-  <div class="file-upload-container">
-    <input 
-      type="file" 
-      id="item-photo" 
-      name="itemPhoto" 
-      accept="image/*" 
-      required 
-      class="file-input"
-    >
-    
-    
-    <div class="upload-area" id="upload-area">
-      <div class="upload-icon">+</div>
-      <div class="upload-text">
-        Click or drag photo here<br>
-        <small>Max 10 MB • JPG, PNG</small>
-      </div>
-    </div>
-
-     <div class="preview-container" id="preview-container" style="display: none;">
-      <img id="preview-img" alt="Preview" />
-      <button type="button" class="remove-preview" id="remove-preview">&times;</button>
-    </div>
-  </div>
-</div>
-
-<div class="confirm-overlay" id="confirm-overlay" role="dialog" aria-modal="true">
-  <div class="confirm-dialog">
-    <div class="confirm-title">Cancel deal?</div>
-    <div>Are you sure you want to cancel this deal?</div>
-    <div class="confirm-actions">
-      <button type="button" class="btn-cancel" id="confirm-no">No</button>
-      <button type="button" class="btn-submit" id="confirm-yes">Yes, cancel</button>
-    </div>
-  </div>
-</div>
-
-
-<div class="form-row payment-plan-section">
-  <div class="form-group">
-    <label for="weeks">Number of weekly installments</label>
-    <select id="weeks" name="weeks" class="select-input">
-      <option value="">Select duration</option>
-      <option value="1">1 week (full payment)</option>
-      <option value="2">2 weeks (standard max)</option>
-      <option value="custom">Request more than 2 weeks</option>
-    </select>
   </div>
 
-  <div class="form-group mt-2" id="custom-weeks-group" style="display:none;">
-    <label for="custom-weeks">Requested weeks (3 or more)</label>
-    <input
-      type="number"
-      id="custom-weeks"
-      name="customWeeks"
-      min="3"
-      placeholder="e.g. 4, 6, 8..."
-      class="input-small"
-      required
-    >
-    <small class="text-muted mt-1">Plans longer than 2 weeks require approval</small>
-  </div>
-
-  <label class="mt-4">Payment Plan <span class="required">*</span></label>
-
-  <div class="payment-summary-box">
-    <div class="row">
-      <span>Item Value (NGN)</span>
-      <strong id="display-value">0</strong>
-    </div>
-    <div class="row">
-      <span>Holding Fee + VAT</span>
-      <strong id="display-service-fee">NGN 0</strong>
-    </div>
-    <div class="row">
-      <span>Logistics Fee</span>
-      <strong id="display-logistics-fee">NGN 0</strong>
-    </div>
-    <div class="row total">
-      <span>Total Amount to Pay</span>
-      <strong id="display-total">NGN 0</strong>
-    </div>
-    <div class="row">
-      <span>Upfront Due Now (50% item value + logistics)</span>
-      <strong id="display-upfront-due">NGN 0</strong>
+  <!-- Confirm Overlay -->
+  <div class="confirm-overlay" id="confirm-overlay" role="dialog" aria-modal="true">
+    <div class="confirm-dialog">
+      <div class="confirm-title">Cancel deal?</div>
+      <div>Are you sure you want to cancel this deal?</div>
+      <div class="confirm-actions">
+        <button type="button" class="btn-cancel" id="confirm-no">No</button>
+        <button type="button" class="btn-submit" id="confirm-yes">Yes, cancel</button>
+      </div>
     </div>
   </div>
 
-  <div class="payment-breakdown mt-4" id="breakdown" style="display:none;">
-    <h4>Payment Schedule Preview</h4>
-    <div class="breakdown-row">
-      <span>Upfront (50% item value + logistics)</span>
-      <strong id="upfront-amount">NGN 0</strong>
-    </div>
-    <div class="breakdown-row">
-      <span>Weekly payment (x <span id="weekly-count">0</span>)</span>
-      <strong id="weekly-amount">NGN 0</strong>
-    </div>
-  </div>
-
-  <div class="form-group mt-3">
-    <small class="text-muted">
-      - Upfront is 50% of item value plus logistics fee<br>
-      - Remaining balance spread over selected weeks<br>
-      - Plans above 2 weeks require approval
-    </small>
-  </div>
-</div>
-
-      <div class="form-row listing-permission">
-        <label>Item Listing Permission</label>
-        <p class="form-help">Should DealLock list this item on our platform to secure secondary buyers in case you default on the balance payment?</p>
-        <div class="option-card">
-          <label class="option-row">
-            <input type="radio" name="listingPermission" value="YES" required>
-            <span><strong>Yes</strong> – You may list the item</span>
-          </label>
-          <p class="option-sub">
-            This allows DealLock to place the item on our platform with a waitlist option. If the primary buyer fails to complete payment within the agreed timeframe, the item may be reassigned to another interested buyer.
-          </p>
-        </div>
-        <div class="option-card">
-          <label class="option-row">
-            <input type="radio" name="listingPermission" value="NO" required>
-            <span><strong>No</strong> – Do not list the item</span>
-          </label>
-          <p class="option-sub">If you choose No, you agree that the following conditions will apply:</p>
-          <ul class="option-list">
-            <li>Additional default or storage fees may be charged if payment is not completed within the agreed timeframe.</li>
-            <li>A higher administrative deduction may be applied to any refund because DealLock will not be able to secure alternative buyers early.</li>
-          </ul>
-          <p class="option-sub">These measures help protect DealLock from financial loss after securing items on behalf of customers.</p>
-        </div>
-      </div>
-
-      <div class="form-row terms-check">
-        <label class="checkbox-row terms-inline">
-          <input type="checkbox" id="termsAccepted" required>
-          <span>I have read and agree to the <a class="terms-link" href="/terms">Terms and Conditions</a></span>
-        </label>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="btn-cancel" id="cancel-create">Cancel</button>
-        <button type="submit" class="btn-submit">Lock Deal</button>
-      </div>
-
-    </form>
-
-  </div>
-</div>
-
-   
   <footer id="footer" class="footer">
     <div class="footer-container">
 
@@ -394,10 +375,6 @@
             <a href="mailto:info@deallock.ng">
               <i class="fas fa-envelope"></i>
               <span>Email</span>
-            </a>
-            <a href=>
-                <i class=></i>
-                <span></span>
             </a>
           </div>
         </div>
