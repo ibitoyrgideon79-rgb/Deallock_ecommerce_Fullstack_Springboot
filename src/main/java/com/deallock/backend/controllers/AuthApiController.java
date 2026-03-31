@@ -30,6 +30,7 @@ import java.util.Map;
 public class AuthApiController {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String PHONE_REGEX = "^\\+[1-9]\\d{7,14}$";
 
     private final UserRepository userRepository;
     private final OtpCodeRepository otpRepo;
@@ -61,21 +62,44 @@ public class AuthApiController {
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody OtpRequest req, HttpServletRequest request) {
         String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
+        String email = req.email == null ? null : req.email.trim();
+        String phone = req.phone == null ? null : req.phone.trim();
+
         if ("phone".equals(channel)) {
-            if (req.phone == null || req.phone.isBlank()) {
+            if (phone == null || phone.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
             }
+            if (!phone.matches(PHONE_REGEX)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
+            }
         } else {
-            if (req.email == null || req.email.isBlank()) {
+            if (email == null || email.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
             }
         }
 
         String otp = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
 
+        String otpMessage = "Your DealLock OTP is: " + otp;
+        if ("phone".equals(channel)) {
+            SmsService.SmsResult smsResult = smsService.sendSmsResult(phone, otpMessage);
+            if (!smsResult.ok) {
+                auditLogService.log("OTP_SENT", phone, request, false, smsResult.message);
+                return ResponseEntity.badRequest().body(Map.of("message", smsResult.message));
+            }
+        } else {
+            try {
+                emailService.sendOtp(email, otp);
+            } catch (Exception ex) {
+                String msg = ex.getMessage() != null ? ex.getMessage() : "Email could not be sent";
+                auditLogService.log("OTP_SENT", email, request, false, msg);
+                return ResponseEntity.badRequest().body(Map.of("message", "Email could not be sent. Please try again."));
+            }
+        }
+
         OtpCode entry = new OtpCode();
-        entry.setEmail(req.email);
-        entry.setPhone(req.phone);
+        entry.setEmail(email);
+        entry.setPhone(phone);
         entry.setChannel(channel);
         entry.setCode(otp);
         entry.setExpiresAt(Instant.now().plusSeconds(300));
@@ -83,15 +107,7 @@ public class AuthApiController {
 
         otpRepo.save(entry);
 
-        String otpMessage = "Your DealLock OTP is: " + otp;
-        if (req.phone != null && !req.phone.isBlank()) {
-            smsService.sendToUser(req.phone, otpMessage);
-            smsService.sendWhatsAppToUser(req.phone, otpMessage);
-        }
-        if (req.email != null && !req.email.isBlank()) {
-            emailService.sendOtp(req.email, otp);
-        }
-        auditLogService.log("OTP_SENT", "phone".equals(channel) ? req.phone : req.email, request, true, null);
+        auditLogService.log("OTP_SENT", "phone".equals(channel) ? phone : email, request, true, null);
         return ResponseEntity.ok(Map.of("message", "OTP sent"));
     }
 
@@ -101,6 +117,9 @@ public class AuthApiController {
         if ("phone".equals(channel)) {
             if (req.phone == null || req.phone.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
+            }
+            if (!req.phone.trim().matches(PHONE_REGEX)) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
             }
         } else {
             if (req.email == null || req.email.isBlank()) {
@@ -138,6 +157,11 @@ public class AuthApiController {
     @PostMapping("/signup")
     @Transactional
     public ResponseEntity<?> signup(@Validated @RequestBody SignupRequest req, HttpServletRequest request) {
+        if (req.phone != null && !req.phone.isBlank() && !req.phone.trim().matches(PHONE_REGEX)) {
+            auditLogService.log("SIGNUP", req.email, request, false, "phone_invalid");
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
+        }
+
         if (userRepository.findByEmail(req.email).isPresent()) {
             auditLogService.log("SIGNUP", req.email, request, false, "email_exists");
             return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));

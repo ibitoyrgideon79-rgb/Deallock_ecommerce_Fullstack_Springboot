@@ -33,7 +33,21 @@ const API_BASE = "/api";
     };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+?[0-9]{7,15}$/;
+    const phoneRegex = /^\+[1-9]\d{7,14}$/;
+    const NG_CODE = "+234";
+
+    function normalizePhone(raw) {
+        if (!raw) return raw;
+        const cleaned = raw.replace(/\s+/g, "");
+        if (cleaned.startsWith("+") && phoneRegex.test(cleaned)) return cleaned;
+        if (cleaned.startsWith("0") && cleaned.length === 11) {
+            return NG_CODE + cleaned.slice(1);
+        }
+        if (cleaned.startsWith("234") && cleaned.length === 13) {
+            return "+" + cleaned;
+        }
+        return cleaned;
+    }
 
     function showError(el, msg) {
         el.textContent = msg;
@@ -53,7 +67,7 @@ const API_BASE = "/api";
         const channel = document.querySelector('input[name="otpChannel"]:checked')?.value || "email";
         const phoneValue = document.getElementById("phone")?.value?.trim() || "";
         const phoneOk = channel !== "phone" || phoneRegex.test(phoneValue);
-        els.getCodeBtn.style.display = valid ? "block" : "none";
+        els.getCodeBtn.style.display = "block";
         els.getCodeBtn.disabled = !valid || !phoneOk || isSendingOtp || resendCooldown > 0;
         if (!isSendingOtp && resendCooldown <= 0) {
             els.getCodeBtn.textContent = "Get Verification Code";
@@ -68,7 +82,18 @@ const API_BASE = "/api";
 
     els.email.addEventListener("input", updateGetCodeButton);
     els.email.addEventListener("change", updateGetCodeButton);
-    document.getElementById("phone")?.addEventListener("input", updateGetCodeButton);
+    const phoneInput = document.getElementById("phone");
+    phoneInput?.addEventListener("input", updateGetCodeButton);
+    phoneInput?.addEventListener("blur", () => {
+        const normalized = normalizePhone(phoneInput.value.trim());
+        phoneInput.value = normalized;
+        if (normalized && !phoneRegex.test(normalized)) {
+            showError(errors.phone, "Your number must follow this format: +2348012345678");
+        } else {
+            errors.phone.textContent = "";
+        }
+        updateGetCodeButton();
+    });
     document.querySelectorAll('input[name="otpChannel"]').forEach(r => {
         r.addEventListener("change", updateGetCodeButton);
     });
@@ -109,10 +134,11 @@ const API_BASE = "/api";
         if (isSendingOtp) return;
         const email = els.email.value.trim();
         const channel = document.querySelector('input[name="otpChannel"]:checked')?.value || "email";
-        const phone = document.getElementById("phone")?.value?.trim() || "";
+        const phone = normalizePhone(document.getElementById("phone")?.value?.trim() || "");
+        document.getElementById("phone").value = phone;
         if (!emailRegex.test(email)) return;
         if (channel === "phone" && !phoneRegex.test(phone)) {
-            showError(errors.phone, "Please enter a valid phone number");
+            showError(errors.phone, "Use international format e.g. +2348012345678");
             return;
         }
 
@@ -120,6 +146,7 @@ const API_BASE = "/api";
         els.getCodeBtn.disabled = true;
         els.getCodeBtn.textContent = "Sending...";
         errors.email.textContent = "";
+        errors.phone.textContent = "";
 
         try {
             const res = await fetch(`${API_BASE}/send-otp`, {
@@ -140,7 +167,11 @@ const API_BASE = "/api";
             els.getCodeBtn.textContent = "Resend Code";
             startResendCooldown(60);
         } catch (err) {
-            showError(errors.email, err.message || "Could not send verification code");
+            if (channel === "phone") {
+                showError(errors.phone, err.message || "Could not send verification code");
+            } else {
+                showError(errors.email, err.message || "Could not send verification code");
+            }
             if (els.status) els.status.textContent = err.message || "Could not send verification code";
             els.getCodeBtn.textContent = "Get Verification Code";
         } finally {
@@ -159,7 +190,8 @@ const API_BASE = "/api";
             return;
         }
         const channel = document.querySelector('input[name="otpChannel"]:checked')?.value || "email";
-        const phone = document.getElementById("phone")?.value?.trim() || "";
+        const phone = normalizePhone(document.getElementById("phone")?.value?.trim() || "");
+        document.getElementById("phone").value = phone;
 
         els.verifyOtpBtn.disabled = true;
         errors.otp.textContent = "";
@@ -199,15 +231,15 @@ const API_BASE = "/api";
         clearErrors();
 
         if (!emailVerified) {
-            showError(errors.email, "Please verify your email first");
-            if (els.status) els.status.textContent = "Please verify your email first.";
+            showError(errors.email, "Please verify your OTP first");
+            if (els.status) els.status.textContent = "Please verify your OTP first.";
             return;
         }
 
         const values = {
             fullName:       els.signupForm.fullName.value.trim(),
             address:        els.signupForm.address.value.trim(),
-            phone:          els.signupForm.phone.value.trim(),
+            phone:          normalizePhone(els.signupForm.phone.value.trim()),
             dob:            els.signupForm.dob.value,
             username:       els.signupForm.username.value.trim(),
             email:          els.email.value.trim(),
@@ -225,8 +257,8 @@ const API_BASE = "/api";
             showError(errors.address, "Please enter a valid address");
             valid = false;
         }
-        if (values.phone.length < 7) {
-            showError(errors.phone, "Please enter a valid phone number");
+        if (!phoneRegex.test(values.phone)) {
+            showError(errors.phone, "Use international format e.g. +2348012345678");
             valid = false;
         }
         if (!values.dob) {
@@ -302,8 +334,18 @@ const API_BASE = "/api";
             }, 1000);
 
         } catch (err) {
+            const msg = err.message || "Something went wrong during registration";
+            if (msg.toLowerCase().includes("email")) {
+                showError(errors.email, msg);
+            } else if (msg.toLowerCase().includes("password")) {
+                showError(errors.confirm, msg);
+            } else if (msg.toLowerCase().includes("phone")) {
+                showError(errors.phone, msg);
+            } else if (msg.toLowerCase().includes("username")) {
+                showError(errors.username, msg);
+            }
             if (els.status) {
-                els.status.textContent = err.message || "Something went wrong during registration";
+                els.status.textContent = msg;
             }
         }
     });

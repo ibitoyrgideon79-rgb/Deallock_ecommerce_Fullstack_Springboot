@@ -44,14 +44,24 @@ public class SmsService {
                 && whatsappSender != null && !whatsappSender.isBlank();
     }
 
+    public static class SmsResult {
+        public final boolean ok;
+        public final String message;
+
+        public SmsResult(boolean ok, String message) {
+            this.ok = ok;
+            this.message = message;
+        }
+    }
+
     public void sendToUser(String phone, String message) {
         if (phone == null || phone.isBlank()) return;
-        sendSms(phone, message);
+        sendSmsResult(phone, message);
     }
 
     public void sendWhatsAppToUser(String phone, String message) {
         if (phone == null || phone.isBlank()) return;
-        sendWhatsApp(phone, message);
+        sendWhatsAppResult(phone, message);
     }
 
     public void sendToAdmins(String message) {
@@ -60,7 +70,7 @@ public class SmsService {
                 .map(String::trim)
                 .filter(p -> !p.isBlank())
                 .toList();
-        phones.forEach(p -> sendSms(p, message));
+        phones.forEach(p -> sendSmsResult(p, message));
     }
 
     public void sendWhatsAppToAdmins(String message) {
@@ -69,13 +79,27 @@ public class SmsService {
                 .map(String::trim)
                 .filter(p -> !p.isBlank())
                 .toList();
-        phones.forEach(p -> sendWhatsApp(p, message));
+        phones.forEach(p -> sendWhatsAppResult(p, message));
     }
 
-    private void sendSms(String to, String message) {
+    private String extractMessage(String body, String fallback) {
+        if (body == null || body.isBlank()) return fallback;
+        String trimmed = body.trim();
+        if (!trimmed.startsWith("{")) return body;
+        try {
+            Map<?, ?> parsed = objectMapper.readValue(trimmed, Map.class);
+            Object msg = parsed.get("message");
+            return msg != null ? String.valueOf(msg) : fallback;
+        } catch (Exception ignored) {
+            return fallback;
+        }
+    }
+
+    public SmsResult sendSmsResult(String to, String message) {
         if (!isSmsConfigured()) {
+            String msg = "SMS not configured. Please contact support.";
             System.out.println("[DEV] Termii SMS not configured. To: " + to + " | " + message);
-            return;
+            return new SmsResult(false, msg);
         }
         try {
             String payload = objectMapper.writeValueAsString(Map.of(
@@ -94,15 +118,22 @@ public class SmsService {
                     .build();
             HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println("[TERMII] SMS status=" + response.statusCode() + " body=" + response.body());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                String msg = extractMessage(response.body(), "SMS sending failed. Please try again.");
+                return new SmsResult(false, msg);
+            }
+            return new SmsResult(true, "OK");
         } catch (Exception ex) {
             System.out.println("[WARN] Termii SMS failed: " + ex.getMessage());
+            return new SmsResult(false, ex.getMessage());
         }
     }
 
-    private void sendWhatsApp(String to, String message) {
+    public SmsResult sendWhatsAppResult(String to, String message) {
         if (!isWhatsAppConfigured()) {
+            String msg = "WhatsApp not configured.";
             System.out.println("[DEV] Termii WhatsApp not configured. To: " + to + " | " + message);
-            return;
+            return new SmsResult(false, msg);
         }
         try {
             String payload = objectMapper.writeValueAsString(Map.of(
@@ -119,8 +150,14 @@ public class SmsService {
                     .build();
             HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println("[TERMII] WhatsApp status=" + response.statusCode() + " body=" + response.body());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                String msg = extractMessage(response.body(), "WhatsApp sending failed. Please try again.");
+                return new SmsResult(false, msg);
+            }
+            return new SmsResult(true, "OK");
         } catch (Exception ex) {
             System.out.println("[WARN] Termii WhatsApp failed: " + ex.getMessage());
+            return new SmsResult(false, ex.getMessage());
         }
     }
 }
