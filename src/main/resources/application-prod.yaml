@@ -16,8 +16,8 @@ spring:
       max-file-size: 2MB
       max-request-size: 2MB
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${SMTP_HOST:smtp.zeptomail.com}
+    port: ${SMTP_PORT:587}
     username: ${SMTP_USER:}
     password: ${SMTP_PASS:}
     properties:
@@ -26,6 +26,8 @@ spring:
           auth: true
           starttls:
             enable: true
+          ssl:
+            protocols: TLSv1.2
 
 app:
   base-url: https://deallockecommercefullstackspringboot-production.up.railway.app

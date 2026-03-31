@@ -92,7 +92,8 @@ public class SmsService {
                     .timeout(Duration.ofSeconds(15))
                     .POST(HttpRequest.BodyPublishers.ofString(payload))
                     .build();
-            HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("[TERMII] SMS status=" + response.statusCode() + " body=" + response.body());
         } catch (Exception ex) {
             System.out.println("[WARN] Termii SMS failed: " + ex.getMessage());
         }
@@ -116,7 +117,8 @@ public class SmsService {
                     .timeout(Duration.ofSeconds(15))
                     .POST(HttpRequest.BodyPublishers.ofString(payload))
                     .build();
-            HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("[TERMII] WhatsApp status=" + response.statusCode() + " body=" + response.body());
         } catch (Exception ex) {
             System.out.println("[WARN] Termii WhatsApp failed: " + ex.getMessage());
         }
