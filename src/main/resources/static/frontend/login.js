@@ -17,11 +17,11 @@ loginForm?.addEventListener("submit", function(e) {
 
     
     if (username.value.trim() === "") {
-        usernameError.textContent = "Email is required";
+        usernameError.textContent = "Email or Username is required";
         username.classList.add("error");
         isValid = false;
     } else if (username.value.trim().length < 3) {
-        usernameError.textContent = "Email must be at least 3 characters";
+        usernameError.textContent = "Email or Username must be at least 3 characters";
         username.classList.add("error");
         isValid = false;
     }
