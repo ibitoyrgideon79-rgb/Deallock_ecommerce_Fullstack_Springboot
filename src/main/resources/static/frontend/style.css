@@ -88,6 +88,67 @@ header {
   color: #60a5fa;
 }
 
+/* Auth Buttons - Visible Background */
+.auth-btn {
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Sign In Button */
+.login-btn {
+  background: transparent;
+  color: #e2e8f0;
+  border: 2px solid #64748b;
+}
+
+.login-btn:hover {
+  background: rgba(100, 116, 139, 0.15);
+  color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* Sign Up Button - Primary Style (Most Visible) */
+.register-btn {
+  background: #3b82f6;           /* Nice blue */
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.register-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+/* Optional: Make logout red if needed */
+.logout-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+/* Improve spacing for buttons in nav */
+.nav-links li {
+  display: flex;
+  align-items: center;
+}
+
+/* Make sure buttons don't get affected by general link hover */
+.nav-links a.auth-btn:hover {
+  background: inherit;   /* Override general hover */
+}
+
 .menu-toggle {
   display: none;
   font-size: 1.8rem;
