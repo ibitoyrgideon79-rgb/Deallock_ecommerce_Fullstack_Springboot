@@ -178,6 +178,7 @@ header {
   font-size: clamp(2.8rem, 7vw, 4.2rem);
   line-height: 1.15;
   margin-bottom: 1.5rem;
+  color: #ffffff;
 }
 
 .hero h1 span {
