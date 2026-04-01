@@ -33,10 +33,10 @@
         <li th:if="${currentUser != null}"><a href="/profile">Profile</a></li>
         <li th:if="${currentUser != null && isAdmin}"><a href="/admin">Admin Console</a></li>
         <li th:if="${currentUser != null}"><a href="/logout">Log out</a></li>
-         <li th:if="${currentUser != null}">
+         <li th:if="${currentUser = null}">
       <a href="/login" class="auth-btn login-btn">Login</a>
     </li>
-    <li th:if="${currentUser != null}">
+    <li th:if="${currentUser = null}">
       <a href="/register" class="auth-btn register-btn">Register</a>
     </li>
       </ul>
