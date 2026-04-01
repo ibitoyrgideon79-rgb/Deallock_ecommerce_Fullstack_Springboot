@@ -28,6 +28,7 @@
         <li><a href="/">Home</a></li>
         <li><a href="#footer">Contact Us</a></li>
         <li th:if="${currentUser == null}"><a href="/login">Login</a></li>
+        <li th:if="${currentUser == null}"><a href="/register">Register</a></li>
         <li th:if="${currentUser != null}"><a href="/logout">Logout</a></li>
       </ul>
     </nav>

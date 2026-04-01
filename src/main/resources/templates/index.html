@@ -33,7 +33,11 @@
         <li th:if="${currentUser != null}"><a href="/profile">Profile</a></li>
         <li th:if="${currentUser != null && isAdmin}"><a href="/admin">Admin Console</a></li>
         <li th:if="${currentUser != null}"><a href="/logout">Log out</a></li>
+<<<<<<< patch-25
         <li th:if="${currentUser == null}"><a href="/login">Login</a></li>
+=======
+        <li th:if="${currentUser == null}"><a href="/login">Log In</a></li>
+>>>>>>> main
         <li th:if="${currentUser == null}"><a href="/register">Register</a></li>
       </ul>
     </nav>
