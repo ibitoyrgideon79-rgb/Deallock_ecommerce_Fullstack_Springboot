@@ -527,4 +527,53 @@ document.addEventListener('click', (e) => {
 });
 
 
+document.addEventListener('DOMContentLoaded', () => {
+  const activeTab = document.getElementById('active-tab');
+  const closedTab = document.getElementById('closed-tab');
+  
+  const activeContent = document.getElementById('active-deals-content');
+  const closedContent = document.getElementById('closed-deals-content');
+
+  function switchToActive() {
+    activeTab.classList.add('active');
+    closedTab.classList.remove('active');
+    
+    activeContent.classList.add('active');
+    closedContent.classList.remove('active');
+  }
+
+  function switchToClosed() {
+    closedTab.classList.add('active');
+    activeTab.classList.remove('active');
+    
+    closedContent.classList.add('active');
+    activeContent.classList.remove('active');
+  }
+
+  // Event Listeners
+  activeTab.addEventListener('click', switchToActive);
+  closedTab.addEventListener('click', switchToClosed);
+
+  // Optional: Set Active Deals as default
+  // switchToActive();
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('profile-settings-btn');
+    const section = document.getElementById('profile-upload-section');
+
+    btn.addEventListener('click', function() {
+        if (section.style.display === 'none' || section.style.display === '') {
+            section.style.display = 'block';
+            btn.textContent = 'Hide Profile Settings';   // Optional: nicer feedback
+        } else {
+            section.style.display = 'none';
+            btn.textContent = 'Profile Settings';
+        }
+    });
+});
+
+
+
 document.addEventListener('DOMContentLoaded', makeDealsClickable);
