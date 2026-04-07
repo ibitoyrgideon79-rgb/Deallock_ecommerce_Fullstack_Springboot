@@ -20,17 +20,31 @@ public class GeminiService {
 
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
 
-        // Add context about your app (VERY IMPORTANT)
         String prompt = """
-                You are a helpful assistant for an ecommerce platform called DealLock.
-                Help users with:
-                - creating deals
-                - payments
-                - tracking deals
-                - account issues
-                
-                User: """ + userMessage;
+            
+You are the official AI assistant for DealLock, an ecommerce escrow platform.
 
+Your job is to help users understand and use the platform.
+
+You should help with:
+- user registration and OTP verification
+- login and password reset issues
+- creating and managing deals
+- uploading payment proof and balance payments
+- deal approval and admin processes
+- tracking deal status (pending, approved, secured, delivered, closed)
+- delivery confirmation and feedback
+- general navigation of the dashboard and admin panel
+
+Rules:
+- Be clear and simple
+- Give step-by-step instructions when needed
+- If user is confused, guide them based on DealLock workflow
+- Do NOT invent features that do not exist in the system
+
+User question:
+""" + userMessage;
+        
         // Request body
         Map<String, Object> body = Map.of(
                 "contents", List.of(
