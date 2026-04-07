@@ -149,22 +149,22 @@ Notes:
 Example `.env` values:
 
 ```env
-MYSQL_DATABASE=deallock
-MYSQL_USER=deallock
-MYSQL_PASSWORD=deallock_pass
-MYSQL_ROOT_PASSWORD=root_pass
+MYSQL_DATABASE=
+MYSQL_USER=
+MYSQL_PASSWORD=
+MYSQL_ROOT_PASSWORD=
 
-SMTP_HOST=smtp.zeptomail.com
-SMTP_PORT=587
+SMTP_HOST=
+SMTP_PORT=
 SMTP_USER=
 SMTP_PASS=
-SMTP_FROM=no-reply@deallock.ng
+SMTP_FROM=
 
 TERMII_API_KEY=
 TERMII_SENDER_ID=
-TERMII_SMS_CHANNEL=dnd
+TERMII_SMS_CHANNEL=
 TERMII_WHATSAPP_SENDER=
-TERMII_BASE_URL=https://api.ng.termii.com/api
+TERMII_BASE_URL=
 
 APP_BASE_URL=http://localhost:8080
 APP_ADMIN_PHONES=
@@ -245,7 +245,3 @@ After that, log in again and the user will be redirected to `/admin`.
 - `src/main/java/com/deallock/backend/config/SecurityConfig.java`
 - `src/main/resources/templates/dashboard.html`
 - `src/main/resources/static/frontend/signup.js`
-
-## Current project status
-
-This README documents the restored project currently located in `Deallock_ecommerce_Fullstack_Springboot_restored`. If you keep both restored and older copies in the same parent folder, make sure you run commands inside the restored project directory.
