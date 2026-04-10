@@ -157,5 +157,5 @@ documents = [
     {
         "question": "How can DealLock help me?",
         "answer": "DealLock helps with creating deals, securing transactions, tracking progress, payments, refunds, and general platform support."
-    }
+    },
 ]

@@ -1,5 +1,23 @@
 # AI Agent Integration Guide
 
+## Update (April 2026)
+The Python agent is no longer a placeholder. It now includes:
+- `ai-agent/app.py` with RAG + Gemini integration
+- `ai-agent/knowledge_base.py` with the embedded FAQ
+- `ai-agent/rag.py` for vector search
+- New env vars: `GEMINI_API_KEY` and `GEMINI_MODEL`
+
+Required env:
+```env
+GEMINI_API_KEY=your-key
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+Optional auth:
+```env
+AI_AGENT_API_KEY=your-secret
+```
+
 
 The Java backend is fully wired to accept a Python AI agent microservice. The Python skeleton is in place. now need to write the actual AI logic in `ai-agent/app.py`.**
 
