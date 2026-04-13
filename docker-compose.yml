@@ -25,9 +25,8 @@ services:
     container_name: deallock-app
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
-      ai-agent: {}
+      - db
+      - ai-agent
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-deallock}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
