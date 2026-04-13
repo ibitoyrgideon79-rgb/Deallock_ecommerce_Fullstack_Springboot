@@ -35,8 +35,9 @@ def query(request: QueryRequest, x_ai_agent_key: str | None = Header(None)):
     prompt = f"""
 You are a helpful assistant for DealLock.
 
-Answer the user using ONLY the context below.
-If the answer is not in the context, say you don't know.
+Use the context below when possible, but if the context is insufficient,
+use your general knowledge to give a helpful answer. If unsure, ask a short
+clarifying question instead of saying "I don't know".
 
 Context:
 {context_text}
