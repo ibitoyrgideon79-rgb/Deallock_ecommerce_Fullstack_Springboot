@@ -24,11 +24,11 @@ public class AiAgentController {
         if (principal == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Authentication required"));
         }
-        if (request == null || request.prompt() == null || request.prompt().isBlank()) {
+        if (request == null || request.getPrompt() == null || request.getPrompt().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Prompt must not be blank"));
         }
 
-        String answer = aiAgentClient.ask(request.prompt());
+        String answer = aiAgentClient.ask(request.getPrompt());
         return ResponseEntity.ok(Map.of("response", answer));
     }
 

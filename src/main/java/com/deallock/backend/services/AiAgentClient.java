@@ -50,7 +50,7 @@ public class AiAgentClient {
                 Object result = response.getBody().get("text");
                 return result == null ? "" : result.toString();
             }
-            return "AI service returned unexpected status: " + response.getStatusCodeValue();
+            return "AI service returned unexpected status: " + response.getStatusCode().value();
         } catch (HttpStatusCodeException ex) {
             return "AI service error: " + ex.getStatusCode() + " " + ex.getResponseBodyAsString();
         } catch (Exception ex) {
