@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy to VPS and roll back on failed health check
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -eu
+            cd "${{ secrets.VPS_APP_DIR }}"
+
+            PREVIOUS_COMMIT="$(git rev-parse HEAD)"
+
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+
+            docker compose up -d --build --no-deps app
+
+            sleep 20
+
+            if ! curl -fsS "${{ secrets.APP_HEALTHCHECK_URL }}" > /dev/null; then
+              echo "Health check failed. Rolling back to ${PREVIOUS_COMMIT}."
+              git reset --hard "${PREVIOUS_COMMIT}"
+              docker compose up -d --build --no-deps app
+              exit 1
+            fi
