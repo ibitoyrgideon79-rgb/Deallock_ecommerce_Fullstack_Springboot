@@ -42,7 +42,7 @@ services:
       TERMII_BASE_URL: ${TERMII_BASE_URL:-https://api.ng.termii.com/api}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
       APP_ADMIN_PHONES: ${APP_ADMIN_PHONES:-}
-      AI_AGENT_URL: ${AI_AGENT_URL:http://ai-agent:8000}
+      AI_AGENT_URL: ${AI_AGENT_URL:-http://ai-agent:8000}
       AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
     ports:
       - "8080:8080"
