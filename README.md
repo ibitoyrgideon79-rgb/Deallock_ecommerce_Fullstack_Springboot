@@ -93,7 +93,7 @@ Example local defaults:
 - Username: `
 - Password: `
 
-### 2. Optional environment variables
+### 2. Optinal environment variables
 
 You only need SMTP and Termii values if you want real email or SMS/WhatsApp delivery.
 
