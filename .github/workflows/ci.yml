@@ -15,11 +15,14 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "25"
           cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
 
       - name: Run Maven tests
         run: ./mvnw -B test
