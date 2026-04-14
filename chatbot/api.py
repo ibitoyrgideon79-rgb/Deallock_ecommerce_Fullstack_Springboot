@@ -1,33 +1,55 @@
-from fastapi import FastAPI
+"""
+api.py
+------
+FastAPI app. Keeps the original /chat endpoint shape and adds:
+  - session_id field so conversation history works across turns
+  - DELETE /chat/{session_id} to clear history
+  - GET /health for Docker healthcheck
+  - API key loaded from .env (never hardcoded)
+"""
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from Rag import search
-from google import genai
+from chatbot import get_response, clear_session, MemoryStore
 
-client = genai.Client(api_key="AIzaSyA-AEHpj1H9UjUqQvMLRuyRqY5qYUA2RBs")
+app = FastAPI(title="DealLock Chatbot API")
 
-app = FastAPI()
 
 class Query(BaseModel):
-    message: str
+    message:    str
+    session_id: str = MemoryStore.generate_session_id(self=MemoryStore())   # pass a user-specific ID to maintain history
 
 
+# ----------------------------------------------------------------
+# POST /chat — same as before, now session-aware
+# ----------------------------------------------------------------
 @app.post("/chat")
 def chat(query: Query):
-    context = search(query.message)
-    context_text = "\n".join(context)
+    if not query.message.strip():
+        raise HTTPException(status_code=400, detail="message cannot be empty")
 
-    prompt = f"""
-    You are a helpful assistant for DealLock.
+    response = get_response(query.message, session_id=query.session_id)
+    return {
+        "response":   response,
+        "session_id": query.session_id,
+    }
 
-    Context:
-    {context_text}
 
-    User: {query.message}
-    """
+# ----------------------------------------------------------------
+# DELETE /chat/{session_id} — reset conversation history
+# ----------------------------------------------------------------
+@app.delete("/chat/{session_id}")
+def reset_session(session_id: str):
+    clear_session(session_id)
+    return {"status": "cleared", "session_id": session_id}
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
 
-    return {"response": response.text}
+# ----------------------------------------------------------------
+# GET /health — Docker / load balancer healthcheck
+# ----------------------------------------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
