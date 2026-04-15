@@ -26,10 +26,7 @@ services:
     container_name: deallock-app
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
-      ai-agent:
-        condition: service_started
+      - db
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-deallock}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
@@ -50,24 +47,19 @@ services:
       AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
     ports:
       - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
-  ai-agent:
-    build:
-      context: ./ai-agent
-      dockerfile: Dockerfile
-    container_name: deallock-ai-agent
-    restart: unless-stopped
-    environment:
-      AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
-    ports:
-      - "8000:8000"
+  # ai-agent:
+  #   build:
+  #     context: ./ai-agent
+  #     dockerfile: Dockerfile
+  #   container_name: deallock-ai-agent
+  #   restart: unless-stopped
+  #   environment:
+  #     AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
+  #     GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  #     GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+  #   ports:
+  #     - "8000:8000"
 
 volumes:
   db_data:
