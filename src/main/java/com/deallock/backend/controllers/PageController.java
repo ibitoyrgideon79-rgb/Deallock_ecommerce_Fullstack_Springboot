@@ -22,11 +22,13 @@ public class PageController {
         this.notificationService = notificationService;
     }
 
-    @GetMapping("/login")     public String login()     { return "login"; }
-    @GetMapping("/terms")     public String terms()     { return "terms"; }
-    @GetMapping("/ourteam")   public String ourteam()   { return "ourteam"; }
-    @GetMapping("/marketplace") public String marketplace() { return "marketplace"; }
-
+     @GetMapping("/marketplace") public String marketplace() { return "marketplace"; }
+    // Legacy static URLs -> clean Thymeleaf routes
+    @GetMapping("/frontend/pages/login.html") public String loginLegacy() { return "redirect:/login"; }
+    @GetMapping("/frontend/pages/register.html") public String registerLegacy() { return "redirect:/register"; }
+    @GetMapping("/frontend/pages/terms.html") public String termsLegacy() { return "redirect:/terms"; }
+    @GetMapping("/frontend/pages/ourteam.html") public String ourteamLegacy() { return "redirect:/ourteam"; }
+    @GetMapping("/frontend/pages/marketplace.html") public String marketplaceLegacy() { return "redirect:/marketplace"; 
     @GetMapping("/ai-agent")
     public String aiAgent(Principal principal) {
         if (principal == null) {
