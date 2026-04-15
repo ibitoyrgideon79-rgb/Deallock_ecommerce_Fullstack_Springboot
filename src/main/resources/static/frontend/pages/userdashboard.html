@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/css/tailwind.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="/frontend/images/logo.jpeg">
+  <title>deallock.ng</title>
+  <style>
+  .step-card {
+    padding: 1.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    max-width: 520px; 
+  }
+  .step-card:hover {
+    border-color: #10b981;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+  }
+ @keyframes scrollLeft {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .sponsors-container {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .sponsors-track {
+    display: flex;
+    width: max-content;
+    animation: scrollLeft 40s linear infinite;
+  }
+
+
+  .sponsors-container:hover .sponsors-track {
+    animation-play-state: paused;
+  }
+
+  .sponsor-logo img {
+    max-height: 68px;           
+    filter: grayscale(100%);
+    transition: all 0.4s ease;
+  }
+
+  .sponsor-logo img:hover {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+  }
+   .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .tab-link.active { background-color: #f3f4f6; font-weight: 600; }
+    .filter-btn.active { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .error-text { color: #ef4444; font-size: 0.875rem; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+  <header class="bg-white border-b border-gray-100 shadow-sm relative">
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    
+    
+    <div class="flex items-center gap-x-3">
+      <a href="/" class="flex items-center gap-x-2">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
+      </a>
+  
+      <span class="text-gray-700 text-sm font-medium hidden sm:block">
+        Deal securing and purchase support.
+      </span>
+    </div>
+
+
+    <div class="hidden md:flex items-center gap-x-2">
+      <a href="/" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
+      <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
+      <a href="/terms" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
+      <a href="/ourteam" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
+    </div>
+
+    
+    <div class="hidden md:flex items-center gap-x-3">
+      <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
+        <a href="/login" class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Login</a>
+        <a href="/register" class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">Register</a>
+      </div>
+
+      <div th:if="${currentUser != null}" class="relative group">
+        <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
+          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+        </button>
+        <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+          <a href="/profile" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Profile Settings</a>
+          <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
+        </div>
+      </div>
+    </div>
+
+    
+    <button id="menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
+      <i class="fas fa-bars text-2xl"></i>
+    </button>
+  </nav>
+
+  
+  <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-4 shadow-xl">
+    <a href="/" class="block text-gray-700 font-medium">Home</a>
+    <a href="/marketplace" class="block text-gray-700 font-medium">Marketplace</a>
+    <a href="/terms" class="block text-gray-700 font-medium">Terms</a>
+    <a href="/ourteam" class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
+    
+    
+    <div th:if="${currentUser == null}" class="flex flex-col gap-y-3 pt-2">
+      <a href="/login" class="text-center px-6 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full">Login</a>
+      <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
+    </div>
+    <div th:if="${currentUser != null}" class="pt-2">
+       <a href="/profile" class="block py-2 text-gray-700">Profile Settings</a>
+       <a href="/logout" class="block py-2 text-red-600">Log out</a>
+    </div>
+  </div>
+</header>
+
+ 
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-10">
+
+  <div class="flex lg:grid lg:grid-cols-12 gap-8">
+
+    <!-- LEFT SIDEBAR / Hamburger Menu -->
+    <div class="lg:col-span-3">
+      <button onclick="toggleSidebar()" class="lg:hidden flex items-center gap-2 text-xl mb-6">
+        <i class="fas fa-bars"></i> Menu
+      </button>
+
+      <div id="sidebar" class="lg:block hidden bg-white border border-gray-200 rounded-3xl p-6 sticky top-8 text-center lg:relative">
+        <div class="flex flex-col items-center">
+          <div onclick="changeProfilePicture()" class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
+            <img id="profile-photo" src="https://picsum.photos/id/64/300/300" alt="Profile" class="w-full h-full object-cover">
+          </div>
+          <h2 class="mt-5 text-2xl font-semibold">Hi, Tazer</h2>
+        </div>
+
+        <div class="mt-12 space-y-1">
+          <a href="#" onclick="showTab('deals'); return false;" class="tab-link active flex items-center gap-3 px-5 py-4 rounded-2xl">
+            <i class="fas fa-handshake w-5"></i>
+            <span class="font-medium">My Deals</span>
+          </a>
+          <a href="#" onclick="showTab('orders'); return false;" class="tab-link flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-gray-100 transition">
+            <i class="fas fa-shopping-bag w-5"></i>
+            <span class="font-medium">My Orders</span>
+          </a>
+          <a href="#" onclick="showTab('settings'); return false;" class="tab-link flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-gray-100 transition">
+            <i class="fas fa-user-cog w-5"></i>
+            <span class="font-medium">Profile Settings</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="lg:col-span-9 flex-1">
+
+      <!-- MY DEALS TAB -->
+      <div id="deals-tab" class="tab-content active">
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-8">
+          <div class="flex gap-2 bg-gray-100 p-1 rounded-3xl">
+            <button onclick="filterDeals('all')" class="filter-btn active px-6 py-2.5 rounded-3xl text-sm font-medium">All Deals</button>
+            <button onclick="filterDeals('active')" class="filter-btn px-6 py-2.5 rounded-3xl text-sm font-medium">Active</button>
+            <button onclick="filterDeals('completed')" class="filter-btn px-6 py-2.5 rounded-3xl text-sm font-medium">Completed</button>
+          </div>
+
+          <div class="flex gap-3">
+            <button onclick="openDateFilter()" class="flex items-center gap-2 border border-gray-300 px-5 py-2.5 rounded-2xl text-sm hover:bg-gray-50">
+              <i class="fas fa-calendar-alt"></i> Date Range
+            </button>
+            <button onclick="openNewDealModal()" class="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-2xl text-sm font-medium">
+              <i class="fas fa-plus"></i> New Deal
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">S/N</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Deal ID</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Product Name</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Price</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Status</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Action</th>
+              </tr>
+            </thead>
+            <tbody id="deals-table-body" class="divide-y text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MY ORDERS TAB -->
+      <div id="orders-tab" class="tab-content hidden">
+        <h2 class="text-2xl font-semibold mb-6">My Orders</h2>
+        <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">S/N</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Order ID</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Product</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Price</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Status</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500">Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body" class="divide-y text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PROFILE SETTINGS TAB -->
+      <div id="settings-tab" class="tab-content hidden">
+        <h2 class="text-2xl font-semibold mb-6">Profile Settings</h2>
+        <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-8">
+          <div>
+            <label class="block text-sm font-medium mb-2">Full Name</label>
+            <input type="text" id="full-name" value="Tazer" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+          </div>
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium mb-2">Email Address</label>
+              <input type="email" id="email" value="tazer@example.com" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Phone Number</label>
+              <input type="tel" id="phone" value="+234 701 153 3736" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-3">Delivery Addresses</label>
+            <div id="address-list" class="space-y-3 text-sm"></div>
+            <button onclick="addNewDeliveryAddress()" class="mt-4 w-full border border-dashed border-gray-400 text-gray-600 py-4 rounded-2xl hover:bg-gray-50">
+              + Add New Delivery Address
+            </button>
+          </div>
+          <div class="flex gap-6">
+            <button onclick="changeProfilePicture()" class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Change Profile Picture</button>
+            <button onclick="openChangePasswordModal()" class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Change Password</button>
+          </div>
+          <button onclick="saveProfileChanges()" class="mt-6 w-full bg-gray-900 text-white py-4 rounded-2xl font-semibold">
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- NEW DEAL MODAL WITH AUTO CALCULATION -->
+<div id="new-deal-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-4">
+  <div class="bg-white w-full max-w-2xl max-h-[92vh] overflow-auto rounded-3xl shadow-2xl">
+
+    <div class="p-8 border-b">
+      <h2 class="text-2xl font-semibold">Create New Deal</h2>
+    </div>
+
+    <div class="p-8 space-y-6">
+      <div>
+        <input type="text" id="item-name" placeholder="Item Name *" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+        <div id="error-item-name" class="error-text"></div>
+      </div>
+
+      <input type="text" id="item-link" placeholder="Item Link (Optional)" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+
+      <div class="grid grid-cols-2 gap-4">
+        <input type="text" id="seller-name" placeholder="Seller's Name" class="border border-gray-300 rounded-2xl px-5 py-3">
+        <input type="text" id="seller-phone" placeholder="Seller's Phone Number" class="border border-gray-300 rounded-2xl px-5 py-3">
+      </div>
+
+      <input type="text" id="seller-address" placeholder="Seller's Address" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+      <input type="text" id="delivery-address" placeholder="Delivery Address" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+      <input type="text" id="item-size" placeholder="Item Size" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+
+      <div>
+        <input type="number" id="expected-value" oninput="calculatePaymentPlan()" placeholder="Expected Value (NGN)" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+        <div id="error-value" class="error-text"></div>
+      </div>
+
+      <textarea id="description" placeholder="Description / Details" rows="3" class="w-full border border-gray-300 rounded-2xl px-5 py-3"></textarea>
+
+      <div>
+        <label class="block text-sm font-medium mb-2">Number of weekly installments</label>
+        <input type="number" id="weeks" oninput="calculatePaymentPlan()" placeholder="e.g. 7" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+        <div id="error-weeks" class="error-text"></div>
+      </div>
+
+      <!-- Payment Plan -->
+      <div class="bg-gray-50 p-6 rounded-2xl">
+        <h3 class="font-medium mb-4">Payment Plan</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between"><span>Item Value (NGN)</span><span id="plan-item-value">â‚¦ 0.00</span></div>
+          <div class="flex justify-between"><span>Holding Fee + VAT</span><span id="plan-holding">â‚¦ 0.00</span></div>
+          <div class="flex justify-between"><span>Logistics Fee</span><span>â‚¦ 1,950.00</span></div>
+          <hr>
+          <div class="flex justify-between font-semibold"><span>Total Amount to Pay</span><span id="plan-total">â‚¦ 0.00</span></div>
+          <div class="flex justify-between font-bold text-lg"><span>Upfront Due Now (50% + logistics)</span><span id="plan-upfront">â‚¦ 0.00</span></div>
+        </div>
+      </div>
+
+      <div>
+        <p class="font-medium mb-3">Should DealLock list this item on our platform?</p>
+        <div class="flex gap-6">
+          <label><input type="radio" name="listing" value="yes" checked> Yes ? You may list the item</label>
+          <label><input type="radio" name="listing" value="no"> No ? Do not list the item</label>
+        </div>
+      </div>
+
+      <label class="flex items-start gap-3 text-sm">
+        <input type="checkbox" id="agree-terms">
+        <span>I have read and agree to the <span class="text-blue-600">Terms and Conditions</span></span>
+      </label>
+    </div>
+
+    <div class="border-t p-6 flex gap-4">
+      <button onclick="closeNewDealModal()" class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Cancel</button>
+      <button onclick="submitNewDeal()" class="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-semibold">Submit Deal</button>
+    </div>
+  </div>
+</div>
+
+
+<footer class="bg-white border-t border-gray-200 text-gray-600">
+  <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Our Objectives</h3>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Making quality products affordable through flexible payments
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Building trust and security in every transaction
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Streamlining the buying process for everyone
+          </li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Why Choose DealLock</h3>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Flexible "Pay Small Small" payment plans
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Secure and transparent transactions
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Wide range of quality products
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Contact Us</h3>
+        <div class="space-y-4 text-gray-600">
+          <div class="flex items-start">
+            <i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3 text-xl"></i>
+            <span>Abuja, Nigeria</span>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-phone text-emerald-600 mr-3 text-xl"></i>
+            <a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-envelope text-emerald-600 mr-3 text-xl"></i>
+            <a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a>
+          </div>
+        </div>
+
+        <div class="flex space-x-6 mt-8">
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-facebook-f text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-twitter text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-instagram text-2xl"></i>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Stay Updated</h3>
+        <p class="text-gray-600 mb-6 text-sm">
+          Get the latest deals, payment tips, and new products from DealLock.
+        </p>
+        <form id="newsletter-form" class="space-y-3" onsubmit="handleSubscribe(event)">
+          <div class="relative">
+            <input 
+              type="email" 
+              id="newsletter-email"
+              placeholder="Enter your email address" 
+              class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all"
+            >
+            <button type="submit" 
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl transition-colors">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+          
+          <button type="submit" 
+                  class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-2xl transition-colors">
+            SUBSCRIBE
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+      <p>
+        ? <span id="year"></span> DealLock Nigeria. All rights reserved. | 
+        <a href="https://deallock.ng" class="hover:text-emerald-600">deallock.ng</a>
+      </p>
+    </div>
+  </div>
+
+
+  <button onclick="scrollToTop()" 
+          id="scroll-top-btn"
+          class="fixed bottom-8 right-8 p-4 rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 hover:scale-110 transition-all duration-300 focus:outline-none z-50 opacity-0 pointer-events-none">
+    <i class="fas fa-arrow-up text-xl"></i>
+  </button>
+</footer>
+
+
+  <script src="/frontend/js/home.js" defer></script>
+  <script src="/frontend/js/userdashboard.js" defer></script>
+</body>
+</html>
+
+
+
+

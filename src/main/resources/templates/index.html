@@ -3,314 +3,663 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="frontend/style.css">
+  <link rel="stylesheet" href="/frontend/css/tailwind.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="icon" type="image/x-icon" href="frontend/logo.jpeg">
+  <link rel="icon" type="image/x-icon" href="/frontend/images/logo.jpeg">
   <title>deallock.ng</title>
+  <style>
+  .step-card {
+    padding: 1.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    max-width: 520px; 
+  }
+  .step-card:hover {
+    border-color: #10b981;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+  }
+ @keyframes scrollLeft {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .sponsors-container {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .sponsors-track {
+    display: flex;
+    width: max-content;
+    animation: scrollLeft 40s linear infinite;
+  }
+
+
+  .sponsors-container:hover .sponsors-track {
+    animation-play-state: paused;
+  }
+
+  .sponsor-logo img {
+    max-height: 68px;           
+    filter: grayscale(100%);
+    transition: all 0.4s ease;
+  }
+
+  .sponsor-logo img:hover {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+  }
+</style>
 </head>
 <body>
 
-  <header>
-    <nav class="navbar">
-      <div class="logo-wrapper">
-        <a href="#" class="logo">
-          <img src="/frontend/logo.jpeg" alt="DealLock Logo">
-        </a>
-        <span class="slogan">Deal Securing & Purchase Support</span>
+  <header class="bg-white border-b border-gray-100 shadow-sm relative">
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    
+    
+    <div class="flex items-center gap-x-3">
+      <a href="/" class="flex items-center gap-x-2">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
+      </a>
+  
+      <span class="text-gray-700 text-sm font-medium hidden sm:block">
+        Deal securing and purchase support.
+      </span>
+    </div>
+
+
+    <div class="hidden md:flex items-center gap-x-2">
+      <a href="/" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
+      <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
+      <a href="/terms" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
+      <a href="/ourteam" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
+    </div>
+
+    
+    <div class="hidden md:flex items-center gap-x-3">
+      <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
+        <a href="/login" class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Login</a>
+        <a href="/register" class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">Register</a>
       </div>
 
-      <div class="menu-toggle" id="menu-toggle">
-        <i class="fas fa-bars"></i>
-      </div>
-
-      <ul class="nav-links" id="nav-links">
-        <li th:if="${currentUser == null}"><a href="#about">About Us</a></li>
-        <li th:if="${currentUser == null}"><a href="#products">Items We Buy</a></li>
-        <li th:if="${currentUser == null}"><a href="#how-it-works">How It Works</a></li>
-        <li th:if="${currentUser == null}"><a href="/terms">Terms and Conditions</a></li>
-        <li th:if="${currentUser == null}"><a href="#footer">Contact Us</a></li>
-        <li th:if="${currentUser != null}"><a href="/dashboard">Dashboard</a></li>
-        <li th:if="${currentUser != null}"><a href="/profile">Profile</a></li>
-        <li th:if="${currentUser != null && isAdmin}"><a href="/admin">Admin Console</a></li>
-        <li th:if="${currentUser != null}"><a href="/logout">Log out</a></li>
-        <li th:if="${currentUser == null}">
-      <a href="/login" class="auth-btn login-btn">Login</a>
-    </li>
-    <li th:if="${currentUser == null}">
-      <a href="/register" class="auth-btn register-btn">Register</a>
-    </li>
-      </ul>
-    </nav>
-  </header>
-
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Pay small. Lock the deal.<br><span>Secure the item.</span></h1>
-
-      <p>
-        Don’t lose high-value opportunities because payment couldn’t move fast enough.<br>
-        Lock fast-selling deals instantly and complete payment with confidence.
-      </p>
-
-      <div class="hero-buttons">
-        <a href="/login" class="btn primary">Lock a Deal</a>
-        <a href="#how-it-works" class="btn secondary">How It Works</a>
+      <div th:if="${currentUser != null}" class="relative group">
+        <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
+          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+        </button>
+        <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+          <a href="/profile" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Profile Settings</a>
+          <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
+        </div>
       </div>
     </div>
-  </section>
-  
-  <section class="about-layout" id="about">
-    <div class="about-grid">
-      <div class="about-main">
-        <h2>About Us</h2>
 
+    
+    <button id="menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
+      <i class="fas fa-bars text-2xl"></i>
+    </button>
+  </nav>
+
+  
+  <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-4 shadow-xl">
+    <a href="/" class="block text-gray-700 font-medium">Home</a>
+    <a href="/marketplace" class="block text-gray-700 font-medium">Marketplace</a>
+    <a href="/terms" class="block text-gray-700 font-medium">Terms</a>
+    <a href="/ourteam" class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
+    
+    
+    <div th:if="${currentUser == null}" class="flex flex-col gap-y-3 pt-2">
+      <a href="/login" class="text-center px-6 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full">Login</a>
+      <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
+    </div>
+    <div th:if="${currentUser != null}" class="pt-2">
+       <a href="/profile" class="block py-2 text-gray-700">Profile Settings</a>
+       <a href="/logout" class="block py-2 text-red-600">Log out</a>
+    </div>
+  </div>
+</header>
+
+ 
+<section class="bg-white py-16 md:py-24 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div class="space-y-8 lg:pr-8">
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
+          Pay small.<br>Lock the deal.<br>
+          <span class="text-emerald-600">Secure the item.</span>
+        </h1>
+        <p class="text-xl text-gray-600 max-w-lg">
+          Don’t lose high-value opportunities because payment couldn’t move fast enough.<br><br>
+          Lock fast-selling deals instantly and complete payment with confidence using flexible "Pay Small Small" plans.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a href="/login" 
+             class="px-8 py-4 bg-black text-white font-semibold rounded-2xl hover:bg-gray-800 transition-all text-lg">
+            Lock a Deal Now
+          </a>
+          <a href="#how-it-works" 
+             class="px-8 py-4 border-2 border-gray-300 font-semibold rounded-2xl hover:border-gray-400 transition-all text-lg">
+            How It Works
+          </a>
+        </div>
+        <div class="flex items-center gap-8 text-sm text-gray-500 pt-4">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-shield-alt text-emerald-600"></i>
+            <span>Secure Payments</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="fas fa-users text-emerald-600"></i>
+            <span>Trusted by 10k+ Nigerians</span>
+          </div>
+        </div>
+      </div>
+      <div class="relative flex justify-center lg:justify-end">
+        <div class="relative w-full max-w-[320px] md:max-w-[380px]">
+          
+          <div class="relative mx-auto bg-black rounded-[3rem] p-3 shadow-2xl">
+            <div class="bg-white rounded-[2.3rem] overflow-hidden border border-gray-200 h-[620px] relative">
+              <div class="h-11 bg-white flex items-end justify-center pb-1">
+                <div class="w-28 h-4 bg-black rounded-full"></div>
+              </div>
+              <div class="h-[calc(100%-44px)] overflow-hidden">
+                <img 
+                  src="https://i.imgur.com/8vN9zYk.png" 
+                  alt="DealLock App Screenshot" 
+                  class="w-full h-full object-cover"
+                >
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 text-xs px-4 py-1.5 rounded-full shadow flex items-center gap-2 text-gray-500">
+                  <i class="fas fa-arrow-up"></i>
+                  <span>Scroll to explore deals</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -top-6 -right-6 bg-emerald-600 text-white text-xs font-medium px-5 py-2 rounded-2xl shadow-xl rotate-6">
+            Pay Small Small
+          </div>
+          <div class="absolute -bottom-4 -left-6 bg-white shadow-xl rounded-2xl p-4 text-center">
+            <div class="text-emerald-600 font-bold text-2xl">4.9</div>
+            <div class="text-xs text-gray-500">Excellent</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+  
+
+<section class="bg-white py-20" id="about">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto text-center mb-16">
+      <h2 class="text-5xl font-bold text-gray-900 mb-6">About Us</h2>
+      <div class="space-y-6 text-lg text-gray-600">
         <p>
-          DealLock was created to solve a simple but costly problem:
+          DealLock was created to solve a simple but costly problem: 
           losing valuable deals because payment couldn’t be completed fast enough.
         </p>
-
         <p>
-          In today’s fast-moving declutter sales, auctions, and discounted markets,
-          great opportunities often disappear within minutes. Buyers are ready and
-          willing, but timing and liquidity become barriers. DealLock exists
-          to bridge that gap.
+          In today’s fast-moving declutter sales, auctions, and discounted markets, 
+          great opportunities often disappear within minutes. Buyers are ready and willing, 
+          but timing and liquidity become barriers. DealLock exists to bridge that gap.
         </p>
-
         <p>
-          We provide a Deal Securing & Purchase Support Service that allows customers
-          to lock fast-selling items with an upfront payment while completing the
-          balance over time.
+          We provide a Deal Securing & Purchase Support Service that allows customers 
+          to lock fast-selling items with an upfront payment while completing the balance 
+          over time.
         </p>
-
         <p>
-          Our approach is built on trust, transparency, and controlled execution.
-          We act as a reliable intermediary—securing assets on behalf of our
-          customers under clear terms.
-        </p>
-
-        <p class="tagline">
-          <strong>Pay small. Lock the deal. Secure the item.</strong>
+          Our approach is built on trust, transparency, and controlled execution. 
+          We act as a reliable intermediary—securing assets on behalf of our customers 
+          under clear terms.
         </p>
       </div>
-
-      <div class="about-side">
-        <div class="side-box">
-          <h3>Our Mission</h3>
-          <p>
-            To make fast-selling deals accessible by enabling customers to secure
-            value first and complete payment with confidence.
-          </p>
-        </div>
-
-        <div class="side-box">
-          <h3>Our Values</h3>
-          <ul>
-            <li><strong>Trust First</strong> – Accountability and clear terms</li>
-            <li><strong>Speed with Structure</strong> – Fast but controlled</li>
-            <li><strong>Transparency</strong> – No hidden processes</li>
-            <li><strong>Customer Confidence</strong> – Reducing stress</li>
-          </ul>
-        </div>
-
-        <div class="side-box">
-          <h3>Our Promise</h3>
-          <p>
-            When you lock a deal with DealLock, your opportunity is protected
-            until you’re ready to complete payment.
-          </p>
-        </div>
-      </div>
+      <p class="mt-10 text-2xl font-semibold text-emerald-700 italic">
+        Pay small. Lock the deal. Secure the item.
+      </p>
     </div>
-  </section>
-  
-  
 
-  <section class="products" id="products">
-    <h2>Items We Buy</h2>
-
-    <div class="product-grid">
-      <div class="product-card">
-        <img src="/frontend/gadgets.jpg.jpeg" alt="Gadgets">
-        <p>Gadgets</p>
-      </div>
-      <div class="product-card">
-        <img src="/frontend/furniture.jfif" alt="Furniture">
-        <p>Furniture</p>
-      </div>
-      <div class="product-card">
-        <img src="/frontend/electronics.jpg.jpeg" alt="Electronics">
-        <p>Electronics</p>
-      </div>
-      <div class="product-card">
-        <img src="/frontend/nonperishable.jpg.jpeg" alt="Non-perishable food items">
-        <p>Non-perishable food items</p>
-      </div>
-      <div class="product-card">
-        <img src="/frontend/office.jpg.jpeg" alt="Office appliances">
-        <p>Office appliances</p>
-      </div>
-      <div class="product-card">
-        <img src="/frontend/industrial.jpeg" alt="Industrial goods">
-        <p>Industrial Supplies and Goods</p>
-      </div>
-    </div>
-  </section>
-
-  
-
-  <section class="how-it-works" id="how-it-works">
-    <h2>How It Works</h2>
-
-    <div class="how-it-works-container">
-
-      <div class="steps-grid">
-
-        <!-- First Row: Steps 1 - 2 - 3 -->
-        <div class="steps-row">
-          <div class="step">
-            <h4>STEP 1</h4>
-            <h5>Find a Deal</h5>
-            <p>Identify a fast-selling, discounted, auction or declutter item you want to secure.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <i class="fas fa-bullseye text-3xl"></i>
           </div>
-
-          <div class="arrow right-arrow">→</div>
-
-          <div class="step">
-            <h4>STEP 2</h4>
-            <h5>Pay to Lock</h5>
-            <p>Sign up or log in, submit the item link. We assess and if approved, pay 50% upfront to lock it.</p>
-          </div>
-
-          <div class="arrow right-arrow">→</div>
-
-          <div class="step">
-            <h4>STEP 3</h4>
-            <h5>We Secure the Item</h5>
-            <p>DealLock.ng completes the purchase and holds the item securely for you.</p>
-          </div>
+          <h3 class="text-2xl font-semibold text-gray-900">Our Mission</h3>
         </div>
-
-        <!-- Connecting arrow from Row 1 to Row 2 -->
-        <div class="connector-arrow">
-          <div class="arrow down-arrow">↓</div>
+        <p class="text-gray-600 leading-relaxed">
+          To make fast-selling deals accessible by enabling customers to secure value first 
+          and complete payment with confidence and ease.
+        </p>
+      </div>
+      <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <i class="fas fa-gem text-3xl"></i>
+          </div>
+          <h3 class="text-2xl font-semibold text-gray-900">Our Values</h3>
         </div>
-
-        <!-- Second Row: Steps 4 - 5 - 6 -->
-        <div class="steps-row">
-          <div class="step">
-            <h4>STEP 4</h4>
-            <h5>Complete Your Payment</h5>
-            <p>Pay the remaining balance within the agreed Validity Period.</p>
+        <ul class="space-y-4 text-gray-600">
+          <li class="flex gap-3">
+            <span class="text-emerald-600 mt-1">•</span>
+            <span><strong>Trust First</strong> – Accountability and clear terms</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="text-emerald-600 mt-1">•</span>
+            <span><strong>Speed with Structure</strong> – Fast but controlled</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="text-emerald-600 mt-1">•</span>
+            <span><strong>Transparency</strong> – No hidden processes</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="text-emerald-600 mt-1">•</span>
+            <span><strong>Customer Confidence</strong> – Reducing stress</span>
+          </li>
+        </ul>
+      </div>
+      <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <i class="fas fa-handshake text-3xl"></i>
           </div>
-
-          <div class="arrow right-arrow">→</div>
-
-          <div class="step">
-            <h4>STEP 5</h4>
-            <h5>Pickup or Delivery</h5>
-            <p>Once full payment is confirmed, the item is released for pickup or delivery.</p>
-          </div>
-
-          <div class="arrow right-arrow">→</div>
-
-          <div class="step">
-            <h4>STEP 6</h4>
-            <h5>What If You Can't Complete?</h5>
-            <p>If you fail to pay the balance, we will resell the item. You receive a refund minus holding fees and resale costs.</p>
-          </div>
+          <h3 class="text-2xl font-semibold text-gray-900">Our Promise</h3>
         </div>
-
+        <p class="text-gray-600 leading-relaxed">
+          When you lock a deal with DealLock, your opportunity is protected until you’re ready 
+          to complete payment — with full security and peace of mind.
+        </p>
       </div>
-
-    </div>
-  </section>
-
-  <section class="sponsors-section">
-  <div class="content-wrapper">
-    <h2>Partners & Sponsors</h2>
-    <p class="intro-text">
-      
-    </p>
-
-    <div class="sponsors-logos">
-      <div class="sponsor-logo">
-        <img src="/frontend/vassetlogo.png" alt="vassetlogo">
-      </div>
-      
-      <div class="sponsor-logo">
-        <img src="/frontend/zalasoftlogo.png" alt="zalasoftlogo">
-      </div>
-      <div class="sponsor-logo">
-        <img src="/frontend/scancodes%20logo.JPG.jpeg" alt="scancodes">
-      </div>
-      <div class="sponsor-logo">
-        <img src="/frontend/IMG_2601.JPG.jpeg" alt="ahowa">
-      </div>
-     
     </div>
   </div>
 </section>
 
-   
-  <footer id="footer" class="footer">
-    <div class="footer-container">
 
-      <div class="footer-left">
-        <h4>Contact Us</h4><br>
 
-        <div class="footer-contact-row">
-          <img src="/frontend/logo.jpeg" alt="DealLock Logo" class="footer-logo">
+<section class="bg-white py-20" id="products">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold text-gray-900">Items We Buy</h2>
+      <p class="mt-4 text-gray-600 text-lg">We help you lock and secure a wide range of valuable items</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
 
-          <div class="footer-socials">
-            <a href="https://wa.me/2348166027757">
-              <i class="fab fa-whatsapp"></i>
-              <span>WhatsApp</span>
-            </a>
+      <div class="product-card bg-white">
+        <div class="aspect-[4/3] bg-gray-100 overflow-hidden border-black border-2">
+          <img src="/frontend/images/gadgets.jpg.jpeg" 
+               alt="Gadgets" 
+               class="w-full h-full object-cover">
+        </div>        
+        <div class="h-8"></div>  
+        <div class="bg-black py-7 px-6">
+          <p class="text-center font-semibold text-white text-xl">Gadgets</p>
+        </div>
+      </div>
 
-            <a href="https://www.instagram.com/deallock.ng?igsh=MTJwazdvYTlrMGNxeQ==">
-              <i class="fab fa-instagram"></i>
-              <span>Instagram</span>
-            </a>
+      
+      <div class="product-card bg-white">
+        <div class="aspect-[4/3] bg-gray-100 overflow-hidden border-black border-2">
+          <img src="/frontend/images/furniture.jfif" 
+               alt="Furniture" 
+               class="w-full h-full object-cover">
+        </div>
+        <div class="h-8"></div>
+        <div class="bg-black py-7 px-6">
+          <p class="text-center font-semibold text-white text-xl">Furniture</p>
+        </div>
+      </div>
 
-            <a href="mailto:info@deallock.ng">
-              <i class="fas fa-envelope"></i>
-              <span>Email</span>
-            </a>
-            
+      
+      <div class="product-card bg-white">
+        <div class="aspect-[4/3] bg-gray-100 overflow-hidden border-black border-2">
+          <img src="/frontend/images/electronics.jpg.jpeg" 
+               alt="Electronics" 
+               class="w-full h-full object-cover">
+        </div>
+        <div class="h-8"></div>
+        <div class="bg-black py-7 px-6">
+          <p class="text-center font-semibold text-white text-xl">Electronics</p>
+        </div>
+      </div>
+
+      
+      <div class="product-card bg-white">
+        <div class="aspect-[4/3] bg-gray-100 overflow-hidden border-black border-2">
+          <img src="/frontend/images/nonperishable.jpg.jpeg" 
+               alt="Non-perishable food items" 
+               class="w-full h-full object-cover">
+        </div>
+        <div class="h-8"></div>
+        <div class="bg-black py-7 px-6">
+          <p class="text-center font-semibold text-white text-xl">Non-perishable Food</p>
+        </div>
+      </div>
+
+    
+      <div class="product-card bg-white">
+        <div class="aspect-[4/3] bg-gray-100 overflow-hidden border-black border-2">
+          <img src="/frontend/images/office.jpg.jpeg" 
+               alt="Office appliances" 
+               class="w-full h-full object-cover">
+        </div>
+        <div class="h-8"></div>
+        <div class="bg-black py-7 px-6">
+          <p class="text-center font-semibold text-white text-xl">Office Appliances</p>
+        </div>
+      </div>
+
+      
+      <div class="product-card bg-white">
+        <div class="aspect-[4/3] bg-gray-100 overflow-hidden border-black border-2">
+          <img src="/frontend/images/industrial.jpeg" 
+               alt="Industrial goods" 
+               class="w-full h-full object-cover">
+        </div>
+        <div class="h-8"></div>
+        <div class="bg-black py-7 px-6">
+          <p class="text-center font-semibold text-white text-xl">Industrial Supplies</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+  
+
+<section class="bg-white py-20" id="how-it-works">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold text-gray-900">How It Works</h2>
+      <p class="mt-4 text-gray-600 text-lg">Secure your deal in 6 simple steps</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+
+      
+      <div class="lg:col-span-5 flex justify-center lg:justify-end">
+        <div class="relative w-full max-w-[320px]">
+          <div class="bg-black rounded-[3.5rem] p-4 shadow-2xl">
+            <div class="bg-white rounded-[2.8rem] overflow-hidden h-[620px] relative border border-gray-300">
+
+              
+              <div class="h-11 bg-white flex items-center justify-center">
+                <div class="w-36 h-5 bg-black rounded-full"></div>
+              </div>
+
+              
+              <div id="phone-screen" class="h-[calc(100%-44px)] bg-[#0a0a0a] text-white p-8 flex flex-col items-center justify-center text-center transition-all duration-700">
+
+                <div id="writing-area" class="flex-1 flex flex-col items-center justify-center relative">
+
+                  <div id="pen-icon" class="text-6xl mb-8 transition-all duration-500">✍️</div>
+                  
+                  <div id="step-content" class="w-full space-y-5 opacity-0 transition-all duration-700">
+                    <h3 id="phone-step-number" class="text-emerald-400 text-3xl font-bold tracking-widest"></h3>
+                    <h4 id="phone-step-title" class="text-2xl font-semibold text-white"></h4>
+                    <p id="phone-step-desc" class="text-gray-300 text-[15.5px] leading-relaxed px-4"></p>
+                  </div>
+
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="footer-center">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#products">Interested Products</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="/terms">Terms and Conditions</a></li>
-          <li><a href="#footer">Contact Us</a></li>
-        </ul>
-      </div>
+      
+      <div class="lg:col-span-7">
+        <div class="space-y-5 max-w-lg">   <!-- Added max-w-lg to reduce width -->
 
-      <div class="footer-right">
-        <h4>Our Values</h4>
-        <ul>
-          <li>Trust First</li>
-          <li>Speed with Structure</li>
-          <li>Transparency</li>
-          <li>Customer Confidence</li>
-        </ul>
+          <div onclick="showStep(1)" class="step-card cursor-pointer" id="step-1">
+            <div class="flex gap-5">
+              <div class="w-11 h-11 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold flex-shrink-0 text-xl">1</div>
+              <div>
+                <h4 class="text-emerald-600 font-semibold text-sm tracking-widest">STEP 1</h4>
+                <h5 class="text-xl font-semibold text-gray-900 mt-1">Find a Deal</h5>
+              </div>
+            </div>
+          </div>
+
+          <div onclick="showStep(2)" class="step-card cursor-pointer" id="step-2">
+            <div class="flex gap-5">
+              <div class="w-11 h-11 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold flex-shrink-0 text-xl">2</div>
+              <div>
+                <h4 class="text-emerald-600 font-semibold text-sm tracking-widest">STEP 2</h4>
+                <h5 class="text-xl font-semibold text-gray-900 mt-1">Pay to Lock</h5>
+              </div>
+            </div>
+          </div>
+
+          <div onclick="showStep(3)" class="step-card cursor-pointer" id="step-3">
+            <div class="flex gap-5">
+              <div class="w-11 h-11 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold flex-shrink-0 text-xl">3</div>
+              <div>
+                <h4 class="text-emerald-600 font-semibold text-sm tracking-widest">STEP 3</h4>
+                <h5 class="text-xl font-semibold text-gray-900 mt-1">We Secure the Item</h5>
+              </div>
+            </div>
+          </div>
+
+          <div onclick="showStep(4)" class="step-card cursor-pointer" id="step-4">
+            <div class="flex gap-5">
+              <div class="w-11 h-11 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold flex-shrink-0 text-xl">4</div>
+              <div>
+                <h4 class="text-emerald-600 font-semibold text-sm tracking-widest">STEP 4</h4>
+                <h5 class="text-xl font-semibold text-gray-900 mt-1">Complete Your Payment</h5>
+              </div>
+            </div>
+          </div>
+
+          <div onclick="showStep(5)" class="step-card cursor-pointer" id="step-5">
+            <div class="flex gap-5">
+              <div class="w-11 h-11 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold flex-shrink-0 text-xl">5</div>
+              <div>
+                <h4 class="text-emerald-600 font-semibold text-sm tracking-widest">STEP 5</h4>
+                <h5 class="text-xl font-semibold text-gray-900 mt-1">Pickup or Delivery</h5>
+              </div>
+            </div>
+          </div>
+
+          <div onclick="showStep(6)" class="step-card cursor-pointer" id="step-6">
+            <div class="flex gap-5">
+              <div class="w-11 h-11 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold flex-shrink-0 text-xl">6</div>
+              <div>
+                <h4 class="text-emerald-600 font-semibold text-sm tracking-widest">STEP 6</h4>
+                <h5 class="text-xl font-semibold text-gray-900 mt-1">What If You Can't Complete?</h5>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
     </div>
-    <button type="button" class="back-to-top" aria-label="Back to top"></button>
+  </div>
+</section>
 
-    <div class="footer-bottom">
-      &copy; 2026 DealLock. All rights reserved.
+<section class="bg-white py-16 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-bold text-gray-900">Partners & Sponsors</h2>
+      <p class="mt-3 text-gray-600">Trusted by leading companies and organizations</p>
     </div>
-  </footer>
 
-  <script src="/frontend/home.js" defer></script>
+    <div class="sponsors-container relative">
+      <div class="sponsors-track flex items-center gap-20 animate-scroll">
+        
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/vassetlogo.png" alt="Vasset" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/zalasoftlogo.png" alt="Zalasoft" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/scancodes%20logo.JPG.jpeg" alt="Scancodes" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/IMG_2601.JPG.jpeg" alt="Ahowa" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+
+        <!-- Duplicate set for seamless infinite loop -->
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/vassetlogo.png" alt="Vasset" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/zalasoftlogo.png" alt="Zalasoft" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/scancodes%20logo.JPG.jpeg" alt="Scancodes" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/IMG_2601.JPG.jpeg" alt="Ahowa" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/vassetlogo.png" alt="Vasset" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/zalasoftlogo.png" alt="Zalasoft" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/scancodes%20logo.JPG.jpeg" alt="Scancodes" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+        <div class="sponsor-logo flex-shrink-0">
+          <img src="/frontend/images/IMG_2601.JPG.jpeg" alt="Ahowa" class="h-16 w-auto grayscale hover:grayscale-0 transition-all duration-300">
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<footer class="bg-white border-t border-gray-200 text-gray-600">
+  <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Our Objectives</h3>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">•</span>
+            Making quality products affordable through flexible payments
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">•</span>
+            Building trust and security in every transaction
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">•</span>
+            Streamlining the buying process for everyone
+          </li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Why Choose DealLock</h3>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">•</span>
+            Flexible "Pay Small Small" payment plans
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">•</span>
+            Secure and transparent transactions
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">•</span>
+            Wide range of quality products
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Contact Us</h3>
+        <div class="space-y-4 text-gray-600">
+          <div class="flex items-start">
+            <i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3 text-xl"></i>
+            <span>Abuja, Nigeria</span>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-phone text-emerald-600 mr-3 text-xl"></i>
+            <a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-envelope text-emerald-600 mr-3 text-xl"></i>
+            <a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a>
+          </div>
+        </div>
+
+        <div class="flex space-x-6 mt-8">
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-facebook-f text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-twitter text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-instagram text-2xl"></i>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Stay Updated</h3>
+        <p class="text-gray-600 mb-6 text-sm">
+          Get the latest deals, payment tips, and new products from DealLock.
+        </p>
+        <form id="newsletter-form" class="space-y-3" onsubmit="handleSubscribe(event)">
+          <div class="relative">
+            <input 
+              type="email" 
+              id="newsletter-email"
+              placeholder="Enter your email address" 
+              class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all"
+            >
+            <button type="submit" 
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl transition-colors">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+          
+          <button type="submit" 
+                  class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-2xl transition-colors">
+            SUBSCRIBE
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+      <p>
+        © <span id="year"></span> DealLock Nigeria. All rights reserved. | 
+        <a href="https://deallock.ng" class="hover:text-emerald-600">deallock.ng</a>
+      </p>
+    </div>
+  </div>
+
+
+  <button onclick="scrollToTop()" 
+          id="scroll-top-btn"
+          class="fixed bottom-8 right-8 p-4 rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 hover:scale-110 transition-all duration-300 focus:outline-none z-50 opacity-0 pointer-events-none">
+    <i class="fas fa-arrow-up text-xl"></i>
+  </button>
+</footer>
+
+
+  <script src="/frontend/js/home.js" defer></script>
 </body>
 </html>
 

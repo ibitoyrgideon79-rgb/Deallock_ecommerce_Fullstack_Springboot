@@ -140,8 +140,6 @@ public class AdminController {
 
     @GetMapping("/admin/payment-proofs")
     public String paymentProofs(Model model, Principal principal) {
-        var proofs = dealRepository.findByPaymentProofIsNotNullOrderByPaymentProofUploadedAtDesc();
-        model.addAttribute("proofs", proofs);
         if (principal != null) {
             userRepository.findByEmail(principal.getName()).ifPresent(user -> {
                 model.addAttribute("currentUser", user);
@@ -149,7 +147,7 @@ public class AdminController {
                 model.addAttribute("notificationCount", notificationService.countUnread(user));
             });
         }
-        return "payment-proofs";
+        return "redirect:/frontend/pages/payment-proofs.html";
     }
 
     @PostMapping("/admin/deals/{id}/approve")

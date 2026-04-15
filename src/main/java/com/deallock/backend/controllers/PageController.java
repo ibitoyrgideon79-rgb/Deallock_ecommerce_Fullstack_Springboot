@@ -5,7 +5,6 @@ import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.services.NotificationService;
 import java.security.Principal;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -23,12 +22,13 @@ public class PageController {
         this.notificationService = notificationService;
     }
 
-    @GetMapping("/login")     public String login()     { return "login"; }
-    @GetMapping("/terms")     public String terms()     { return "terms"; }
-    @GetMapping("/ourteam")   public String ourteam()   { return "ourteam"; }
+    @GetMapping("/login")     public String login()     { return "redirect:/frontend/pages/login.html"; }
+    @GetMapping("/terms")     public String terms()     { return "redirect:/frontend/pages/terms.html"; }
+    @GetMapping("/ourteam")   public String ourteam()   { return "redirect:/frontend/pages/contactus.html"; }
+    @GetMapping("/marketplace") public String marketplace() { return "redirect:/frontend/pages/marketplace.html"; }
 
     @GetMapping("/ai-agent")
-    public String aiAgent(Model model, Principal principal) {
+    public String aiAgent(Principal principal) {
         if (principal == null) {
             return "redirect:/login";
         }
@@ -36,29 +36,19 @@ public class PageController {
         if (userOpt.isEmpty()) {
             return "redirect:/login";
         }
-
-        model.addAttribute("currentUser", userOpt.get());
-        model.addAttribute("isAdmin", "ROLE_ADMIN".equals(userOpt.get().getRole()));
-        model.addAttribute("notificationCount", notificationService.countUnread(userOpt.get()));
-        return "ai-agent";
+        return "redirect:/frontend/pages/userdashboard.html";
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, Principal principal) {
+    public String dashboard(Principal principal) {
         if (principal == null) {
             return "redirect:/login";
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
-        userOpt.ifPresent(user -> {
-            model.addAttribute("currentUser", user);
-            model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
-            model.addAttribute("notificationCount", notificationService.countUnread(user));
-        });
-        return "dashboard";
+        return "redirect:/frontend/pages/userdashboard.html";
     }
 
     @GetMapping("/dashboard/deal/{id}")
-    public String dealDetails(@PathVariable("id") Long id, Model model, Principal principal) {
+    public String dealDetails(@PathVariable("id") Long id, Principal principal) {
         if (principal == null) {
             return "redirect:/login";
         }
@@ -80,13 +70,11 @@ public class PageController {
                 return "redirect:/dashboard?deal=not-found";
             }
         }
-
-        model.addAttribute("deal", deal);
-        return "deal-details";
+        return "redirect:/frontend/pages/userdashboard.html?dealId=" + id;
     }
 
     @GetMapping("/dashboard/deal/{id}/pay")
-    public String dealPay(@PathVariable("id") Long id, Model model, Principal principal) {
+    public String dealPay(@PathVariable("id") Long id, Principal principal) {
         if (principal == null) return "redirect:/login";
 
         var userOpt = userRepository.findByEmail(principal.getName());
@@ -100,18 +88,11 @@ public class PageController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
-
-        model.addAttribute("deal", deal);
-        if (deal.getUpfrontPaymentAmount() != null) {
-            model.addAttribute("halfPayment", deal.getUpfrontPaymentAmount());
-        } else if (deal.getValue() != null) {
-            model.addAttribute("halfPayment", deal.getValue().multiply(java.math.BigDecimal.valueOf(0.5)));
-        }
-        return "deal-pay";
+        return "redirect:/frontend/pages/deal-pay.html?dealId=" + id;
     }
 
     @GetMapping("/dashboard/deal/{id}/track")
-    public String dealTrack(@PathVariable("id") Long id, Model model, Principal principal) {
+    public String dealTrack(@PathVariable("id") Long id, Principal principal) {
         if (principal == null) return "redirect:/login";
 
         var userOpt = userRepository.findByEmail(principal.getName());
@@ -125,14 +106,12 @@ public class PageController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
-
-        model.addAttribute("deal", deal);
-        return "deal-track";
+        return "redirect:/frontend/pages/deal-track.html?dealId=" + id;
     }
 
 
     @GetMapping("/dashboard/deal/{id}/balance-pay")
-    public String balancePay(@PathVariable("id") Long id, Model model, Principal principal) {
+    public String balancePay(@PathVariable("id") Long id, Principal principal) {
         if (principal == null) return "redirect:/login";
 
         var userOpt = userRepository.findByEmail(principal.getName());
@@ -146,12 +125,7 @@ public class PageController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
-
-        model.addAttribute("deal", deal);
-        if (deal.getRemainingBalanceAmount() != null) {
-            model.addAttribute("remainingBalance", deal.getRemainingBalanceAmount());
-        }
-        return "deal-balance-pay";
+        return "redirect:/frontend/pages/deal-balance-pay.html?dealId=" + id;
     }
 
 }

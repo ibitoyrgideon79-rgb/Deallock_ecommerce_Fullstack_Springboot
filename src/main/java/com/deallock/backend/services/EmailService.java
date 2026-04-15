@@ -1,6 +1,7 @@
 package com.deallock.backend.services;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -12,11 +13,15 @@ public class EmailService {
     @Value("${SMTP_FROM:no-reply@deallock.ng}")
     private String smtpFrom;
 
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(@Nullable JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
     private void send(String to, String subject, String text) {
+        if (mailSender == null) {
+            System.out.println("[WARN] JavaMailSender bean not configured; skipping email send.");
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(smtpFrom);

@@ -1,0 +1,619 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@10.9.7
+2 info using node@v22.22.2
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npmrc
+5 silly config load:file:C:\Users\user\.npmrc
+6 silly config load:file:C:\Users\user\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm install tailwindcss @tailwindcss/cli
+8 verbose argv "install" "--save-dev" "tailwindcss" "@tailwindcss/cli"
+9 verbose logfile logs-max:10 dir:C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npm-cache\_logs\2026-04-15T08_52_31_954Z-
+10 verbose logfile C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npm-cache\_logs\2026-04-15T08_52_31_954Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 silly idealTree buildDeps
+14 silly fetch manifest tailwindcss@*
+15 silly packumentCache full:https://registry.npmjs.org/tailwindcss cache-miss
+16 http fetch GET 200 https://registry.npmjs.org/npm 1603ms
+17 http fetch GET 200 https://registry.npmjs.org/tailwindcss 2678ms (cache miss)
+18 silly packumentCache full:https://registry.npmjs.org/tailwindcss set size:undefined disposed:false
+19 silly fetch manifest @tailwindcss/cli@*
+20 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2fcli cache-miss
+21 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2fcli 339ms (cache miss)
+22 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2fcli set size:undefined disposed:false
+23 silly placeDep ROOT @tailwindcss/cli@4.2.2 OK for:  want: *
+24 silly placeDep ROOT tailwindcss@4.2.2 OK for:  want: *
+25 silly fetch manifest mri@^1.2.0
+26 silly packumentCache full:https://registry.npmjs.org/mri cache-miss
+27 silly fetch manifest picocolors@^1.1.1
+28 silly packumentCache full:https://registry.npmjs.org/picocolors cache-miss
+29 silly fetch manifest tailwindcss@4.2.2
+30 silly packumentCache full:https://registry.npmjs.org/tailwindcss cache-miss
+31 silly fetch manifest @parcel/watcher@^2.5.1
+32 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher cache-miss
+33 silly fetch manifest enhanced-resolve@^5.19.0
+34 silly packumentCache full:https://registry.npmjs.org/enhanced-resolve cache-miss
+35 silly fetch manifest @tailwindcss/node@4.2.2
+36 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2fnode cache-miss
+37 silly fetch manifest @tailwindcss/oxide@4.2.2
+38 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide cache-miss
+39 http cache https://registry.npmjs.org/tailwindcss 72ms (cache hit)
+40 silly packumentCache full:https://registry.npmjs.org/tailwindcss set size:10331221 disposed:false
+41 http fetch GET 200 https://registry.npmjs.org/mri 212ms (cache miss)
+42 silly packumentCache full:https://registry.npmjs.org/mri set size:undefined disposed:false
+43 http fetch GET 200 https://registry.npmjs.org/picocolors 213ms (cache miss)
+44 silly packumentCache full:https://registry.npmjs.org/picocolors set size:undefined disposed:false
+45 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher 1013ms (cache miss)
+46 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher set size:undefined disposed:false
+47 http fetch GET 200 https://registry.npmjs.org/enhanced-resolve 1096ms (cache miss)
+48 silly packumentCache full:https://registry.npmjs.org/enhanced-resolve set size:undefined disposed:false
+49 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2fnode 1405ms (cache miss)
+50 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2fnode set size:undefined disposed:false
+51 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide 1727ms (cache miss)
+52 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide set size:undefined disposed:false
+53 silly placeDep ROOT @parcel/watcher@2.5.6 OK for: @tailwindcss/cli@4.2.2 want: ^2.5.1
+54 silly placeDep ROOT @tailwindcss/node@4.2.2 OK for: @tailwindcss/cli@4.2.2 want: 4.2.2
+55 silly placeDep ROOT @tailwindcss/oxide@4.2.2 OK for: @tailwindcss/cli@4.2.2 want: 4.2.2
+56 silly placeDep ROOT enhanced-resolve@5.20.1 OK for: @tailwindcss/cli@4.2.2 want: ^5.19.0
+57 silly placeDep ROOT mri@1.2.0 OK for: @tailwindcss/cli@4.2.2 want: ^1.2.0
+58 silly placeDep ROOT picocolors@1.1.1 OK for: @tailwindcss/cli@4.2.2 want: ^1.1.1
+59 silly fetch manifest detect-libc@^2.0.3
+60 silly packumentCache full:https://registry.npmjs.org/detect-libc cache-miss
+61 silly fetch manifest is-glob@^4.0.3
+62 silly packumentCache full:https://registry.npmjs.org/is-glob cache-miss
+63 silly fetch manifest node-addon-api@^7.0.0
+64 silly packumentCache full:https://registry.npmjs.org/node-addon-api cache-miss
+65 silly fetch manifest picomatch@^4.0.3
+66 silly packumentCache full:https://registry.npmjs.org/picomatch cache-miss
+67 silly fetch manifest @parcel/watcher-darwin-x64@2.5.6
+68 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-darwin-x64 cache-miss
+69 silly fetch manifest @parcel/watcher-darwin-arm64@2.5.6
+70 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-darwin-arm64 cache-miss
+71 silly fetch manifest @parcel/watcher-win32-x64@2.5.6
+72 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-win32-x64 cache-miss
+73 silly fetch manifest @parcel/watcher-win32-arm64@2.5.6
+74 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-win32-arm64 cache-miss
+75 silly fetch manifest @parcel/watcher-win32-ia32@2.5.6
+76 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-win32-ia32 cache-miss
+77 silly fetch manifest @parcel/watcher-linux-x64-glibc@2.5.6
+78 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-x64-glibc cache-miss
+79 silly fetch manifest @parcel/watcher-linux-x64-musl@2.5.6
+80 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-x64-musl cache-miss
+81 http fetch GET 200 https://registry.npmjs.org/detect-libc 210ms (cache miss)
+82 silly packumentCache full:https://registry.npmjs.org/detect-libc set size:undefined disposed:false
+83 silly fetch manifest @parcel/watcher-linux-arm64-glibc@2.5.6
+84 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm64-glibc cache-miss
+85 http fetch GET 200 https://registry.npmjs.org/is-glob 225ms (cache miss)
+86 silly packumentCache full:https://registry.npmjs.org/is-glob set size:undefined disposed:false
+87 silly fetch manifest @parcel/watcher-linux-arm64-musl@2.5.6
+88 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm64-musl cache-miss
+89 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-darwin-x64 243ms (cache miss)
+90 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-darwin-x64 set size:undefined disposed:false
+91 silly fetch manifest @parcel/watcher-linux-arm-glibc@2.5.6
+92 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm-glibc cache-miss
+93 http fetch GET 200 https://registry.npmjs.org/node-addon-api 254ms (cache miss)
+94 silly packumentCache full:https://registry.npmjs.org/node-addon-api set size:undefined disposed:false
+95 silly fetch manifest @parcel/watcher-linux-arm-musl@2.5.6
+96 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm-musl cache-miss
+97 http fetch GET 200 https://registry.npmjs.org/picomatch 268ms (cache miss)
+98 silly packumentCache full:https://registry.npmjs.org/picomatch set size:undefined disposed:false
+99 silly fetch manifest @parcel/watcher-android-arm64@2.5.6
+100 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-android-arm64 cache-miss
+101 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-darwin-arm64 382ms (cache miss)
+102 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-darwin-arm64 set size:undefined disposed:false
+103 silly fetch manifest @parcel/watcher-freebsd-x64@2.5.6
+104 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-freebsd-x64 cache-miss
+105 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-linux-arm64-glibc 202ms (cache miss)
+106 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm64-glibc set size:undefined disposed:false
+107 silly fetch manifest jiti@^2.6.1
+108 silly packumentCache full:https://registry.npmjs.org/jiti cache-miss
+109 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-linux-arm64-musl 209ms (cache miss)
+110 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm64-musl set size:undefined disposed:false
+111 silly fetch manifest lightningcss@1.32.0
+112 silly packumentCache full:https://registry.npmjs.org/lightningcss cache-miss
+113 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-linux-arm-glibc 196ms (cache miss)
+114 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm-glibc set size:undefined disposed:false
+115 silly fetch manifest magic-string@^0.30.21
+116 silly packumentCache full:https://registry.npmjs.org/magic-string cache-miss
+117 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-linux-arm-musl 233ms (cache miss)
+118 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-arm-musl set size:undefined disposed:false
+119 silly fetch manifest source-map-js@^1.2.1
+120 silly packumentCache full:https://registry.npmjs.org/source-map-js cache-miss
+121 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-android-arm64 232ms (cache miss)
+122 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-android-arm64 set size:undefined disposed:false
+123 silly fetch manifest @jridgewell/remapping@^2.3.5
+124 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fremapping cache-miss
+125 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-freebsd-x64 207ms (cache miss)
+126 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-freebsd-x64 set size:undefined disposed:false
+127 silly fetch manifest @tailwindcss/oxide-darwin-x64@4.2.2
+128 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-darwin-x64 cache-miss
+129 http fetch GET 200 https://registry.npmjs.org/jiti 206ms (cache miss)
+130 silly packumentCache full:https://registry.npmjs.org/jiti set size:undefined disposed:false
+131 silly fetch manifest @tailwindcss/oxide-freebsd-x64@4.2.2
+132 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-freebsd-x64 cache-miss
+133 http fetch GET 200 https://registry.npmjs.org/lightningcss 215ms (cache miss)
+134 silly packumentCache full:https://registry.npmjs.org/lightningcss set size:undefined disposed:false
+135 silly fetch manifest @tailwindcss/oxide-wasm32-wasi@4.2.2
+136 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-wasm32-wasi cache-miss
+137 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-linux-x64-glibc 920ms (cache miss)
+138 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-x64-glibc set size:undefined disposed:false
+139 silly fetch manifest @tailwindcss/oxide-darwin-arm64@4.2.2
+140 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-darwin-arm64 cache-miss
+141 http fetch GET 200 https://registry.npmjs.org/source-map-js 430ms (cache miss)
+142 silly packumentCache full:https://registry.npmjs.org/source-map-js set size:undefined disposed:false
+143 silly fetch manifest @tailwindcss/oxide-android-arm64@4.2.2
+144 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-android-arm64 cache-miss
+145 http fetch GET 200 https://registry.npmjs.org/magic-string 511ms (cache miss)
+146 silly packumentCache full:https://registry.npmjs.org/magic-string set size:undefined disposed:false
+147 silly fetch manifest @tailwindcss/oxide-linux-x64-gnu@4.2.2
+148 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-x64-gnu cache-miss
+149 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-wasm32-wasi 520ms (cache miss)
+150 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-wasm32-wasi set size:undefined disposed:false
+151 silly fetch manifest @tailwindcss/oxide-linux-x64-musl@4.2.2
+152 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-x64-musl cache-miss
+153 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-darwin-x64 603ms (cache miss)
+154 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-darwin-x64 set size:undefined disposed:false
+155 silly fetch manifest @tailwindcss/oxide-win32-x64-msvc@4.2.2
+156 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-win32-x64-msvc cache-miss
+157 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-freebsd-x64 622ms (cache miss)
+158 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-freebsd-x64 set size:undefined disposed:false
+159 silly fetch manifest @tailwindcss/oxide-linux-arm64-gnu@4.2.2
+160 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm64-gnu cache-miss
+161 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-win32-arm64 1291ms (cache miss)
+162 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-win32-arm64 set size:undefined disposed:false
+163 silly fetch manifest @tailwindcss/oxide-linux-arm64-musl@4.2.2
+164 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm64-musl cache-miss
+165 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-win32-x64 1339ms (cache miss)
+166 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-win32-x64 set size:undefined disposed:false
+167 silly fetch manifest @tailwindcss/oxide-win32-arm64-msvc@4.2.2
+168 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-win32-arm64-msvc cache-miss
+169 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-win32-ia32 1360ms (cache miss)
+170 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-win32-ia32 set size:undefined disposed:false
+171 silly fetch manifest @tailwindcss/oxide-linux-arm-gnueabihf@4.2.2
+172 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm-gnueabihf cache-miss
+173 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-android-arm64 515ms (cache miss)
+174 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-android-arm64 set size:undefined disposed:false
+175 silly fetch manifest graceful-fs@^4.2.4
+176 silly packumentCache full:https://registry.npmjs.org/graceful-fs cache-miss
+177 http fetch GET 200 https://registry.npmjs.org/@jridgewell%2fremapping 991ms (cache miss)
+178 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fremapping set size:undefined disposed:false
+179 silly fetch manifest tapable@^2.3.0
+180 silly packumentCache full:https://registry.npmjs.org/tapable cache-miss
+181 http fetch GET 200 https://registry.npmjs.org/graceful-fs 213ms (cache miss)
+182 silly packumentCache full:https://registry.npmjs.org/graceful-fs set size:undefined disposed:false
+183 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm64-gnu 521ms (cache miss)
+184 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm64-gnu set size:undefined disposed:false
+185 http fetch GET 200 https://registry.npmjs.org/tapable 357ms (cache miss)
+186 silly packumentCache full:https://registry.npmjs.org/tapable set size:undefined disposed:false
+187 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-linux-x64-musl 677ms (cache miss)
+188 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-x64-musl set size:undefined disposed:false
+189 http fetch GET 200 https://registry.npmjs.org/@parcel%2fwatcher-linux-x64-musl 1904ms (cache miss)
+190 silly packumentCache full:https://registry.npmjs.org/@parcel%2fwatcher-linux-x64-musl set size:undefined disposed:false
+191 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-darwin-arm64 1000ms (cache miss)
+192 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-darwin-arm64 set size:undefined disposed:false
+193 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-win32-x64-msvc 743ms (cache miss)
+194 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-win32-x64-msvc set size:undefined disposed:false
+195 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-linux-x64-gnu 1042ms (cache miss)
+196 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-x64-gnu set size:undefined disposed:false
+197 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-win32-arm64-msvc 771ms (cache miss)
+198 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-win32-arm64-msvc set size:undefined disposed:false
+199 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm-gnueabihf 886ms (cache miss)
+200 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm-gnueabihf set size:undefined disposed:false
+201 http fetch GET 200 https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm64-musl 994ms (cache miss)
+202 silly packumentCache full:https://registry.npmjs.org/@tailwindcss%2foxide-linux-arm64-musl set size:undefined disposed:false
+203 silly placeDep ROOT @parcel/watcher-android-arm64@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+204 silly placeDep ROOT @parcel/watcher-darwin-arm64@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+205 silly placeDep ROOT @parcel/watcher-darwin-x64@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+206 silly placeDep ROOT @parcel/watcher-freebsd-x64@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+207 silly placeDep ROOT @parcel/watcher-linux-arm-glibc@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+208 silly placeDep ROOT @parcel/watcher-linux-arm-musl@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+209 silly placeDep ROOT @parcel/watcher-linux-arm64-glibc@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+210 silly placeDep ROOT @parcel/watcher-linux-arm64-musl@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+211 silly placeDep ROOT @parcel/watcher-linux-x64-glibc@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+212 silly placeDep ROOT @parcel/watcher-linux-x64-musl@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+213 silly placeDep ROOT @parcel/watcher-win32-arm64@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+214 silly placeDep ROOT @parcel/watcher-win32-ia32@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+215 silly placeDep ROOT @parcel/watcher-win32-x64@2.5.6 OK for: @parcel/watcher@2.5.6 want: 2.5.6
+216 silly placeDep ROOT detect-libc@2.1.2 OK for: @parcel/watcher@2.5.6 want: ^2.0.3
+217 silly placeDep ROOT is-glob@4.0.3 OK for: @parcel/watcher@2.5.6 want: ^4.0.3
+218 silly placeDep ROOT node-addon-api@7.1.1 OK for: @parcel/watcher@2.5.6 want: ^7.0.0
+219 silly placeDep ROOT picomatch@4.0.4 OK for: @parcel/watcher@2.5.6 want: ^4.0.3
+220 silly fetch manifest is-extglob@^2.1.1
+221 silly packumentCache full:https://registry.npmjs.org/is-extglob cache-miss
+222 http fetch GET 200 https://registry.npmjs.org/is-extglob 250ms (cache miss)
+223 silly packumentCache full:https://registry.npmjs.org/is-extglob set size:undefined disposed:false
+224 silly placeDep ROOT @jridgewell/remapping@2.3.5 OK for: @tailwindcss/node@4.2.2 want: ^2.3.5
+225 silly placeDep ROOT jiti@2.6.1 OK for: @tailwindcss/node@4.2.2 want: ^2.6.1
+226 silly placeDep ROOT lightningcss@1.32.0 OK for: @tailwindcss/node@4.2.2 want: 1.32.0
+227 silly placeDep ROOT magic-string@0.30.21 OK for: @tailwindcss/node@4.2.2 want: ^0.30.21
+228 silly placeDep ROOT source-map-js@1.2.1 OK for: @tailwindcss/node@4.2.2 want: ^1.2.1
+229 silly fetch manifest @jridgewell/gen-mapping@^0.3.5
+230 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fgen-mapping cache-miss
+231 silly fetch manifest @jridgewell/trace-mapping@^0.3.24
+232 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2ftrace-mapping cache-miss
+233 silly fetch manifest lightningcss-darwin-x64@1.32.0
+234 silly packumentCache full:https://registry.npmjs.org/lightningcss-darwin-x64 cache-miss
+235 silly fetch manifest lightningcss-linux-x64-gnu@1.32.0
+236 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-x64-gnu cache-miss
+237 silly fetch manifest lightningcss-win32-x64-msvc@1.32.0
+238 silly packumentCache full:https://registry.npmjs.org/lightningcss-win32-x64-msvc cache-miss
+239 silly fetch manifest lightningcss-win32-arm64-msvc@1.32.0
+240 silly packumentCache full:https://registry.npmjs.org/lightningcss-win32-arm64-msvc cache-miss
+241 silly fetch manifest lightningcss-darwin-arm64@1.32.0
+242 silly packumentCache full:https://registry.npmjs.org/lightningcss-darwin-arm64 cache-miss
+243 silly fetch manifest lightningcss-linux-arm64-gnu@1.32.0
+244 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-arm64-gnu cache-miss
+245 silly fetch manifest lightningcss-linux-arm-gnueabihf@1.32.0
+246 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-arm-gnueabihf cache-miss
+247 silly fetch manifest lightningcss-linux-arm64-musl@1.32.0
+248 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-arm64-musl cache-miss
+249 silly fetch manifest lightningcss-linux-x64-musl@1.32.0
+250 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-x64-musl cache-miss
+251 http fetch GET 200 https://registry.npmjs.org/lightningcss-win32-arm64-msvc 236ms (cache miss)
+252 silly packumentCache full:https://registry.npmjs.org/lightningcss-win32-arm64-msvc set size:undefined disposed:false
+253 silly fetch manifest lightningcss-freebsd-x64@1.32.0
+254 silly packumentCache full:https://registry.npmjs.org/lightningcss-freebsd-x64 cache-miss
+255 http fetch GET 200 https://registry.npmjs.org/lightningcss-linux-x64-musl 240ms (cache miss)
+256 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-x64-musl set size:undefined disposed:false
+257 silly fetch manifest lightningcss-android-arm64@1.32.0
+258 silly packumentCache full:https://registry.npmjs.org/lightningcss-android-arm64 cache-miss
+259 http fetch GET 200 https://registry.npmjs.org/lightningcss-linux-x64-gnu 247ms (cache miss)
+260 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-x64-gnu set size:undefined disposed:false
+261 silly fetch manifest @jridgewell/sourcemap-codec@^1.5.5
+262 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec cache-miss
+263 http fetch GET 200 https://registry.npmjs.org/lightningcss-linux-arm64-gnu 249ms (cache miss)
+264 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-arm64-gnu set size:undefined disposed:false
+265 http fetch GET 200 https://registry.npmjs.org/lightningcss-linux-arm64-musl 249ms (cache miss)
+266 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-arm64-musl set size:undefined disposed:false
+267 http fetch GET 200 https://registry.npmjs.org/lightningcss-linux-arm-gnueabihf 251ms (cache miss)
+268 silly packumentCache full:https://registry.npmjs.org/lightningcss-linux-arm-gnueabihf set size:undefined disposed:false
+269 http fetch GET 200 https://registry.npmjs.org/@jridgewell%2fgen-mapping 266ms (cache miss)
+270 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fgen-mapping set size:undefined disposed:false
+271 http fetch GET 200 https://registry.npmjs.org/lightningcss-win32-x64-msvc 267ms (cache miss)
+272 silly packumentCache full:https://registry.npmjs.org/lightningcss-win32-x64-msvc set size:undefined disposed:false
+273 http fetch GET 200 https://registry.npmjs.org/lightningcss-darwin-x64 268ms (cache miss)
+274 silly packumentCache full:https://registry.npmjs.org/lightningcss-darwin-x64 set size:undefined disposed:false
+275 http fetch GET 200 https://registry.npmjs.org/lightningcss-darwin-arm64 270ms (cache miss)
+276 silly packumentCache full:https://registry.npmjs.org/lightningcss-darwin-arm64 set size:undefined disposed:false
+277 http fetch GET 200 https://registry.npmjs.org/@jridgewell%2ftrace-mapping 353ms (cache miss)
+278 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2ftrace-mapping set size:undefined disposed:false
+279 http fetch GET 200 https://registry.npmjs.org/lightningcss-freebsd-x64 209ms (cache miss)
+280 silly packumentCache full:https://registry.npmjs.org/lightningcss-freebsd-x64 set size:undefined disposed:false
+281 http fetch GET 200 https://registry.npmjs.org/lightningcss-android-arm64 203ms (cache miss)
+282 silly packumentCache full:https://registry.npmjs.org/lightningcss-android-arm64 set size:undefined disposed:false
+283 http fetch GET 200 https://registry.npmjs.org/@jridgewell%2fsourcemap-codec 220ms (cache miss)
+284 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec set size:undefined disposed:false
+285 silly placeDep ROOT @jridgewell/gen-mapping@0.3.13 OK for: @jridgewell/remapping@2.3.5 want: ^0.3.5
+286 silly placeDep ROOT @jridgewell/trace-mapping@0.3.31 OK for: @jridgewell/remapping@2.3.5 want: ^0.3.24
+287 silly fetch manifest @jridgewell/sourcemap-codec@^1.5.0
+288 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec cache-miss
+289 silly fetch manifest @jridgewell/resolve-uri@^3.1.0
+290 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fresolve-uri cache-miss
+291 silly fetch manifest @jridgewell/sourcemap-codec@^1.4.14
+292 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec cache-miss
+293 http cache https://registry.npmjs.org/@jridgewell%2fsourcemap-codec 16ms (cache hit)
+294 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec set size:59275 disposed:false
+295 http cache https://registry.npmjs.org/@jridgewell%2fsourcemap-codec 18ms (cache hit)
+296 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec set size:59275 disposed:false
+297 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fsourcemap-codec dispose
+298 http fetch GET 200 https://registry.npmjs.org/@jridgewell%2fresolve-uri 262ms (cache miss)
+299 silly packumentCache full:https://registry.npmjs.org/@jridgewell%2fresolve-uri set size:undefined disposed:false
+300 silly placeDep ROOT @jridgewell/sourcemap-codec@1.5.5 OK for: @jridgewell/gen-mapping@0.3.13 want: ^1.5.0
+301 silly placeDep ROOT @jridgewell/resolve-uri@3.1.2 OK for: @jridgewell/trace-mapping@0.3.31 want: ^3.1.0
+302 silly placeDep ROOT @tailwindcss/oxide-android-arm64@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+303 silly placeDep ROOT @tailwindcss/oxide-darwin-arm64@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+304 silly placeDep ROOT @tailwindcss/oxide-darwin-x64@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+305 silly placeDep ROOT @tailwindcss/oxide-freebsd-x64@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+306 silly placeDep ROOT @tailwindcss/oxide-linux-arm-gnueabihf@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+307 silly placeDep ROOT @tailwindcss/oxide-linux-arm64-gnu@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+308 silly placeDep ROOT @tailwindcss/oxide-linux-arm64-musl@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+309 silly placeDep ROOT @tailwindcss/oxide-linux-x64-gnu@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+310 silly placeDep ROOT @tailwindcss/oxide-linux-x64-musl@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+311 silly placeDep ROOT @tailwindcss/oxide-wasm32-wasi@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+312 silly placeDep ROOT @tailwindcss/oxide-win32-arm64-msvc@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+313 silly placeDep ROOT @tailwindcss/oxide-win32-x64-msvc@4.2.2 OK for: @tailwindcss/oxide@4.2.2 want: 4.2.2
+314 silly placeDep ROOT graceful-fs@4.2.11 OK for: enhanced-resolve@5.20.1 want: ^4.2.4
+315 silly placeDep ROOT tapable@2.3.2 OK for: enhanced-resolve@5.20.1 want: ^2.3.0
+316 silly placeDep ROOT is-extglob@2.1.1 OK for: is-glob@4.0.3 want: ^2.1.1
+317 silly placeDep ROOT lightningcss-android-arm64@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+318 silly placeDep ROOT lightningcss-darwin-arm64@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+319 silly placeDep ROOT lightningcss-darwin-x64@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+320 silly placeDep ROOT lightningcss-freebsd-x64@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+321 silly placeDep ROOT lightningcss-linux-arm-gnueabihf@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+322 silly placeDep ROOT lightningcss-linux-arm64-gnu@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+323 silly placeDep ROOT lightningcss-linux-arm64-musl@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+324 silly placeDep ROOT lightningcss-linux-x64-gnu@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+325 silly placeDep ROOT lightningcss-linux-x64-musl@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+326 silly placeDep ROOT lightningcss-win32-arm64-msvc@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+327 silly placeDep ROOT lightningcss-win32-x64-msvc@1.32.0 OK for: lightningcss@1.32.0 want: 1.32.0
+328 silly reify moves {}
+329 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-wasm32-wasi
+330 silly reify mark deleted [
+330 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-wasm32-wasi'
+330 silly reify ]
+331 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-win32-arm64-msvc
+332 silly reify mark deleted [
+332 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-win32-arm64-msvc'
+332 silly reify ]
+333 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-linux-x64-musl
+334 silly reify mark deleted [
+334 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-linux-x64-musl'
+334 silly reify ]
+335 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-linux-x64-gnu
+336 silly reify mark deleted [
+336 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-linux-x64-gnu'
+336 silly reify ]
+337 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-linux-arm64-musl
+338 silly reify mark deleted [
+338 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-linux-arm64-musl'
+338 silly reify ]
+339 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-linux-arm64-gnu
+340 silly reify mark deleted [
+340 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-linux-arm64-gnu'
+340 silly reify ]
+341 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-linux-arm-gnueabihf
+342 silly reify mark deleted [
+342 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-linux-arm-gnueabihf'
+342 silly reify ]
+343 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-freebsd-x64
+344 silly reify mark deleted [
+344 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-freebsd-x64'
+344 silly reify ]
+345 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-darwin-x64
+346 silly reify mark deleted [
+346 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-darwin-x64'
+346 silly reify ]
+347 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-darwin-arm64
+348 silly reify mark deleted [
+348 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-darwin-arm64'
+348 silly reify ]
+349 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\lightningcss-android-arm64
+350 silly reify mark deleted [
+350 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\lightningcss-android-arm64'
+350 silly reify ]
+351 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-win32-arm64-msvc
+352 silly reify mark deleted [
+352 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-win32-arm64-msvc'
+352 silly reify ]
+353 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-linux-x64-musl
+354 silly reify mark deleted [
+354 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-linux-x64-musl'
+354 silly reify ]
+355 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-linux-x64-gnu
+356 silly reify mark deleted [
+356 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-linux-x64-gnu'
+356 silly reify ]
+357 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-linux-arm64-musl
+358 silly reify mark deleted [
+358 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-linux-arm64-musl'
+358 silly reify ]
+359 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-linux-arm64-gnu
+360 silly reify mark deleted [
+360 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-linux-arm64-gnu'
+360 silly reify ]
+361 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-linux-arm-gnueabihf
+362 silly reify mark deleted [
+362 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-linux-arm-gnueabihf'
+362 silly reify ]
+363 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-freebsd-x64
+364 silly reify mark deleted [
+364 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-freebsd-x64'
+364 silly reify ]
+365 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-darwin-x64
+366 silly reify mark deleted [
+366 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-darwin-x64'
+366 silly reify ]
+367 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-darwin-arm64
+368 silly reify mark deleted [
+368 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-darwin-arm64'
+368 silly reify ]
+369 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@tailwindcss\oxide-android-arm64
+370 silly reify mark deleted [
+370 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@tailwindcss\\oxide-android-arm64'
+370 silly reify ]
+371 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-win32-ia32
+372 silly reify mark deleted [
+372 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-win32-ia32'
+372 silly reify ]
+373 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-win32-arm64
+374 silly reify mark deleted [
+374 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-win32-arm64'
+374 silly reify ]
+375 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-linux-x64-musl
+376 silly reify mark deleted [
+376 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-linux-x64-musl'
+376 silly reify ]
+377 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-linux-x64-glibc
+378 silly reify mark deleted [
+378 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-linux-x64-glibc'
+378 silly reify ]
+379 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-linux-arm64-musl
+380 silly reify mark deleted [
+380 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-linux-arm64-musl'
+380 silly reify ]
+381 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-linux-arm64-glibc
+382 silly reify mark deleted [
+382 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-linux-arm64-glibc'
+382 silly reify ]
+383 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-linux-arm-musl
+384 silly reify mark deleted [
+384 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-linux-arm-musl'
+384 silly reify ]
+385 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-linux-arm-glibc
+386 silly reify mark deleted [
+386 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-linux-arm-glibc'
+386 silly reify ]
+387 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-freebsd-x64
+388 silly reify mark deleted [
+388 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-freebsd-x64'
+388 silly reify ]
+389 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-darwin-x64
+390 silly reify mark deleted [
+390 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-darwin-x64'
+390 silly reify ]
+391 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-darwin-arm64
+392 silly reify mark deleted [
+392 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-darwin-arm64'
+392 silly reify ]
+393 verbose reify failed optional dependency C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher-android-arm64
+394 silly reify mark deleted [
+394 silly reify   'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher-android-arm64'
+394 silly reify ]
+395 http cache lightningcss-win32-x64-msvc@https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.32.0.tgz 0ms (cache hit)
+396 http cache is-extglob@https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz 0ms (cache hit)
+397 http cache tapable@https://registry.npmjs.org/tapable/-/tapable-2.3.2.tgz 0ms (cache hit)
+398 http cache graceful-fs@https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz 0ms (cache hit)
+399 http cache @jridgewell/resolve-uri@https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.2.tgz 0ms (cache hit)
+400 http cache @jridgewell/sourcemap-codec@https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz 0ms (cache hit)
+401 http cache @jridgewell/gen-mapping@https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz 0ms (cache hit)
+402 http cache @jridgewell/trace-mapping@https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz 0ms (cache hit)
+403 http cache @tailwindcss/oxide-win32-x64-msvc@https://registry.npmjs.org/@tailwindcss/oxide-win32-x64-msvc/-/oxide-win32-x64-msvc-4.2.2.tgz 0ms (cache hit)
+404 http cache @jridgewell/remapping@https://registry.npmjs.org/@jridgewell/remapping/-/remapping-2.3.5.tgz 0ms (cache hit)
+405 http cache magic-string@https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz 0ms (cache hit)
+406 http cache lightningcss@https://registry.npmjs.org/lightningcss/-/lightningcss-1.32.0.tgz 0ms (cache hit)
+407 http cache jiti@https://registry.npmjs.org/jiti/-/jiti-2.6.1.tgz 0ms (cache hit)
+408 http cache picomatch@https://registry.npmjs.org/picomatch/-/picomatch-4.0.4.tgz 0ms (cache hit)
+409 http cache node-addon-api@https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz 0ms (cache hit)
+410 http cache source-map-js@https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz 0ms (cache hit)
+411 http cache is-glob@https://registry.npmjs.org/is-glob/-/is-glob-4.0.3.tgz 0ms (cache hit)
+412 http cache @parcel/watcher-win32-x64@https://registry.npmjs.org/@parcel/watcher-win32-x64/-/watcher-win32-x64-2.5.6.tgz 0ms (cache hit)
+413 http cache picocolors@https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz 0ms (cache hit)
+414 http cache detect-libc@https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz 0ms (cache hit)
+415 http cache @tailwindcss/node@https://registry.npmjs.org/@tailwindcss/node/-/node-4.2.2.tgz 0ms (cache hit)
+416 http cache mri@https://registry.npmjs.org/mri/-/mri-1.2.0.tgz 0ms (cache hit)
+417 http cache @tailwindcss/oxide@https://registry.npmjs.org/@tailwindcss/oxide/-/oxide-4.2.2.tgz 0ms (cache hit)
+418 http cache enhanced-resolve@https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-5.20.1.tgz 0ms (cache hit)
+419 silly tarball no local data for lightningcss-win32-x64-msvc@https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.32.0.tgz. Extracting by manifest.
+420 silly tarball no local data for is-extglob@https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz. Extracting by manifest.
+421 silly tarball no local data for tapable@https://registry.npmjs.org/tapable/-/tapable-2.3.2.tgz. Extracting by manifest.
+422 silly tarball no local data for graceful-fs@https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz. Extracting by manifest.
+423 http cache @parcel/watcher@https://registry.npmjs.org/@parcel/watcher/-/watcher-2.5.6.tgz 0ms (cache hit)
+424 silly tarball no local data for @jridgewell/resolve-uri@https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.2.tgz. Extracting by manifest.
+425 http cache @tailwindcss/cli@https://registry.npmjs.org/@tailwindcss/cli/-/cli-4.2.2.tgz 0ms (cache hit)
+426 http cache tailwindcss@https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.2.2.tgz 0ms (cache hit)
+427 silly tarball no local data for @jridgewell/sourcemap-codec@https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz. Extracting by manifest.
+428 silly tarball no local data for @jridgewell/gen-mapping@https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz. Extracting by manifest.
+429 silly tarball no local data for @jridgewell/trace-mapping@https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz. Extracting by manifest.
+430 silly tarball no local data for @tailwindcss/oxide-win32-x64-msvc@https://registry.npmjs.org/@tailwindcss/oxide-win32-x64-msvc/-/oxide-win32-x64-msvc-4.2.2.tgz. Extracting by manifest.
+431 silly tarball no local data for @jridgewell/remapping@https://registry.npmjs.org/@jridgewell/remapping/-/remapping-2.3.5.tgz. Extracting by manifest.
+432 silly tarball no local data for magic-string@https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz. Extracting by manifest.
+433 silly tarball no local data for lightningcss@https://registry.npmjs.org/lightningcss/-/lightningcss-1.32.0.tgz. Extracting by manifest.
+434 silly tarball no local data for jiti@https://registry.npmjs.org/jiti/-/jiti-2.6.1.tgz. Extracting by manifest.
+435 silly tarball no local data for picomatch@https://registry.npmjs.org/picomatch/-/picomatch-4.0.4.tgz. Extracting by manifest.
+436 silly tarball no local data for node-addon-api@https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz. Extracting by manifest.
+437 silly tarball no local data for source-map-js@https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz. Extracting by manifest.
+438 silly tarball no local data for is-glob@https://registry.npmjs.org/is-glob/-/is-glob-4.0.3.tgz. Extracting by manifest.
+439 silly tarball no local data for @parcel/watcher-win32-x64@https://registry.npmjs.org/@parcel/watcher-win32-x64/-/watcher-win32-x64-2.5.6.tgz. Extracting by manifest.
+440 silly tarball no local data for picocolors@https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz. Extracting by manifest.
+441 silly tarball no local data for detect-libc@https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz. Extracting by manifest.
+442 silly tarball no local data for @tailwindcss/node@https://registry.npmjs.org/@tailwindcss/node/-/node-4.2.2.tgz. Extracting by manifest.
+443 silly tarball no local data for mri@https://registry.npmjs.org/mri/-/mri-1.2.0.tgz. Extracting by manifest.
+444 silly tarball no local data for @tailwindcss/oxide@https://registry.npmjs.org/@tailwindcss/oxide/-/oxide-4.2.2.tgz. Extracting by manifest.
+445 silly tarball no local data for enhanced-resolve@https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-5.20.1.tgz. Extracting by manifest.
+446 silly tarball no local data for @parcel/watcher@https://registry.npmjs.org/@parcel/watcher/-/watcher-2.5.6.tgz. Extracting by manifest.
+447 silly tarball no local data for @tailwindcss/cli@https://registry.npmjs.org/@tailwindcss/cli/-/cli-4.2.2.tgz. Extracting by manifest.
+448 silly tarball no local data for tailwindcss@https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.2.2.tgz. Extracting by manifest.
+449 http fetch GET 200 https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz 310ms (cache miss)
+450 http fetch GET 200 https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz 309ms (cache miss)
+451 http fetch GET 200 https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.2.tgz 315ms (cache miss)
+452 http fetch GET 200 https://registry.npmjs.org/@jridgewell/remapping/-/remapping-2.3.5.tgz 310ms (cache miss)
+453 http fetch GET 200 https://registry.npmjs.org/mri/-/mri-1.2.0.tgz 466ms (cache miss)
+454 http fetch GET 200 https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz 476ms (cache miss)
+455 http fetch GET 200 https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz 489ms (cache miss)
+456 http fetch GET 200 https://registry.npmjs.org/is-glob/-/is-glob-4.0.3.tgz 503ms (cache miss)
+457 http fetch GET 200 https://registry.npmjs.org/@tailwindcss/oxide/-/oxide-4.2.2.tgz 517ms (cache miss)
+458 http fetch GET 200 https://registry.npmjs.org/magic-string/-/magic-string-0.30.21.tgz 531ms (cache miss)
+459 http fetch GET 200 https://registry.npmjs.org/tapable/-/tapable-2.3.2.tgz 587ms (cache miss)
+460 http fetch GET 200 https://registry.npmjs.org/@tailwindcss/node/-/node-4.2.2.tgz 590ms (cache miss)
+461 http fetch GET 200 https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz 610ms (cache miss)
+462 http fetch GET 200 https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz 625ms (cache miss)
+463 http fetch GET 200 https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz 713ms (cache miss)
+464 http fetch GET 200 https://registry.npmjs.org/@tailwindcss/cli/-/cli-4.2.2.tgz 782ms (cache miss)
+465 http fetch GET 200 https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz 847ms (cache miss)
+466 http fetch GET 200 https://registry.npmjs.org/picomatch/-/picomatch-4.0.4.tgz 858ms (cache miss)
+467 http fetch GET 200 https://registry.npmjs.org/@parcel/watcher-win32-x64/-/watcher-win32-x64-2.5.6.tgz 866ms (cache miss)
+468 http fetch GET 200 https://registry.npmjs.org/tailwindcss/-/tailwindcss-4.2.2.tgz 905ms (cache miss)
+469 http fetch GET 200 https://registry.npmjs.org/@parcel/watcher/-/watcher-2.5.6.tgz 1049ms (cache miss)
+470 http fetch GET 200 https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz 1086ms (cache miss)
+471 http fetch GET 200 https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-5.20.1.tgz 1100ms (cache miss)
+472 http fetch GET 200 https://registry.npmjs.org/lightningcss/-/lightningcss-1.32.0.tgz 1158ms (cache miss)
+473 http fetch GET 200 https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.32.0.tgz 1687ms (cache miss)
+474 http fetch GET 200 https://registry.npmjs.org/jiti/-/jiti-2.6.1.tgz 1828ms (cache miss)
+475 http fetch GET 200 https://registry.npmjs.org/@tailwindcss/oxide-win32-x64-msvc/-/oxide-win32-x64-msvc-4.2.2.tgz 2017ms (cache miss)
+476 info run @parcel/watcher@2.5.6 install node_modules/@parcel/watcher node scripts/build-from-source.js
+477 info run @parcel/watcher@2.5.6 install { code: 'EPERM', signal: undefined }
+478 warn cleanup Failed to remove some directories [
+478 warn cleanup   [
+478 warn cleanup     '\\\\?\\C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher',
+478 warn cleanup     [Error: EPERM: operation not permitted, rmdir 'C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@parcel\watcher'] {
+478 warn cleanup       errno: -4048,
+478 warn cleanup       code: 'EPERM',
+478 warn cleanup       syscall: 'rmdir',
+478 warn cleanup       path: 'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@parcel\\watcher'
+478 warn cleanup     }
+478 warn cleanup   ],
+478 warn cleanup   [
+478 warn cleanup     '\\\\?\\C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules',
+478 warn cleanup     [Error: EPERM: operation not permitted, rmdir 'C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\node_modules\@jridgewell'] {
+478 warn cleanup       errno: -4048,
+478 warn cleanup       code: 'EPERM',
+478 warn cleanup       syscall: 'rmdir',
+478 warn cleanup       path: 'C:\\Users\\user\\Desktop\\deallock\\Deallock_ecommerce_Fullstack_Springboot_restored\\node_modules\\@jridgewell'
+478 warn cleanup     }
+478 warn cleanup   ]
+478 warn cleanup ]
+479 verbose stack Error: spawn EPERM
+479 verbose stack     at ChildProcess.spawn (node:internal/child_process:420:11)
+479 verbose stack     at spawn (node:child_process:787:9)
+479 verbose stack     at promiseSpawn (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:39:16)
+479 verbose stack     at spawnWithShell (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:124:10)
+479 verbose stack     at promiseSpawn (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:12:12)
+479 verbose stack     at runScriptPkg (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\run-script\lib\run-script-pkg.js:79:13)
+479 verbose stack     at runScript (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\run-script\lib\run-script.js:9:12)
+479 verbose stack     at C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\rebuild.js:329:17
+479 verbose stack     at run (C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:67:22)
+479 verbose stack     at C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:84:9
+480 error code EPERM
+481 error syscall spawn
+482 error errno -4048
+483 error Error: spawn EPERM
+483 error     at ChildProcess.spawn (node:internal/child_process:420:11)
+483 error     at spawn (node:child_process:787:9)
+483 error     at promiseSpawn (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:39:16)
+483 error     at spawnWithShell (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:124:10)
+483 error     at promiseSpawn (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:12:12)
+483 error     at runScriptPkg (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\run-script\lib\run-script-pkg.js:79:13)
+483 error     at runScript (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\run-script\lib\run-script.js:9:12)
+483 error     at C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\rebuild.js:329:17
+483 error     at run (C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:67:22)
+483 error     at C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:84:9 {
+483 error   errno: -4048,
+483 error   code: 'EPERM',
+483 error   syscall: 'spawn'
+483 error }
+484 error
+484 error The operation was rejected by your operating system.
+484 error It's possible that the file was already in use (by a text editor or antivirus),
+484 error or that you lack permissions to access it.
+484 error
+484 error If you believe this might be a permissions issue, please double-check the
+484 error permissions of the file and its containing directories, or try running
+484 error the command again as root/Administrator.
+485 silly unfinished npm timer reify 1776243153135
+486 silly unfinished npm timer reify:build 1776243163797
+487 silly unfinished npm timer build 1776243163798
+488 silly unfinished npm timer build:deps 1776243163799
+489 silly unfinished npm timer build:run:install 1776243163827
+490 silly unfinished npm timer build:run:install:node_modules/@parcel/watcher 1776243163828
+491 verbose cwd C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored
+492 verbose os Windows_NT 10.0.26200
+493 verbose node v22.22.2
+494 verbose npm  v10.9.7
+495 notice
+495 notice New major version of npm available! 10.9.7 -> 11.12.1
+495 notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+495 notice To update run: npm install -g npm@11.12.1
+495 notice  { force: true, [Symbol(proc-log.meta)]: true }
+496 verbose exit -4048
+497 verbose code -4048
+498 error A complete log of this run can be found in: C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npm-cache\_logs\2026-04-15T08_52_31_954Z-debug-0.log

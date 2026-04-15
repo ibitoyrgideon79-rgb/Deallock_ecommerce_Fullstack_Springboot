@@ -1,0 +1,343 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/css/tailwind.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="/frontend/images/logo.jpeg">
+  <title>deallock.ng</title>
+  <style>
+    .product-card {
+      transition: all 0.3s ease;
+    }
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+    .add-to-cart {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+    .product-card:hover .add-to-cart {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .cart-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="bg-white border-b border-gray-100 shadow-sm">
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    
+    <!-- Logo + Slogan -->
+    <div class="flex items-center gap-x-3">
+      <!-- Bloom Logo replaced with your logo -->
+      <a href="/" class="flex items-center gap-x-2">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
+        <!-- Optional: If you want the black oval "bloom" look around your logo -->
+        <!-- 
+        <div class="bg-black text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center">
+          <img src="/logo.png" alt="Logo" class="h-6 w-auto">
+        </div>
+        -->
+      </a>
+      
+      <span class="text-gray-700 text-sm font-medium hidden sm:block">
+        Deal securing and purchase support.
+      </span>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <div class="hidden md:flex items-center gap-x-2">
+      <a href="/" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Home
+      </a>
+      <a href="/marketplace" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Marketplace
+      </a>
+      <a href="/terms" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Terms
+      </a>
+      <a href="/ourteam" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Contact
+      </a>
+    </div>
+
+    <!-- Auth Section -->
+    <div class="flex items-center gap-x-3">
+      <!-- When user is NOT signed in -->
+      <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
+        <a href="/login" 
+           class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+          Login
+        </a>
+        <a href="/register" 
+           class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
+          Register
+        </a>
+      </div>
+
+      <!-- When user IS signed in -->
+      <div th:if="${currentUser != null}" class="relative group">
+        <button onclick="toggleDropdown()" 
+                class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
+          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" 
+               alt="User Avatar" 
+               class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div id="user-dropdown" 
+             class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+          <a href="/profile" 
+             class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">
+            Profile Settings
+          </a>
+          <a href="/logout" 
+             class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">
+            Log out
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button id="menu-toggle" class="md:hidden text-gray-700">
+      <i class="fas fa-bars text-2xl"></i>
+    </button>
+  </nav>
+</header>
+
+ <!-- Floating Mobile Cart Button -->
+    <button onclick="toggleMobileCart()" 
+            class="lg:hidden fixed bottom-6 right-6 z-50 bg-black text-white w-16 h-16 shadow-2xl flex items-center justify-center">
+        <i class="fas fa-shopping-cart text-xl"></i>
+        <span id="mobile-cart-count" class="absolute -top-1 -right-1 bg-black text-[10px] font-bold px-2 py-1 border border-white">0</span>
+    </button>
+
+    <section class="max-w-7xl mx-auto px-6 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- LEFT: Products -->
+            <div class="lg:col-span-9">
+                <div class="flex justify-between items-center mb-8 border-b border-black pb-4">
+                    <h1 class="text-3xl font-black uppercase tracking-tighter italic">Marketplace</h1>
+                    <p class="text-xs font-bold uppercase">16 products found</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="product-grid">
+                    <!-- JS Injected Products -->
+                </div>
+            </div>
+
+            <!-- RIGHT: Sidebar Cart -->
+            <div id="cart-sidebar" class="fixed inset-y-0 right-0 z-40 w-full max-w-xs transform translate-x-full transition-transform duration-300 lg:relative lg:translate-x-0 lg:col-span-3">
+                <div class="h-full bg-white border border-black p-5 flex flex-col">
+                    <div class="flex justify-between items-center mb-6 border-b border-black pb-2">
+                        <h2 class="text-sm font-black uppercase">Your Cart</h2>
+                        <button onclick="toggleMobileCart()" class="lg:hidden text-2xl">&times;</button>
+                    </div>
+
+                    <div id="cart-items" class="flex-1 space-y-4 overflow-y-auto no-scrollbar"></div>
+
+                    <div class="mt-6 border-t-2 border-black pt-6">
+                        <h3 class="text-[10px] font-black uppercase mb-4 tracking-widest">Delivery Method</h3>
+                        <div class="space-y-2 mb-4">
+                            <label class="flex items-center p-3 border border-black cursor-pointer text-[10px] font-bold uppercase">
+                                <input type="radio" name="delivery" value="door" class="accent-black" onchange="handleDeliveryUI()" checked>
+                                <span class="ml-3">Door Delivery</span>
+                            </label>
+                            <label class="flex items-center p-3 border border-black cursor-pointer text-[10px] font-bold uppercase">
+                                <input type="radio" name="delivery" value="pickup" class="accent-black" onchange="handleDeliveryUI()">
+                                <span class="ml-3">In-store Pickup</span>
+                            </label>
+                        </div>
+
+                        <!-- Address Logic: Shows only for Door Delivery -->
+                        <div id="address-section" class="mb-4">
+                            <p class="text-[9px] font-black uppercase mb-1">Shipping Address</p>
+                            <input list="address-list" id="address-input" placeholder="TYPE OR SELECT ADDRESS" 
+                                   class="w-full border border-black p-2 text-[10px] font-bold uppercase bg-white">
+                            <datalist id="address-list">
+                                <option value="123 VICTORIA ISLAND, LAGOS">
+                                <option value="45 LEKKI PHASE 1, LAGOS">
+                            </datalist>
+                        </div>
+
+                        <div class="space-y-1 text-[11px] font-medium border-t border-gray-100 pt-4">
+                            <div class="flex justify-between uppercase"><span>Subtotal</span><span id="cart-subtotal">â‚¦0</span></div>
+                            <div class="flex justify-between uppercase"><span>Delivery</span><span id="delivery-fee">â‚¦0</span></div>
+                            <div class="flex justify-between font-black text-sm uppercase pt-2"><span>Total</span><span id="grand-total">â‚¦0</span></div>
+                        </div>
+
+                        <button onclick="proceedToCheckout()" class="w-full bg-black text-white py-4 mt-6 font-black uppercase tracking-widest hover:bg-gray-800 transition">
+                            Checkout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCT DETAIL MODAL -->
+    <div id="product-modal" class="hidden fixed inset-0 bg-black/90 items-center justify-center z-50">
+        <div class="bg-white w-full max-w-5xl h-full md:h-auto overflow-y-auto border border-black relative">
+            <button onclick="closeProductModal()" class="absolute top-4 right-6 text-4xl">&times;</button>
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="p-8 border-r border-black flex items-center justify-center">
+                    <img id="modal-main-image" class="w-full max-h-[400px] object-contain" src="">
+                </div>
+                <div class="p-8">
+                    <h2 id="modal-title" class="text-2xl font-black uppercase italic mb-4"></h2>
+                    <div class="flex items-baseline gap-4 mb-6">
+                        <span id="modal-price" class="text-4xl font-black"></span>
+                        <span id="modal-old-price" class="text-gray-400 line-through text-sm"></span>
+                    </div>
+                    <button onclick="addCurrentProductToCart()" class="w-full bg-black text-white py-5 font-black uppercase tracking-widest">Add to Cart</button>
+                </div>
+            </div>
+            <div class="p-8 border-t border-black bg-gray-50">
+                <h3 class="text-sm font-black uppercase mb-6">Product details</h3>
+                <div class="text-xs leading-loose text-gray-700 space-y-4">
+                    <p><strong>Double-walled Can maintain</strong> the temperature of water, and the coldness of iced coffee and iced drinks. 900ML large capacity, designed to fit perfectly in a car cup holder.</p>
+                    <p>Durable cup body coated with a layer that is not easy to fade or crack. The flip straw has a leak-proof design.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Footer -->   
+<footer class="bg-white border-t border-gray-200 text-gray-600">
+  <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Our Objectives</h3>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Making quality products affordable through flexible payments
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Building trust and security in every transaction
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Streamlining the buying process for everyone
+          </li>
+        </ul>
+      </div>
+      
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Why Choose DealLock</h3>
+        <ul class="space-y-3 text-gray-600">
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Flexible "Pay Small Small" payment plans
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Secure and transparent transactions
+          </li>
+          <li class="flex items-start">
+            <span class="text-emerald-600 mr-2 text-xl leading-none">?</span>
+            Wide range of quality products
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Contact Us</h3>
+        <div class="space-y-4 text-gray-600">
+          <div class="flex items-start">
+            <i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3 text-xl"></i>
+            <span>Abuja, Nigeria</span>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-phone text-emerald-600 mr-3 text-xl"></i>
+            <a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-envelope text-emerald-600 mr-3 text-xl"></i>
+            <a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a>
+          </div>
+        </div>
+
+        <div class="flex space-x-6 mt-8">
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-facebook-f text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-twitter text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
+            <i class="fab fa-instagram text-2xl"></i>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-5">Stay Updated</h3>
+        <p class="text-gray-600 mb-6 text-sm">
+          Get the latest deals, payment tips, and new products from DealLock.
+        </p>
+        <form id="newsletter-form" class="space-y-3" onsubmit="handleSubscribe(event)">
+          <div class="relative">
+            <input 
+              type="email" 
+              id="newsletter-email"
+              placeholder="Enter your email address" 
+              class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all"
+            >
+            <button type="submit" 
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl transition-colors">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+          
+          <button type="submit" 
+                  class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-2xl transition-colors">
+            SUBSCRIBE
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+      <p>
+        ? <span id="year"></span> DealLock Nigeria. All rights reserved. | 
+        <a href="https://deallock.ng" class="hover:text-emerald-600">deallock.ng</a>
+      </p>
+    </div>
+  </div>
+
+
+  <button onclick="scrollToTop()" 
+          id="scroll-top-btn"
+          class="fixed bottom-8 right-8 p-4 rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 hover:scale-110 transition-all duration-300 focus:outline-none z-50 opacity-0 pointer-events-none">
+    <i class="fas fa-arrow-up text-xl"></i>
+  </button>
+</footer>
+
+  <script src="/frontend/js/home.js" defer></script>
+  <script src="/frontend/js/marketplace.js" defer></script>
+</body>
+</html>
+
+
+
+

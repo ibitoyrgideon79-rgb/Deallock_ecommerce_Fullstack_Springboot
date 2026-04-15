@@ -1,0 +1,19 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@10.9.7
+2 info using node@v22.22.2
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npmrc
+5 silly config load:file:C:\Users\user\.npmrc
+6 silly config load:file:C:\Users\user\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm exec @tailwindcss/cli -i ./src/main/resources/static/frontend/css/tailwind.input.css -o ./src/main/resources/static/frontend/css/tailwind.css --minify
+8 verbose argv "exec" "--" "@tailwindcss/cli" "-i" "./src/main/resources/static/frontend/css/tailwind.input.css" "-o" "./src/main/resources/static/frontend/css/tailwind.css" "--minify"
+9 verbose logfile logs-max:10 dir:C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npm-cache\_logs\2026-04-15T08_53_03_871Z-
+10 verbose logfile C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored\.npm-cache\_logs\2026-04-15T08_53_03_871Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 verbose cwd C:\Users\user\Desktop\deallock\Deallock_ecommerce_Fullstack_Springboot_restored
+14 verbose os Windows_NT 10.0.26200
+15 verbose node v22.22.2
+16 verbose npm  v10.9.7
+17 verbose exit 0
+18 info ok

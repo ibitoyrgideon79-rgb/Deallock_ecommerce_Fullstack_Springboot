@@ -23,7 +23,11 @@ public class SecurityConfig {
     @SuppressWarnings({"java:S112", "java:S1130"})
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        "/api/**",
+                        "/forgot-password",
+                        "/reset-password"
+                ))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",

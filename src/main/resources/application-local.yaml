@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:deallock;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop
+
+server:
+  port: 8080
+
+app:
+  base-url: http://localhost:8080
+
+ai:
+  agent:
+    url: http://localhost:8000
+    api-key: 

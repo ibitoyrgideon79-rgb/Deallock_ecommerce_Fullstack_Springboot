@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/style.css">
+  <link rel="stylesheet" href="/frontend/dashboard.css">
+  <link rel="icon" type="image/x-icon" href="/frontend/logo.jpeg">
+  <title>Balance Payment - DealLock</title>
+  <style>
+    body { background: #ffffff; color: #111111; }
+    .subpage-main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 120px 24px 32px;
+    }
+    .pay-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #dbe7df;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+      border-radius: 16px;
+      padding: 56px 24px 24px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .pay-row { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #f1f5f9; }
+    .pay-row:last-child { border-bottom:none; }
+    .pay-title { font-size: 18px; font-weight: 600; }
+    .pay-actions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+    .pay-proof { margin-top: 18px; padding-top: 12px; border-top:1px solid #f1f5f9; }
+    .pay-proof input[type="file"] { display:block; margin-top:8px; }
+    .subpage-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid #dbe7df;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #111111;
+      background: #ffffff;
+      font-size: 18px;
+      line-height: 1;
+      text-decoration: none;
+      z-index: 2;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+    }
+    .subpage-close:hover {
+      background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+      .subpage-main { padding-top: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo-wrapper">
+        <a href="/" class="logo">
+          <img src="/frontend/logo.jpeg" alt="DealLock Logo">
+        </a>
+        <span class="slogan">Balance Payment</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Back to Dashboard</a></li>
+        <li><a href="/logout">Log out</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard-container subpage-main">
+    <div class="pay-card">
+      <a href="/dashboard" class="subpage-close" aria-label="Back to dashboard">&#8592;</a>
+      <div class="pay-title">Complete your balance payment</div>
+      <div style="margin:12px 0; color:#475569;">
+        Please pay the remaining balance of
+        <strong >NGN 0</strong>.
+      </div>
+
+      <div class="pay-row"><span>Account Name</span><strong>Deallock</strong></div>
+      <div class="pay-row"><span>Bank</span><strong>Fidelity Bank</strong></div>
+      <div class="pay-row"><span>Account No</span><strong>5601682913</strong></div>
+
+      <div class="pay-proof">
+        <label for="payment-proof" style="font-weight:600;">Upload balance payment receipt</label>
+        <input type="file" id="payment-proof" accept="image/*,application/pdf" required>
+      </div>
+      <div class="pay-actions">
+        <button type="button" class="btn-submit" id="mark-paid-btn" data-deal-id="">Submit Balance Proof</button>
+      </div>
+      <div id="pay-status" class="signup-error" style="margin-top:10px;"></div>
+    </div>
+  </main>
+
+  <script>
+    const payBtn = document.getElementById('mark-paid-btn');
+    const payStatus = document.getElementById('pay-status');
+    const proofInput = document.getElementById('payment-proof');
+
+    payBtn?.addEventListener('click', async () => {
+      payStatus.textContent = '';
+      try {
+        if (!proofInput || !proofInput.files || proofInput.files.length === 0) {
+          payStatus.textContent = 'Please upload your payment receipt.';
+          return;
+        }
+        payBtn.disabled = true;
+        payBtn.textContent = 'Uploading...';
+        const formData = new FormData();
+        formData.append('paymentProof', proofInput.files[0]);
+        const res = await fetch(`/api/deals/${payBtn.dataset.dealId}/balance-payment-proof`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Request failed');
+        window.location.href = `/dashboard/deal/${payBtn.dataset.dealId}/track`;
+      } catch (e) {
+        payStatus.textContent = 'Failed to upload proof. Try again.';
+        payBtn.disabled = false;
+        payBtn.textContent = 'Submit Balance Proof';
+      }
+    });
+  
+    const dealId = new URLSearchParams(window.location.search).get('dealId');
+    document.querySelectorAll('[data-deal-id]').forEach(el => { if (dealId) el.dataset.dealId = dealId; });
+    if (!dealId) {
+      const status = document.getElementById('pay-status');
+      if (status) status.textContent = 'Missing dealId in URL.';
+    }
+
+  </script>
+</body>
+</html>
