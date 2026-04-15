@@ -36,7 +36,7 @@ public class PageController {
         if (userOpt.isEmpty()) {
             return "redirect:/login";
         }
-        return "redirect:/frontend/pages/userdashboard.html";
+        return "dashboard";
     }
 
     @GetMapping("/dashboard")
@@ -44,7 +44,7 @@ public class PageController {
         if (principal == null) {
             return "redirect:/login";
         }
-        return "redirect:/frontend/pages/userdashboard.html";
+        return "dashboard";
     }
 
     @GetMapping("/dashboard/deal/{id}")
@@ -70,25 +70,25 @@ public class PageController {
                 return "redirect:/dashboard?deal=not-found";
             }
         }
-        return "redirect:/frontend/pages/userdashboard.html?dealId=" + id;
+        return "deal-details";
     }
 
     @GetMapping("/dashboard/deal/{id}/pay")
-    public String dealPay(@PathVariable("id") Long id, Principal principal) {
+    public String dealPay(@PathVariable("id") Long id, Principal principal) {   
         if (principal == null) return "redirect:/login";
 
         var userOpt = userRepository.findByEmail(principal.getName());
         if (userOpt.isEmpty()) return "redirect:/login";
 
         var dealOpt = dealRepository.findById(id);
-        if (dealOpt.isEmpty()) return "redirect:/dashboard?deal=not-found";
+        if (dealOpt.isEmpty()) return "redirect:/dashboard?deal=not-found";     
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
-        return "redirect:/frontend/pages/deal-pay.html?dealId=" + id;
+        return "deal-pay";
     }
 
     @GetMapping("/dashboard/deal/{id}/track")
@@ -106,7 +106,7 @@ public class PageController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
-        return "redirect:/frontend/pages/deal-track.html?dealId=" + id;
+return "deal-track";
     }
 
 
@@ -118,14 +118,14 @@ public class PageController {
         if (userOpt.isEmpty()) return "redirect:/login";
 
         var dealOpt = dealRepository.findById(id);
-        if (dealOpt.isEmpty()) return "redirect:/dashboard?deal=not-found";
+        if (dealOpt.isEmpty()) return "redirect:/dashboard?deal=not-found";     
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
-        return "redirect:/frontend/pages/deal-balance-pay.html?dealId=" + id;
+        return "deal-balance-pay";
     }
 
 }

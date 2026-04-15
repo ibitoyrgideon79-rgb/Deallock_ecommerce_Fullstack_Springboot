@@ -32,6 +32,6 @@ public class NotificationController {
             return "redirect:/login";
         }
         notificationService.markAllRead(userOpt.get());
-        return "redirect:/frontend/pages/notifications.html";
+        return "notifications";
     }
 }

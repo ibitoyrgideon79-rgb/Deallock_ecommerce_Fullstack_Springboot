@@ -41,7 +41,7 @@ public class RegisterController {
     private String baseUrl;
     @GetMapping
     public String register(Model model){
-        return "redirect:/frontend/pages/register.html";
+        return "register";
     }
     @PostMapping
     public String register (@Valid @ModelAttribute RegisterDto registerDto,

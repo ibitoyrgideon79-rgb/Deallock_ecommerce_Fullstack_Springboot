@@ -147,7 +147,7 @@ public class AdminController {
                 model.addAttribute("notificationCount", notificationService.countUnread(user));
             });
         }
-        return "redirect:/frontend/pages/payment-proofs.html";
+        return "payment-proofs";
     }
 
     @PostMapping("/admin/deals/{id}/approve")

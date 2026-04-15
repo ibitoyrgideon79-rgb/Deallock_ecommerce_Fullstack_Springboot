@@ -42,7 +42,7 @@ public class PasswordController {
 
     @GetMapping("/forgot-password")
     public String forgotPassword() {
-        return "redirect:/frontend/pages/forgot-password.html";
+        return "forgot-password";
     }
 
     @PostMapping("/forgot-password")
@@ -77,16 +77,19 @@ public class PasswordController {
                                 jakarta.servlet.http.HttpServletRequest request) {
         var tokenOpt = resetRepo.findByToken(token);
         if (tokenOpt.isEmpty()) {
+            model.addAttribute("error", "Invalid reset link.");
             auditLogService.log("RESET_PASSWORD", null, request, false, "invalid_token");
-            return "redirect:/frontend/pages/reset-password.html?error=Invalid%20reset%20link.";
+            return "reset-password";
         }
 
         var entry = tokenOpt.get();
         if (entry.isUsed() || entry.getExpiresAt().isBefore(Instant.now())) {
+            model.addAttribute("error", "Reset link expired.");
             auditLogService.log("RESET_PASSWORD", entry.getEmail(), request, false, "expired_or_used");
-            return "redirect:/frontend/pages/reset-password.html?error=Reset%20link%20expired.";
+            return "reset-password";
         }
-        return "redirect:/frontend/pages/reset-password.html?token=" + token;
+        model.addAttribute("token", token);
+        return "reset-password";
     }
 
     @PostMapping("/reset-password")

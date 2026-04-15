@@ -11,14 +11,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class AppErrorController {
 
     @GetMapping("/error")
-    public String error(HttpServletRequest request) {
+    public String error(HttpServletRequest request, org.springframework.ui.Model model) {
         Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Object message = request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
         String statusCode = status != null ? status.toString() : "500";
         String errorMessage = message != null ? message.toString() : "Unexpected error";
-        return "redirect:/frontend/pages/error.html?status="
-                + URLEncoder.encode(statusCode, StandardCharsets.UTF_8)
-                + "&message="
-                + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+        model.addAttribute("status", statusCode);
+        model.addAttribute("message", errorMessage);
+        return "error";
     }
 }
