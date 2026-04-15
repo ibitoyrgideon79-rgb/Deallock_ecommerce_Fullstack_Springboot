@@ -22,10 +22,10 @@ public class PageController {
         this.notificationService = notificationService;
     }
 
-    @GetMapping("/login")     public String login()     { return "redirect:/frontend/pages/login.html"; }
-    @GetMapping("/terms")     public String terms()     { return "redirect:/frontend/pages/terms.html"; }
-    @GetMapping("/ourteam")   public String ourteam()   { return "redirect:/frontend/pages/contactus.html"; }
-    @GetMapping("/marketplace") public String marketplace() { return "redirect:/frontend/pages/marketplace.html"; }
+    @GetMapping("/login")     public String login()     { return "login"; }
+    @GetMapping("/terms")     public String terms()     { return "terms"; }
+    @GetMapping("/ourteam")   public String ourteam()   { return "ourteam"; }
+    @GetMapping("/marketplace") public String marketplace() { return "marketplace"; }
 
     @GetMapping("/ai-agent")
     public String aiAgent(Principal principal) {

@@ -10,6 +10,6 @@ public class HomeController {
 
     @GetMapping
     public String index() {
-        return "redirect:/frontend/index.html";
+        return "index";
     }
 }
