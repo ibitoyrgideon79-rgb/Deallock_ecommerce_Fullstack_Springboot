@@ -243,6 +243,12 @@
     document.getElementById('otp-error-msg').classList.add('hidden');
   }
 
+  let registrationEmail = '';
+  let registrationPhone = '';
+  let registrationChannel = '';
+  let resendTimer = 0;
+  let resendInterval = null;
+
   function sendOTP() {
     const isEmail = !document.getElementById('email-form').classList.contains('hidden');
     const emailInput = document.getElementById('email-input');
@@ -260,7 +266,9 @@
       } else if (!regex.test(val)) {
         showInputError(emailInput, emailError, "Invalid email format");
       } else {
-        proceed(val);
+        registrationEmail = val;
+        registrationChannel = 'email';
+        sendOTPToBackend(val, 'email');
       }
     } else {
       const val = phoneInput.value.trim();
@@ -269,15 +277,28 @@
       } else if (val.length < 10) {
         showInputError(phoneInput, phoneError, "Enter a valid phone number");
       } else {
-        proceed("+234 " + val);
+        registrationPhone = val;
+        registrationChannel = 'phone';
+        sendOTPToBackend("+234" + val, 'phone');
       }
     }
   }
 
-  function showInputError(input, errorEl, msg) {
-    input.classList.add('input-error-border');
-    errorEl.innerText = msg;
-    errorEl.classList.remove('hidden');
+  function sendOTPToBackend(contact, channel) {
+    fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: contact, channel: channel })
+    })
+    .then(res => res.json())
+    .then(data => {
+      proceed(contact);
+      startResendTimer();
+    })
+    .catch(err => {
+      console.error('Error sending OTP:', err);
+      alert('Failed to send OTP. Please try again.');
+    });
   }
 
   function proceed(contact) {
@@ -285,6 +306,12 @@
     document.getElementById('register-step').classList.add('hidden');
     document.getElementById('otp-step').classList.remove('hidden');
     document.getElementById('otp1').focus();
+  }
+
+  function showInputError(input, errorEl, msg) {
+    input.classList.add('input-error-border');
+    errorEl.innerText = msg;
+    errorEl.classList.remove('hidden');
   }
 
   function moveToNext(current, next) {
@@ -302,26 +329,95 @@
   function validateAndVerify(lastInput) {
     if (lastInput.value.length === 1) {
       const fields = document.querySelectorAll('.otp-field');
-      const errorMsg = document.getElementById('otp-error-msg');
       const code = Array.from(fields).map(f => f.value).join('');
-
-      if (code !== "123456") {
-        errorMsg.classList.remove('hidden');
-        fields.forEach(f => {
-          f.classList.add('otp-error');
-          f.value = ""; 
-          setTimeout(() => f.classList.remove('otp-error'), 500);
-        });
-        document.getElementById('otp1').focus();
-      } else {
-        alert("Account Verified!");
-      }
+      
+      // Call backend API to verify OTP
+      verifyOTPWithBackend(registrationEmail, code, registrationChannel);
     }
   }
 
+  function verifyOTPWithBackend(email, otpCode, channel) {
+    fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, otpCode: otpCode, channel: channel })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success || data.message) {
+        // OTP verified, now sign up
+        completeSignup(email, otpCode);
+      } else {
+        showOTPError();
+      }
+    })
+    .catch(err => {
+      console.error('Error verifying OTP:', err);
+      showOTPError();
+    });
+  }
+
+  function completeSignup(email, otpCode) {
+    const signupData = {
+      email: email,
+      fullName: "User",
+      phone: registrationPhone,
+      otpCode: otpCode,
+      channel: registrationChannel
+    };
+
+    fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(signupData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success || data.message) {
+        alert("Account created successfully! Redirecting to login...");
+        window.location.href = '/login';
+      } else {
+        alert("Signup failed. Please try again.");
+      }
+    })
+    .catch(err => {
+      console.error('Error completing signup:', err);
+      alert("An error occurred during signup.");
+    });
+  }
+
+  function showOTPError() {
+    const fields = document.querySelectorAll('.otp-field');
+    const errorMsg = document.getElementById('otp-error-msg');
+    errorMsg.classList.remove('hidden');
+    fields.forEach(f => {
+      f.classList.add('otp-error');
+      f.value = "";
+      setTimeout(() => f.classList.remove('otp-error'), 500);
+    });
+    document.getElementById('otp1').focus();
+  }
+
+  function startResendTimer() {
+    resendTimer = 60;
+    const resendBtn = document.querySelector('[onclick="resendOTP()"]');
+    if (resendBtn) resendBtn.style.opacity = '0.5';
+    
+    resendInterval = setInterval(() => {
+      resendTimer--;
+      if (resendBtn) resendBtn.innerText = `Resend code (${resendTimer}s)`;
+      if (resendTimer <= 0) {
+        clearInterval(resendInterval);
+        resendBtn.style.opacity = '1';
+        resendBtn.innerText = 'Resend code';
+      }
+    }, 1000);
+  }
+
   function resendOTP() {
+    if (resendTimer > 0) return;
     resetErrors();
-    alert("New code sent.");
+    sendOTPToBackend(registrationEmail || registrationPhone, registrationChannel);
   }
 </script>
 

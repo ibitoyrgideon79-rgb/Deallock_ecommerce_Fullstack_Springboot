@@ -199,20 +199,42 @@
 
   let rawEmail = "";
   let encryptedEmail = "";
+  let rawEmail = "";
+  let encryptedEmail = "";
   let encryptedPhone = "+234 **********";
   let currentMethod = 'email';
+  let resendTimer = 0;
+  let resendInterval = null;
 
   function handleLoginContinue() {
     const input = document.getElementById('login-input');
     rawEmail = input.value.trim();
     if (!rawEmail) { input.classList.add('input-error'); return; }
 
-    
     encryptedEmail = rawEmail.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => gp2 + "*".repeat(gp3.length));
     
     document.getElementById('otp-destination-label').innerText = encryptedEmail;
     document.getElementById('display-user').value = rawEmail;
-    switchToOTP();
+    
+    // Call backend API to send OTP
+    sendOTPToBackend(rawEmail, 'email');
+  }
+
+  function sendOTPToBackend(contact, channel) {
+    fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: contact, channel: channel })
+    })
+    .then(res => res.json())
+    .then(data => {
+      switchToOTP();
+      startResendTimer();
+    })
+    .catch(err => {
+      console.error('Error sending OTP:', err);
+      alert('Failed to send OTP. Please try again.');
+    });
   }
 
   function toggleOTPMethod() {
@@ -252,15 +274,58 @@
     const fields = document.querySelectorAll('.otp-field');
     const code = Array.from(fields).map(f => f.value).join('');
     if (code.length === 6) {
-      if (code !== "123456") {
-        fields.forEach(f => { f.classList.add('otp-error'); f.value = ""; setTimeout(() => f.classList.remove('otp-error'), 500); });
-        document.getElementById('otp1').focus();
-      } else { alert("Login successful!"); }
+      // Call backend API to verify OTP
+      verifyOTPWithBackend(rawEmail, code, 'email');
     }
   }
 
+  function verifyOTPWithBackend(email, otpCode, channel) {
+    fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, otpCode: otpCode, channel: channel })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success || data.message) {
+        switchToPassword();
+      } else {
+        const fields = document.querySelectorAll('.otp-field');
+        fields.forEach(f => { f.classList.add('otp-error'); f.value = ""; setTimeout(() => f.classList.remove('otp-error'), 500); });
+        document.getElementById('otp1').focus();
+      }
+    })
+    .catch(err => {
+      console.error('Error verifying OTP:', err);
+      const fields = document.querySelectorAll('.otp-field');
+      fields.forEach(f => f.classList.add('otp-error'));
+      document.getElementById('otp1').focus();
+    });
+  }
+
   function handlePasswordLogin() { alert("Password success"); }
-  function resendOTP() { alert("Code resent"); resetOTP(); }
+
+  function startResendTimer() {
+    resendTimer = 60;
+    const resendBtn = document.querySelector('[onclick="resendOTP()"]');
+    if (resendBtn) resendBtn.disabled = true;
+    
+    resendInterval = setInterval(() => {
+      resendTimer--;
+      if (resendBtn) resendBtn.innerText = `Resend code (${resendTimer}s)`;
+      if (resendTimer <= 0) {
+        clearInterval(resendInterval);
+        resendBtn.disabled = false;
+        resendBtn.innerText = 'Resend code';
+      }
+    }, 1000);
+  }
+
+  function resendOTP() {
+    if (resendTimer > 0) return; // Prevent clicking before timer is done
+    resetOTP();
+    sendOTPToBackend(rawEmail, currentMethod);
+  }
 </script>
 
 
