@@ -16,7 +16,7 @@
     
     <div class="flex items-center gap-x-3">
 
-      <a href="/index.html" class="flex items-center gap-x-2">
+      <a href="/" class="flex items-center gap-x-2">
         <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
   
       </a>
@@ -27,19 +27,19 @@
     </div>
 
     <div class="hidden md:flex items-center gap-x-2">
-      <a href="/index.html" 
+      <a href="/" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Home
       </a>
-      <a href="/pages/marketplace.html" 
+      <a href="/marketplace" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Marketplace
       </a>
-      <a href="/pages/terms.html" 
+      <a href="/terms" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Terms
       </a>
-      <a href="/pages/contactus.html" 
+      <a href="/ourteam" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Contact
       </a>
@@ -47,11 +47,11 @@
 
     <div class="flex items-center gap-x-3">
       <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
-        <a href="/pages/login.html" 
+        <a href="/login" 
            class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
           Login
         </a>
-        <a href="/pages/register.html" 
+        <a href="/register" 
            class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
           Register
         </a>
@@ -123,7 +123,7 @@
       <button onclick="handleLoginContinue()" class="w-full bg-[#0d0c22] text-white py-3 rounded-full font-bold text-[11px] hover:opacity-90 transition-opacity">Continue</button>
       
       <p class="text-[11px] text-gray-600 mt-6">
-        No account? <a href="/pages/register.html" class="font-bold text-black underline">Sign up</a>
+        No account? <a href="/register" class="font-bold text-black underline">Sign up</a>
       </p>
     </div>
 
