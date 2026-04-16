@@ -22,13 +22,16 @@ public class PageController {
         this.notificationService = notificationService;
     }
 
-     @GetMapping("/marketplace") public String marketplace() { return "marketplace"; }
+    @GetMapping("/marketplace") 
+    public String marketplace() { return "marketplace"; }
+
     // Legacy static URLs -> clean Thymeleaf routes
     @GetMapping("/frontend/pages/login.html") public String loginLegacy() { return "redirect:/login"; }
     @GetMapping("/frontend/pages/register.html") public String registerLegacy() { return "redirect:/register"; }
     @GetMapping("/frontend/pages/terms.html") public String termsLegacy() { return "redirect:/terms"; }
     @GetMapping("/frontend/pages/ourteam.html") public String ourteamLegacy() { return "redirect:/ourteam"; }
-    @GetMapping("/frontend/pages/marketplace.html") public String marketplaceLegacy() { return "redirect:/marketplace"; 
+    @GetMapping("/frontend/pages/marketplace.html") public String marketplaceLegacy() { return "redirect:/marketplace"; }
+
     @GetMapping("/ai-agent")
     public String aiAgent(Principal principal) {
         if (principal == null) {
@@ -68,7 +71,7 @@ public class PageController {
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
         if (!isAdmin) {
-            if (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId()) {
+            if (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId())) {
                 return "redirect:/dashboard?deal=not-found";
             }
         }
@@ -87,7 +90,7 @@ public class PageController {
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
-        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
+        if (!isAdmin && (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId()))) {
             return "redirect:/dashboard?deal=not-found";
         }
         return "deal-pay";
@@ -105,12 +108,11 @@ public class PageController {
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
-        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
+        if (!isAdmin && (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId()))) {
             return "redirect:/dashboard?deal=not-found";
         }
-return "deal-track";
+        return "deal-track";
     }
-
 
     @GetMapping("/dashboard/deal/{id}/balance-pay")
     public String balancePay(@PathVariable("id") Long id, Principal principal) {
@@ -124,13 +126,9 @@ return "deal-track";
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
-        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
+        if (!isAdmin && (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId()))) {
             return "redirect:/dashboard?deal=not-found";
         }
         return "deal-balance-pay";
     }
-
 }
-
-
-
