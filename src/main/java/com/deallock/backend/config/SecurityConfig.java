@@ -1,4 +1,4 @@
-package com.deallock.backend.config;
+﻿package com.deallock.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 "/frontend/**",
                                 "/pages/**"
                         ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/profile", "/profile/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
