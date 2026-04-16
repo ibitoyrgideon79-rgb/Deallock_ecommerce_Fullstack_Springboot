@@ -31,20 +31,25 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
+                                "/index.html",
                                 "/health",
                                 "/login",
                                 "/register",
                                 "/terms",
                                 "/send-otp",
                                 "/ourteam",
+                                "/contactus",
                                 "/error",
                                 "/api/send-otp",
                                 "/api/verify-otp",
                                 "/api/signup",
+                                "/api/profile/complete",
+                                "/api/login/otp",
                                 "/activate",
                                 "/forgot-password",
                                 "/reset-password",
-                                "/frontend/**"
+                                "/frontend/**",
+                                "/pages/**"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/profile", "/profile/**").hasAnyRole("USER", "ADMIN")

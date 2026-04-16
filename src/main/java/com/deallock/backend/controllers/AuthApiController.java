@@ -2,7 +2,9 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.dtos.OtpRequest;
 import com.deallock.backend.dtos.OtpverifyRequest;
-import com.deallock.backend.dtos.RegisterDto;
+import com.deallock.backend.dtos.SignupInitRequest;
+import com.deallock.backend.dtos.CompleteProfileRequest;
+import com.deallock.backend.dtos.OtpLoginRequest;
 import com.deallock.backend.entities.ActivationToken;
 import com.deallock.backend.entities.OtpCode;
 import com.deallock.backend.entities.User;
@@ -14,8 +16,13 @@ import com.deallock.backend.services.EmailService;
 import com.deallock.backend.services.SmsService;
 import java.security.SecureRandom;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,21 +162,37 @@ public class AuthApiController {
 
     @PostMapping("/signup")
     @Transactional
-    public ResponseEntity<?> signup(@Validated @RequestBody RegisterDto req, HttpServletRequest request) {
-        String email = req.getEmail() == null ? null : req.getEmail().trim();
-        String phone = req.getPhone() == null ? null : req.getPhone().trim();
+    public ResponseEntity<?> signupInit(@Validated @RequestBody SignupInitRequest req, HttpServletRequest request) {
+        String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
+        String email = req.email == null ? null : req.email.trim();
+        String phone = req.phone == null ? null : req.phone.trim();
 
-        if (phone != null && !phone.isBlank() && !phone.matches(PHONE_REGEX)) {
-            auditLogService.log("SIGNUP", email, request, false, "phone_invalid");
-            return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
+        if ("phone".equals(channel)) {
+            if (phone == null || phone.isBlank()) {
+                auditLogService.log("SIGNUP_INIT", null, request, false, "phone_missing");
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
+            }
+            if (!phone.matches(PHONE_REGEX)) {
+                auditLogService.log("SIGNUP_INIT", null, request, false, "phone_invalid");
+                return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
+            }
+        } else {
+            if (email == null || email.isBlank()) {
+                auditLogService.log("SIGNUP_INIT", null, request, false, "email_missing");
+                return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+            }
         }
 
-        if (userRepository.findByEmail(email).isPresent()) {
-            auditLogService.log("SIGNUP", email, request, false, "email_exists");
+        if (email != null && userRepository.findByEmail(email).isPresent()) {
+            auditLogService.log("SIGNUP_INIT", email, request, false, "email_exists");
             return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));
         }
+        if (phone != null && !phone.isBlank() && userRepository.findByPhone(phone).isPresent()) {
+            auditLogService.log("SIGNUP_INIT", email != null ? email : phone, request, false, "phone_exists");
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone already exists"));
+        }
 
-        var emailEntry = otpRepo.findTopByEmailOrderByIdDesc(email);
+        var emailEntry = email == null ? java.util.Optional.<OtpCode>empty() : otpRepo.findTopByEmailOrderByIdDesc(email);
         var phoneEntry = phone == null || phone.isBlank()
                 ? java.util.Optional.<OtpCode>empty()
                 : otpRepo.findTopByPhoneOrderByIdDesc(phone);
@@ -177,23 +200,18 @@ public class AuthApiController {
                 || (phoneEntry.isPresent() && phoneEntry.get().isVerified());
 
         if (!verified) {
-            auditLogService.log("SIGNUP", email, request, false, "contact_not_verified");
-            return ResponseEntity.badRequest().body(Map.of("message", "Verify your email or phone OTP before signing up"));
-        }
-
-        if (req.getPassword() == null || !req.getPassword().equals(req.getConfirmPassword())) {
-            auditLogService.log("SIGNUP", email, request, false, "password_mismatch");
-            return ResponseEntity.badRequest().body(Map.of("message", "Passwords do not match"));
+            auditLogService.log("SIGNUP_INIT", email != null ? email : phone, request, false, "contact_not_verified");
+            return ResponseEntity.badRequest().body(Map.of("message", "Verify OTP before continuing"));
         }
 
         User user = User.builder()
-                .fullName(req.getFullName())
+                .fullName(null)
                 .email(email)
-                .username(req.getUsername())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .address(req.getAddress())
+                .username(null)
+                .password(null)
+                .address(null)
                 .phone(phone)
-                .dateOfBirth(req.getDateOfBirth())
+                .dateOfBirth(null)
                 .role("ROLE_USER")
                 .enabled(false)
                 .creation(Instant.now())
@@ -201,24 +219,147 @@ public class AuthApiController {
 
         userRepository.save(user);
 
-        String token = java.util.UUID.randomUUID().toString();
-        ActivationToken activation = new ActivationToken();
-        activation.setEmail(email);
-        activation.setToken(token);
-        activation.setExpiresAt(Instant.now().plusSeconds(3600));
-        activation.setUsed(false);
-        activationRepo.save(activation);
-
-        String link = baseUrl + "/activate?token=" + token;
-        emailService.sendActivationLink(email, link);
-        // Consume the OTP that was used for verification now that signup is successful
+        // Consume the OTP that was used for verification now that signup-init is successful.
         emailEntry.ifPresent(otpRepo::delete);
         phoneEntry.ifPresent(otpRepo::delete);
 
-        auditLogService.log("SIGNUP", email, request, true, null);
+        auditLogService.log("SIGNUP_INIT", email != null ? email : phone, request, true, null);
         return ResponseEntity.ok(Map.of(
-                "message", "Account created",
-                "activationLink", link
+                "message", "Account started. Complete your profile to finish signup."
         ));
+    }
+
+    @PostMapping("/profile/complete")
+    @Transactional
+    public ResponseEntity<?> completeProfile(@Validated @RequestBody CompleteProfileRequest req, HttpServletRequest request) {
+        String email = req.email == null ? null : req.email.trim();
+        String phone = req.phone == null ? null : req.phone.trim();
+
+        if (phone != null && !phone.isBlank() && !phone.matches(PHONE_REGEX)) {
+            auditLogService.log("PROFILE_COMPLETE", email, request, false, "phone_invalid");
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
+        }
+
+        var userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty() && phone != null && !phone.isBlank()) {
+            userOpt = userRepository.findByPhone(phone);
+        }
+        if (userOpt.isEmpty()) {
+            auditLogService.log("PROFILE_COMPLETE", email != null ? email : phone, request, false, "user_not_found");
+            return ResponseEntity.badRequest().body(Map.of("message", "Start signup first"));
+        }
+
+        var user = userOpt.get();
+
+        // If the user started signup with phone only, allow setting email here.
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            if (userRepository.findByEmail(email).isPresent()) {
+                auditLogService.log("PROFILE_COMPLETE", email, request, false, "email_exists");
+                return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));
+            }
+            user.setEmail(email);
+        } else if (!user.getEmail().equalsIgnoreCase(email)) {
+            auditLogService.log("PROFILE_COMPLETE", email, request, false, "email_mismatch");
+            return ResponseEntity.badRequest().body(Map.of("message", "Email does not match signup record"));
+        }
+
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            auditLogService.log("PROFILE_COMPLETE", email, request, false, "already_completed");
+            return ResponseEntity.badRequest().body(Map.of("message", "Profile already completed"));
+        }
+
+        if (!req.password.equals(req.confirmPassword)) {
+            auditLogService.log("PROFILE_COMPLETE", email, request, false, "password_mismatch");
+            return ResponseEntity.badRequest().body(Map.of("message", "Passwords do not match"));
+        }
+
+        user.setFullName(req.fullName);
+        if (req.username != null && !req.username.isBlank()) {
+            user.setUsername(req.username.trim());
+        }
+        if (req.address != null && !req.address.isBlank()) {
+            user.setAddress(req.address.trim());
+        }
+        if (phone != null && !phone.isBlank()) {
+            user.setPhone(phone);
+        }
+        user.setDateOfBirth(req.dateOfBirth);
+        user.setPassword(passwordEncoder.encode(req.password));
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        auditLogService.log("PROFILE_COMPLETE", email, request, true, null);
+        return ResponseEntity.ok(Map.of("message", "Profile completed. You can now log in."));
+    }
+
+    @PostMapping("/login/otp")
+    public ResponseEntity<?> otpLogin(@Validated @RequestBody OtpLoginRequest req, HttpServletRequest request) {
+        String login = req.login == null ? null : req.login.trim();
+        String otp = req.otp == null ? null : req.otp.trim();
+
+        if (login == null || login.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Login is required"));
+        }
+
+        boolean loginLooksLikePhone = login.startsWith("+");
+        String channel = req.channel == null || req.channel.isBlank()
+                ? (loginLooksLikePhone ? "phone" : "email")
+                : req.channel.toLowerCase();
+
+        var entryOpt = "phone".equals(channel)
+                ? otpRepo.findTopByPhoneOrderByIdDesc(login)
+                : otpRepo.findTopByEmailOrderByIdDesc(login);
+
+        if (entryOpt.isEmpty()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "no_otp");
+            return ResponseEntity.badRequest().body(Map.of("message", "No OTP found"));
+        }
+
+        var entry = entryOpt.get();
+        if (entry.getExpiresAt().isBefore(Instant.now())) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "expired");
+            return ResponseEntity.badRequest().body(Map.of("message", "OTP expired"));
+        }
+        if (!entry.getCode().equals(otp)) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "invalid");
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
+        }
+
+        var userOpt = userRepository.findByEmail(login)
+                .or(() -> userRepository.findByUsername(login))
+                .or(() -> userRepository.findByPhone(login));
+        if (userOpt.isEmpty()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "user_not_found");
+            return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+        }
+
+        var user = userOpt.get();
+        if (!user.isEnabled()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "disabled");
+            return ResponseEntity.badRequest().body(Map.of("message", "Account not active"));
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "profile_incomplete");
+            return ResponseEntity.badRequest().body(Map.of("message", "Complete your profile first"));
+        }
+
+        String role = user.getRole() == null || user.getRole().isBlank() ? "ROLE_USER" : user.getRole();
+        var auth = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null,
+                java.util.List.of(new SimpleGrantedAuthority(role))
+        );
+        var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(auth);
+        SecurityContextHolder.setContext(context);
+
+        HttpSession session = request.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
+        // Consume OTP after successful login
+        otpRepo.delete(entry);
+
+        auditLogService.log("LOGIN_OTP", login, request, true, null);
+        return ResponseEntity.ok(Map.of("message", "Logged in"));
     }
 }

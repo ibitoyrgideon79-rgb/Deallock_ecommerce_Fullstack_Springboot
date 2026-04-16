@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/frontend/css/tailwind.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="/images/logo.jpeg">
   <title>deallock.ng</title>
@@ -16,7 +16,7 @@
     
     <div class="flex items-center gap-x-3">
 
-      <a href="/" class="flex items-center gap-x-2">
+      <a href="/index.html" class="flex items-center gap-x-2">
         <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
   
       </a>
@@ -27,19 +27,19 @@
     </div>
 
     <div class="hidden md:flex items-center gap-x-2">
-      <a href="/" 
+      <a href="/index.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Home
       </a>
-      <a href="/marketplace" 
+      <a href="/pages/marketplace.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Marketplace
       </a>
-      <a href="/terms" 
+      <a href="/pages/terms.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Terms
       </a>
-      <a href="/ourteam" 
+      <a href="/pages/contactus.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Contact
       </a>
@@ -47,11 +47,11 @@
 
     <div class="flex items-center gap-x-3">
       <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
-        <a href="/login" 
+        <a href="/pages/login.html" 
            class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
           Login
         </a>
-        <a href="/register" 
+        <a href="/pages/register.html" 
            class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
           Register
         </a>
@@ -193,6 +193,41 @@
       <p onclick="resendOTP()" class="text-xs font-bold text-gray-400 cursor-pointer hover:text-black transition-colors">Resend code</p>
     </div>
 
+
+    <div id="profile-step" class="hidden mt-12">
+      <button onclick="backToOtpStep()" class="flex items-center gap-1 text-gray-400 hover:text-black transition-colors mb-6">
+        <svg xmlns="http://w3.org" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-xs font-bold">Back</span>
+      </button>
+
+      <div class="flex justify-center mb-4">
+        <img src="/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
+      </div>
+
+      <h2 class="text-lg font-bold text-center text-gray-900 mb-0.5">Complete your profile</h2>
+      <p class="text-gray-500 text-center text-[11px] mb-5">Set your details and password to finish signup.</p>
+
+      <p id="profile-error-msg" class="text-red-500 text-[10px] mb-4 hidden text-center"></p>
+      <p id="profile-success-msg" class="text-emerald-600 text-[10px] mb-4 hidden text-center"></p>
+
+      <div class="space-y-3">
+        <input id="profile-fullName" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Full name">
+        <input id="profile-email" type="email" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Email address">
+        <input id="profile-phone" type="tel" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="+2348012345678 (optional)">
+        <input id="profile-dob" type="date" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all">
+        <input id="profile-address" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Address (optional)">
+
+        <input id="profile-password" type="password" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Create password">
+        <input id="profile-confirmPassword" type="password" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Confirm password">
+      </div>
+
+      <button onclick="completeProfile()" class="w-full bg-black text-white py-3 rounded-xl font-bold mt-5 text-xs hover:bg-gray-800 transition-colors">
+        Finish signup
+      </button>
+    </div>
+
   </div>
 </section>
 
@@ -213,6 +248,29 @@
 </style>
 
 <script>
+  const API_BASE = "/api";
+  const state = {
+    channel: "email",
+    email: "",
+    phone: "",
+    otpSent: false,
+    otpVerified: false
+  };
+
+  async function postJson(url, payload) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || "Request failed");
+    }
+    return data;
+  }
+
   function switchMethod(n) {
     const emailForm = document.getElementById('email-form');
     const phoneForm = document.getElementById('phone-form');
@@ -243,12 +301,6 @@
     document.getElementById('otp-error-msg').classList.add('hidden');
   }
 
-  let registrationEmail = '';
-  let registrationPhone = '';
-  let registrationChannel = '';
-  let resendTimer = 0;
-  let resendInterval = null;
-
   function sendOTP() {
     const isEmail = !document.getElementById('email-form').classList.contains('hidden');
     const emailInput = document.getElementById('email-input');
@@ -266,39 +318,65 @@
       } else if (!regex.test(val)) {
         showInputError(emailInput, emailError, "Invalid email format");
       } else {
-        registrationEmail = val;
-        registrationChannel = 'email';
-        sendOTPToBackend(val, 'email');
+        state.channel = "email";
+        state.email = val;
+        state.phone = "";
+        doSendOtp(val);
       }
     } else {
-      const val = phoneInput.value.trim();
-      if (!val) {
+      const raw = phoneInput.value.trim();
+      const digits = raw.replace(/[^\d]/g, "");
+      const phone = digits ? `+234${digits}` : "";
+      const phoneRegex = /^\+[1-9]\d{7,14}$/;
+      if (!raw) {
         showInputError(phoneInput, phoneError, "Phone number is required");
-      } else if (val.length < 10) {
-        showInputError(phoneInput, phoneError, "Enter a valid phone number");
+      } else if (!phoneRegex.test(phone)) {
+        showInputError(phoneInput, phoneError, "Use international format, e.g. +2348012345678");
       } else {
-        registrationPhone = val;
-        registrationChannel = 'phone';
-        sendOTPToBackend("+234" + val, 'phone');
+        state.channel = "phone";
+        state.phone = phone;
+        state.email = "";
+        doSendOtp(phone);
       }
     }
   }
 
-  function sendOTPToBackend(contact, channel) {
-    fetch('/api/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: contact, channel: channel })
-    })
-    .then(res => res.json())
-    .then(data => {
-      proceed(contact);
-      startResendTimer();
-    })
-    .catch(err => {
-      console.error('Error sending OTP:', err);
-      alert('Failed to send OTP. Please try again.');
-    });
+  async function doSendOtp(contactLabel) {
+    const otpErrorMsg = document.getElementById('otp-error-msg');
+    otpErrorMsg.classList.add('hidden');
+    try {
+      await postJson(`${API_BASE}/send-otp`, {
+        channel: state.channel,
+        email: state.email || undefined,
+        phone: state.phone || undefined
+      });
+      state.otpSent = true;
+      proceed(contactLabel);
+    } catch (e) {
+      // Show error under the relevant input
+      const emailError = document.getElementById('email-error');
+      const phoneError = document.getElementById('phone-error');
+      if (state.channel === "email" && emailError) {
+        emailError.innerText = e.message || "Failed to send OTP";
+        emailError.classList.remove('hidden');
+        document.getElementById('email-input')?.classList.add('input-error-border');
+        return;
+      }
+      if (state.channel === "phone" && phoneError) {
+        phoneError.innerText = e.message || "Failed to send OTP";
+        phoneError.classList.remove('hidden');
+        document.getElementById('phone-input')?.classList.add('input-error-border');
+        return;
+      }
+      otpErrorMsg.textContent = e.message || "Failed to send OTP";
+      otpErrorMsg.classList.remove('hidden');
+    }
+  }
+
+  function showInputError(input, errorEl, msg) {
+    input.classList.add('input-error-border');
+    errorEl.innerText = msg;
+    errorEl.classList.remove('hidden');
   }
 
   function proceed(contact) {
@@ -306,12 +384,6 @@
     document.getElementById('register-step').classList.add('hidden');
     document.getElementById('otp-step').classList.remove('hidden');
     document.getElementById('otp1').focus();
-  }
-
-  function showInputError(input, errorEl, msg) {
-    input.classList.add('input-error-border');
-    errorEl.innerText = msg;
-    errorEl.classList.remove('hidden');
   }
 
   function moveToNext(current, next) {
@@ -329,95 +401,134 @@
   function validateAndVerify(lastInput) {
     if (lastInput.value.length === 1) {
       const fields = document.querySelectorAll('.otp-field');
+      const errorMsg = document.getElementById('otp-error-msg');
       const code = Array.from(fields).map(f => f.value).join('');
-      
-      // Call backend API to verify OTP
-      verifyOTPWithBackend(registrationEmail, code, registrationChannel);
+
+      if (code.length !== 6) return;
+
+      verifyOtpAndStartSignup(code).catch(err => {
+        errorMsg.textContent = err.message || "Invalid passcode. Please try again.";
+        errorMsg.classList.remove('hidden');
+        fields.forEach(f => {
+          f.classList.add('otp-error');
+          f.value = "";
+          setTimeout(() => f.classList.remove('otp-error'), 500);
+        });
+        document.getElementById('otp1').focus();
+      });
     }
   }
 
-  function verifyOTPWithBackend(email, otpCode, channel) {
-    fetch('/api/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, otpCode: otpCode, channel: channel })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success || data.message) {
-        // OTP verified, now sign up
-        completeSignup(email, otpCode);
-      } else {
-        showOTPError();
-      }
-    })
-    .catch(err => {
-      console.error('Error verifying OTP:', err);
-      showOTPError();
-    });
-  }
-
-  function completeSignup(email, otpCode) {
-    const signupData = {
-      email: email,
-      fullName: "User",
-      phone: registrationPhone,
-      otpCode: otpCode,
-      channel: registrationChannel
-    };
-
-    fetch('/api/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signupData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success || data.message) {
-        alert("Account created successfully! Redirecting to login...");
-        window.location.href = '/login';
-      } else {
-        alert("Signup failed. Please try again.");
-      }
-    })
-    .catch(err => {
-      console.error('Error completing signup:', err);
-      alert("An error occurred during signup.");
-    });
-  }
-
-  function showOTPError() {
-    const fields = document.querySelectorAll('.otp-field');
+  async function verifyOtpAndStartSignup(otp) {
     const errorMsg = document.getElementById('otp-error-msg');
-    errorMsg.classList.remove('hidden');
-    fields.forEach(f => {
-      f.classList.add('otp-error');
-      f.value = "";
-      setTimeout(() => f.classList.remove('otp-error'), 500);
+    errorMsg.classList.add('hidden');
+
+    await postJson(`${API_BASE}/verify-otp`, {
+      channel: state.channel,
+      email: state.email || undefined,
+      phone: state.phone || undefined,
+      otp
     });
+
+    await postJson(`${API_BASE}/signup`, {
+      channel: state.channel,
+      email: state.email || undefined,
+      phone: state.phone || undefined
+    });
+
+    state.otpVerified = true;
+    showProfileStep();
+  }
+
+  async function resendOTP() {
+    if (!state.email && !state.phone) {
+      registerStep();
+      return;
+    }
+    await doSendOtp(state.email || state.phone);
+    resetOtpFields();
+  }
+
+  function resetOtpFields() {
+    document.querySelectorAll('.otp-field').forEach(f => f.value = "");
     document.getElementById('otp1').focus();
   }
 
-  function startResendTimer() {
-    resendTimer = 60;
-    const resendBtn = document.querySelector('[onclick="resendOTP()"]');
-    if (resendBtn) resendBtn.style.opacity = '0.5';
-    
-    resendInterval = setInterval(() => {
-      resendTimer--;
-      if (resendBtn) resendBtn.innerText = `Resend code (${resendTimer}s)`;
-      if (resendTimer <= 0) {
-        clearInterval(resendInterval);
-        resendBtn.style.opacity = '1';
-        resendBtn.innerText = 'Resend code';
-      }
-    }, 1000);
+  function showProfileStep() {
+    document.getElementById('otp-step').classList.add('hidden');
+    document.getElementById('profile-step').classList.remove('hidden');
+
+    // Prefill known values
+    const emailEl = document.getElementById('profile-email');
+    const phoneEl = document.getElementById('profile-phone');
+    if (emailEl && state.email) emailEl.value = state.email;
+    if (phoneEl && state.phone) phoneEl.value = state.phone;
+
+    // If signup started with phone only, require email now.
+    if (emailEl && !emailEl.value) emailEl.focus();
   }
 
-  function resendOTP() {
-    if (resendTimer > 0) return;
-    resetErrors();
-    sendOTPToBackend(registrationEmail || registrationPhone, registrationChannel);
+  function backToOtpStep() {
+    document.getElementById('profile-step').classList.add('hidden');
+    document.getElementById('otp-step').classList.remove('hidden');
+    document.getElementById('otp1').focus();
+  }
+
+  async function completeProfile() {
+    const err = document.getElementById('profile-error-msg');
+    const ok = document.getElementById('profile-success-msg');
+    err.classList.add('hidden');
+    ok.classList.add('hidden');
+
+    const fullName = document.getElementById('profile-fullName').value.trim();
+    const email = document.getElementById('profile-email').value.trim();
+    const phone = document.getElementById('profile-phone').value.trim();
+    const dob = document.getElementById('profile-dob').value;
+    const address = document.getElementById('profile-address').value.trim();
+    const password = document.getElementById('profile-password').value;
+    const confirmPassword = document.getElementById('profile-confirmPassword').value;
+
+    if (!fullName) {
+      err.textContent = "Full name is required";
+      err.classList.remove('hidden');
+      return;
+    }
+    if (!email) {
+      err.textContent = "Email is required";
+      err.classList.remove('hidden');
+      return;
+    }
+    if (!dob) {
+      err.textContent = "Date of birth is required";
+      err.classList.remove('hidden');
+      return;
+    }
+    if (!password || password.length < 8) {
+      err.textContent = "Password is required";
+      err.classList.remove('hidden');
+      return;
+    }
+    if (password !== confirmPassword) {
+      err.textContent = "Passwords do not match";
+      err.classList.remove('hidden');
+      return;
+    }
+
+    await postJson(`${API_BASE}/profile/complete`, {
+      email,
+      phone: phone || state.phone || undefined,
+      fullName,
+      address: address || undefined,
+      dateOfBirth: dob,
+      password,
+      confirmPassword
+    });
+
+    ok.textContent = "Signup completed. Redirecting to login...";
+    ok.classList.remove('hidden');
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 800);
   }
 </script>
 

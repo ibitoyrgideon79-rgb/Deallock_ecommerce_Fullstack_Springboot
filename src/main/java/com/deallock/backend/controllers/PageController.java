@@ -25,8 +25,17 @@ public class PageController {
     @GetMapping("/login")
     public String login() { return "login"; }
 
+    @GetMapping("/terms")
+    public String terms() { return "terms"; }
+
+    @GetMapping("/ourteam")
+    public String ourteam() { return "ourteam"; }
+
+    @GetMapping("/contactus")
+    public String contactus() { return "contactus"; }
+
     @GetMapping("/marketplace") 
-    public String marketplace() { return "marketplace"; }
+    public String marketplace() { return "forward:/frontend/pages/marketplace.html"; }
 
     @GetMapping("/frontend/pages/login.html") public String loginLegacy() { return "redirect:/login"; }
     @GetMapping("/frontend/pages/register.html") public String registerLegacy() { return "redirect:/register"; }

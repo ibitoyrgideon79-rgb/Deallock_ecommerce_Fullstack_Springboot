@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/frontend/css/tailwind.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="/images/logo.jpeg">
   <title>deallock.ng</title>
@@ -16,7 +16,7 @@
     
     <div class="flex items-center gap-x-3">
 
-      <a href="/" class="flex items-center gap-x-2">
+      <a href="/index.html" class="flex items-center gap-x-2">
         <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
   
       </a>
@@ -27,19 +27,19 @@
     </div>
 
     <div class="hidden md:flex items-center gap-x-2">
-      <a href="/" 
+      <a href="/index.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Home
       </a>
-      <a href="/marketplace" 
+      <a href="/pages/marketplace.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Marketplace
       </a>
-      <a href="/terms" 
+      <a href="/pages/terms.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Terms
       </a>
-      <a href="/ourteam" 
+      <a href="/pages/contactus.html" 
          class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
         Contact
       </a>
@@ -47,11 +47,11 @@
 
     <div class="flex items-center gap-x-3">
       <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
-        <a href="/login" 
+        <a href="/pages/login.html" 
            class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
           Login
         </a>
-        <a href="/register" 
+        <a href="/pages/register.html" 
            class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
           Register
         </a>
@@ -123,7 +123,7 @@
       <button onclick="handleLoginContinue()" class="w-full bg-[#0d0c22] text-white py-3 rounded-full font-bold text-[11px] hover:opacity-90 transition-opacity">Continue</button>
       
       <p class="text-[11px] text-gray-600 mt-6">
-        No account? <a href="/register" class="font-bold text-black underline">Sign up</a>
+        No account? <a href="/pages/register.html" class="font-bold text-black underline">Sign up</a>
       </p>
     </div>
 
@@ -184,6 +184,12 @@
       </p>
     </div>
 
+    <form id="password-login-form" method="post" action="/login" style="display:none;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <input type="hidden" name="login" id="password-login-identifier">
+      <input type="hidden" name="password" id="password-login-secret">
+    </form>
+
   </div>
 </section>
 
@@ -197,59 +203,86 @@
   const hide = (id) => document.getElementById(id).classList.add('hidden');
   const show = (id) => document.getElementById(id).classList.remove('hidden');
 
-  let rawEmail = "";
-  let encryptedEmail = "";
-  let rawEmail = "";
-  let encryptedEmail = "";
-  let encryptedPhone = "+234 **********";
-  let currentMethod = 'email';
-  let resendTimer = 0;
-  let resendInterval = null;
+  const API_BASE = "/api";
+  let loginIdentifier = "";
+  let currentChannel = "email"; // "email" | "phone"
+  let encryptedLabel = "";
+
+  async function postJson(url, payload) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Request failed");
+    return data;
+  }
+
+  function isEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function normalizePhone(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("+")) {
+      return trimmed.replace(/\s+/g, "");
+    }
+    const digits = trimmed.replace(/[^\d]/g, "");
+    if (!digits) return "";
+    return `+${digits}`;
+  }
+
+  function maskEmail(email) {
+    try {
+      return email.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => gp2 + "*".repeat(gp3.length));
+    } catch {
+      return email;
+    }
+  }
 
   function handleLoginContinue() {
     const input = document.getElementById('login-input');
-    rawEmail = input.value.trim();
-    if (!rawEmail) { input.classList.add('input-error'); return; }
+    const err = document.getElementById('login-error');
+    input.classList.remove('input-error');
+    err.classList.add('hidden');
 
-    encryptedEmail = rawEmail.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => gp2 + "*".repeat(gp3.length));
-    
-    document.getElementById('otp-destination-label').innerText = encryptedEmail;
-    document.getElementById('display-user').value = rawEmail;
-    
-    // Call backend API to send OTP
-    sendOTPToBackend(rawEmail, 'email');
-  }
+    const raw = input.value.trim();
+    if (!raw) {
+      input.classList.add('input-error');
+      err.textContent = "Enter your email or phone number";
+      err.classList.remove('hidden');
+      return;
+    }
 
-  function sendOTPToBackend(contact, channel) {
-    fetch('/api/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: contact, channel: channel })
-    })
-    .then(res => res.json())
-    .then(data => {
-      switchToOTP();
-      startResendTimer();
-    })
-    .catch(err => {
-      console.error('Error sending OTP:', err);
-      alert('Failed to send OTP. Please try again.');
+    // OTP login supports email or phone. If username is used, fall back to password login.
+    if (isEmail(raw)) {
+      currentChannel = "email";
+      loginIdentifier = raw;
+      encryptedLabel = maskEmail(raw);
+    } else if (raw.startsWith("+") || raw.replace(/[^\d]/g, "").length >= 8) {
+      currentChannel = "phone";
+      loginIdentifier = raw.startsWith("+") ? raw.replace(/\s+/g, "") : normalizePhone(raw);
+      encryptedLabel = loginIdentifier;
+    } else {
+      // Username typed: OTP cannot route without knowing user contact.
+      document.getElementById('display-user').value = raw;
+      switchToPassword();
+      return;
+    }
+
+    sendLoginOtp().catch(e => {
+      err.textContent = e.message || "Failed to send OTP";
+      err.classList.remove('hidden');
     });
   }
 
   function toggleOTPMethod() {
-    const label = document.getElementById('otp-destination-label');
     const btn = document.getElementById('method-toggle-btn');
-    
-    if (currentMethod === 'email') {
-      currentMethod = 'mobile';
-      label.innerText = encryptedPhone;
-      btn.innerText = "Receive via email instead";
-    } else {
-      currentMethod = 'email';
-      label.innerText = encryptedEmail;
-      btn.innerText = "Receive via mobile instead";
-    }
+    // This UI doesn't collect both email + phone; keep the toggle as a hint.
+    btn.textContent = "Enter a phone/email above to change method";
     resetOTP();
   }
 
@@ -274,57 +307,64 @@
     const fields = document.querySelectorAll('.otp-field');
     const code = Array.from(fields).map(f => f.value).join('');
     if (code.length === 6) {
-      // Call backend API to verify OTP
-      verifyOTPWithBackend(rawEmail, code, 'email');
+      finishOtpLogin(code).catch(err => {
+        fields.forEach(f => { f.classList.add('otp-error'); f.value = ""; setTimeout(() => f.classList.remove('otp-error'), 500); });
+        document.getElementById('otp1').focus();
+        const loginErr = document.getElementById('login-error');
+        loginErr.textContent = err.message || "Invalid OTP";
+        loginErr.classList.remove('hidden');
+      });
     }
   }
 
-  function verifyOTPWithBackend(email, otpCode, channel) {
-    fetch('/api/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, otpCode: otpCode, channel: channel })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success || data.message) {
-        switchToPassword();
-      } else {
-        const fields = document.querySelectorAll('.otp-field');
-        fields.forEach(f => { f.classList.add('otp-error'); f.value = ""; setTimeout(() => f.classList.remove('otp-error'), 500); });
-        document.getElementById('otp1').focus();
-      }
-    })
-    .catch(err => {
-      console.error('Error verifying OTP:', err);
-      const fields = document.querySelectorAll('.otp-field');
-      fields.forEach(f => f.classList.add('otp-error'));
-      document.getElementById('otp1').focus();
+  async function sendLoginOtp() {
+    document.getElementById('otp-destination-label').innerText = encryptedLabel;
+    document.getElementById('display-user').value = loginIdentifier;
+
+    await postJson(`${API_BASE}/send-otp`, {
+      channel: currentChannel,
+      email: currentChannel === "email" ? loginIdentifier : undefined,
+      phone: currentChannel === "phone" ? loginIdentifier : undefined
     });
+
+    switchToOTP();
   }
 
-  function handlePasswordLogin() { alert("Password success"); }
+  async function finishOtpLogin(otp) {
+    await postJson(`${API_BASE}/login/otp`, {
+      login: loginIdentifier,
+      otp,
+      channel: currentChannel
+    });
 
-  function startResendTimer() {
-    resendTimer = 60;
-    const resendBtn = document.querySelector('[onclick="resendOTP()"]');
-    if (resendBtn) resendBtn.disabled = true;
-    
-    resendInterval = setInterval(() => {
-      resendTimer--;
-      if (resendBtn) resendBtn.innerText = `Resend code (${resendTimer}s)`;
-      if (resendTimer <= 0) {
-        clearInterval(resendInterval);
-        resendBtn.disabled = false;
-        resendBtn.innerText = 'Resend code';
-      }
-    }, 1000);
+    // Server session is now created; go to the app.
+    window.location.href = "/dashboard";
+  }
+
+  function handlePasswordLogin() {
+    const loginVal = (document.getElementById('display-user').value || "").trim();
+    const passwordVal = document.getElementById('password-input').value || "";
+    const loginErr = document.getElementById('login-error');
+    loginErr.classList.add('hidden');
+
+    if (!loginVal || !passwordVal) {
+      loginErr.textContent = "Enter username/email and password";
+      loginErr.classList.remove('hidden');
+      return;
+    }
+
+    document.getElementById('password-login-identifier').value = loginVal;
+    document.getElementById('password-login-secret').value = passwordVal;
+    document.getElementById('password-login-form').submit();
   }
 
   function resendOTP() {
-    if (resendTimer > 0) return; // Prevent clicking before timer is done
+    if (!loginIdentifier) {
+      goBackToStep1();
+      return;
+    }
+    sendLoginOtp().catch(() => {});
     resetOTP();
-    sendOTPToBackend(rawEmail, currentMethod);
   }
 </script>
 
