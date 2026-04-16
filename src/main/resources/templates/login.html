@@ -6,71 +6,332 @@
   <link rel="stylesheet" href="/frontend/css/tailwind.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="/images/logo.jpeg">
-  <title>Login | DealLock</title>
+  <title>deallock.ng</title>
 </head>
-<body class="bg-slate-50 text-slate-900">
-<section class="flex min-h-screen items-center justify-center px-4 py-10">
-  <div class="w-full max-w-md rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-    <div class="mb-8 text-center">
-      <a href="/" class="inline-flex items-center gap-3">
-        <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-12 w-12 rounded-2xl object-cover">
-        <div class="text-left">
-          <p class="text-lg font-semibold">DealLock</p>
-          <p class="text-sm text-slate-500">Welcome back</p>
-        </div>
+<body>
+
+ <header class="bg-white border-b border-gray-100 shadow-sm">
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    
+    
+    <div class="flex items-center gap-x-3">
+
+      <a href="/" class="flex items-center gap-x-2">
+        <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
+  
+      </a>
+      
+      <span class="text-gray-700 text-sm font-medium hidden sm:block">
+        Deal securing and purchase support.
+      </span>
+    </div>
+
+    <div class="hidden md:flex items-center gap-x-2">
+      <a href="/" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Home
+      </a>
+      <a href="/marketplace" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Marketplace
+      </a>
+      <a href="/terms" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Terms
+      </a>
+      <a href="/ourteam" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Contact
       </a>
     </div>
 
-    <div class="mb-6 space-y-3 text-sm">
-      <div th:if="${param.error}" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-        Invalid email/username or password.
+    <div class="flex items-center gap-x-3">
+      <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
+        <a href="/login" 
+           class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+          Login
+        </a>
+        <a href="/register" 
+           class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
+          Register
+        </a>
       </div>
-      <div th:if="${param.registration_success}" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
-        Account created. Check your email for the activation link before logging in.
-      </div>
-      <div th:if="${param.activated != null and param.activated[0] == 'true'}" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
-        Your account has been activated. You can log in now.
-      </div>
-      <div th:if="${param.activated != null and param.activated[0] == 'false'}" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-        Activation link is invalid or expired.
-      </div>
-      <div th:if="${param.reset}" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
-        Password reset successful. Sign in with your new password.
-      </div>
-      <div th:if="${param.logout}" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700">
-        You have been logged out.
+
+      
+      <div th:if="${currentUser != null}" class="relative group">
+        <button onclick="toggleDropdown()" 
+                class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
+          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" 
+               alt="User Avatar" 
+               class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+        </button>
+
+        
+        <div id="user-dropdown" 
+             class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+          <a href="/profile" 
+             class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">
+            Profile Settings
+          </a>
+          <a href="/logout" 
+             class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">
+            Log out
+          </a>
+        </div>
       </div>
     </div>
 
-    <form method="post" action="/login" class="space-y-5">
-      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+  
+    <button id="menu-toggle" class="md:hidden text-gray-700">
+      <i class="fas fa-bars text-2xl"></i>
+    </button>
+  </nav>
+</header>
 
-      <div>
-        <label class="mb-2 block text-sm font-medium text-slate-700" for="login">Email or username</label>
-        <input id="login" name="login" type="text" required class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="name@example.com">
+
+<section class="min-md-screen bg-white flex items-center justify-center px-4 font-sans">
+  <div class="max-w-[330px] w-full py-16 text-center relative">
+
+    
+    <div id="login-step">
+      <img src="/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg mx-auto mb-4">
+      <h1 class="text-lg font-bold text-gray-900 mb-5">Welcome back</h1>
+      
+      <button class="w-full border border-gray-200 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-semibold mb-4 hover:bg-gray-50">
+        <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 11.85 2 2 11.85 2 24s9.85 22 22 22c11.045 0 20-8.955 20-20 0-1.303-.115-2.583-.389-3.833z""")/>>
+          <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 16.202 2 9.428 6.04 5.512 12.142z""")/>>
+          <path fill="#4CAF50" d="M24 46c5.066 0 9.617-1.547 13.354-4.181l-6.195-5.204C29.043 37.95 26.657 38 24 38c-5.182 0-9.61-3.262-11.332-7.85l-6.49 5.011C10.026 41.656 16.533 46 24 46z""")/>>
+          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.203C42.304 34.698 46 29.778 46 24c0-1.38-.117-2.72-.34-4.027l-.049.11z""")/>>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="flex items-center gap-2 mb-4">
+        <div class="flex-1 h-px bg-gray-100"></div>
+        <span class="text-gray-300 text-[9px] font-bold uppercase tracking-widest">or</span>
+        <div class="flex-1 h-px bg-gray-100"></div>
       </div>
 
-      <div>
-        <div class="mb-2 flex items-center justify-between">
-          <label class="block text-sm font-medium text-slate-700" for="password">Password</label>
-          <a href="/forgot-password" class="text-sm font-medium text-slate-600 hover:text-slate-900">Forgot password?</a>
-        </div>
-        <input id="password" name="password" type="password" required class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="Enter your password">
+      <div class="text-left mb-4">
+        <input id="login-input" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs" placeholder="Email or username">
+        <p id="login-error" class="text-red-500 text-[9px] mt-1 hidden"></p>
       </div>
+      
+      <button onclick="handleLoginContinue()" class="w-full bg-[#0d0c22] text-white py-3 rounded-full font-bold text-[11px] hover:opacity-90 transition-opacity">Continue</button>
+      
+      <p class="text-[11px] text-gray-600 mt-6">
+        No account? <a href="/register" class="font-bold text-black underline">Sign up</a>
+      </p>
+    </div>
 
-      <label class="flex items-center gap-3 text-sm text-slate-600">
-        <input type="checkbox" name="remember-me" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900">
-        Keep me signed in
-      </label>
+    
+    <div id="otp-step" class="hidden">
+      <button onclick="goBackToStep1()" class="absolute left-0 top-1 p-2 py-16 text-gray-400 hover:text-black transition-colors">
+        <svg xmlns="http://w3.org" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
 
-      <button type="submit" class="w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700">Sign in</button>
-    </form>
+      <img src="/images/logo.jpeg" alt="Logo" class="h-8 w-auto rounded-lg mx-auto mb-4">
+      <h2 class="text-lg font-bold text-gray-900 mb-1">Verify identity</h2>
+      <p class="text-gray-500 text-[11px] leading-relaxed mb-4">
+        We have sent a one-time passcode to <br>
+        <span id="otp-destination-label" class="font-semibold text-gray-800 underline tracking-tight"></span>
+      </p>
 
-    <p class="mt-6 text-center text-sm text-slate-600">
-      New to DealLock?
-      <a href="/register" class="font-semibold text-slate-900 hover:underline">Create an account</a>
-    </p>
+      <button onclick="toggleOTPMethod()" id="method-toggle-btn" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase mb-6">
+        Receive via mobile instead
+      </button>
+      
+      <div class="flex justify-center gap-1.5 mb-8">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp1" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 1)" oninput="moveToNext(this, 2)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp2" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 2)" oninput="moveToNext(this, 3)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp3" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 3)" oninput="moveToNext(this, 4)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp4" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 4)" oninput="moveToNext(this, 5)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp5" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 5)" oninput="moveToNext(this, 6)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp6" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 6)" oninput="validateOTP()">
+      </div>
+      
+      <div class="space-y-4">
+        <p onclick="resendOTP()" class="text-[10px] font-bold text-gray-400 cursor-pointer hover:text-black uppercase tracking-tighter">Resend code</p>
+        <p class="text-[11px] text-gray-400">Can't find code? <span onclick="switchToPassword()" class="text-gray-600 underline cursor-pointer">Use password</span></p>
+      </div>
+    </div>
+
+
+    <div id="password-step" class="hidden">
+      <button onclick="switchToOTP()" class="absolute left-0 top-1 p-2 text-gray-400 hover:text-black transition-colors">
+        <svg xmlns="http://w3.org" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      <img src="/images/logo.jpeg" alt="Logo" class="h-8 w-auto rounded-lg mx-auto mb-4">
+      <h2 class="text-lg font-bold text-gray-900 mb-5">Enter password</h2>
+      
+      <div class="space-y-2 mb-5">
+        <input id="display-user" type="text" readonly class="w-full px-3 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-gray-500 text-xs cursor-not-allowed">
+        <input id="password-input" type="password" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:border-black text-xs outline-none" placeholder="••••••••">
+      </div>
+      
+      <button onclick="handlePasswordLogin()" class="w-full bg-[#0d0c22] text-white py-3 rounded-full font-bold text-[11px]">Login</button>
+      
+      <p class="text-[10px] text-gray-400 mt-6">
+        Forgot password? <span onclick="switchToOTP()" class="text-gray-600 underline cursor-pointer">Send me a code</span>
+      </p>
+    </div>
+
   </div>
 </section>
+
+<style>
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .otp-error { border-color: #ef4444 !important; background-color: #fef2f2; animation: shake 0.2s ease-in-out 0s 2; }
+  .input-error { border-color: #ef4444 !important; }
+</style>
+
+<script>
+  const hide = (id) => document.getElementById(id).classList.add('hidden');
+  const show = (id) => document.getElementById(id).classList.remove('hidden');
+
+  let rawEmail = "";
+  let encryptedEmail = "";
+  let rawEmail = "";
+  let encryptedEmail = "";
+  let encryptedPhone = "+234 **********";
+  let currentMethod = 'email';
+  let resendTimer = 0;
+  let resendInterval = null;
+
+  function handleLoginContinue() {
+    const input = document.getElementById('login-input');
+    rawEmail = input.value.trim();
+    if (!rawEmail) { input.classList.add('input-error'); return; }
+
+    encryptedEmail = rawEmail.replace(/(.{2})(.*)(?=@)/, (gp1, gp2, gp3) => gp2 + "*".repeat(gp3.length));
+    
+    document.getElementById('otp-destination-label').innerText = encryptedEmail;
+    document.getElementById('display-user').value = rawEmail;
+    
+    // Call backend API to send OTP
+    sendOTPToBackend(rawEmail, 'email');
+  }
+
+  function sendOTPToBackend(contact, channel) {
+    fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: contact, channel: channel })
+    })
+    .then(res => res.json())
+    .then(data => {
+      switchToOTP();
+      startResendTimer();
+    })
+    .catch(err => {
+      console.error('Error sending OTP:', err);
+      alert('Failed to send OTP. Please try again.');
+    });
+  }
+
+  function toggleOTPMethod() {
+    const label = document.getElementById('otp-destination-label');
+    const btn = document.getElementById('method-toggle-btn');
+    
+    if (currentMethod === 'email') {
+      currentMethod = 'mobile';
+      label.innerText = encryptedPhone;
+      btn.innerText = "Receive via email instead";
+    } else {
+      currentMethod = 'email';
+      label.innerText = encryptedEmail;
+      btn.innerText = "Receive via mobile instead";
+    }
+    resetOTP();
+  }
+
+  function goBackToStep1() { hide('otp-step'); hide('password-step'); show('login-step'); }
+  function switchToOTP() { hide('login-step'); hide('password-step'); show('otp-step'); document.getElementById('otp1').focus(); }
+  function switchToPassword() { hide('otp-step'); show('password-step'); document.getElementById('password-input').focus(); }
+  function moveToNext(current, next) { if (current.value.length === 1) document.getElementById('otp' + next)?.focus(); }
+  function resetOTP() { document.querySelectorAll('.otp-field').forEach(f => f.value = ""); document.getElementById('otp1').focus(); }
+
+  function handleBackspace(event, index) {
+    if (event.key === "Backspace") {
+      const currentInput = document.getElementById('otp' + index);
+      if (currentInput.value === "" && index > 1) {
+        const prevInput = document.getElementById('otp' + (index - 1));
+        prevInput.focus();
+        prevInput.value = ""; 
+      }
+    }
+  }
+
+  function validateOTP() {
+    const fields = document.querySelectorAll('.otp-field');
+    const code = Array.from(fields).map(f => f.value).join('');
+    if (code.length === 6) {
+      // Call backend API to verify OTP
+      verifyOTPWithBackend(rawEmail, code, 'email');
+    }
+  }
+
+  function verifyOTPWithBackend(email, otpCode, channel) {
+    fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, otpCode: otpCode, channel: channel })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success || data.message) {
+        switchToPassword();
+      } else {
+        const fields = document.querySelectorAll('.otp-field');
+        fields.forEach(f => { f.classList.add('otp-error'); f.value = ""; setTimeout(() => f.classList.remove('otp-error'), 500); });
+        document.getElementById('otp1').focus();
+      }
+    })
+    .catch(err => {
+      console.error('Error verifying OTP:', err);
+      const fields = document.querySelectorAll('.otp-field');
+      fields.forEach(f => f.classList.add('otp-error'));
+      document.getElementById('otp1').focus();
+    });
+  }
+
+  function handlePasswordLogin() { alert("Password success"); }
+
+  function startResendTimer() {
+    resendTimer = 60;
+    const resendBtn = document.querySelector('[onclick="resendOTP()"]');
+    if (resendBtn) resendBtn.disabled = true;
+    
+    resendInterval = setInterval(() => {
+      resendTimer--;
+      if (resendBtn) resendBtn.innerText = `Resend code (${resendTimer}s)`;
+      if (resendTimer <= 0) {
+        clearInterval(resendInterval);
+        resendBtn.disabled = false;
+        resendBtn.innerText = 'Resend code';
+      }
+    }, 1000);
+  }
+
+  function resendOTP() {
+    if (resendTimer > 0) return; // Prevent clicking before timer is done
+    resetOTP();
+    sendOTPToBackend(rawEmail, currentMethod);
+  }
+</script>
+
+
+
+
+
 </body>
 </html>
+
