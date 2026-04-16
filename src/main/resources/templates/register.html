@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/frontend/css/tailwind.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="icon" type="image/x-icon" href="/images/logo.jpeg">
+  <link rel="icon" type="image/x-icon" href="/frontend/images/logo.jpeg">
   <title>deallock.ng</title>
 </head>
 <body>
@@ -17,7 +17,7 @@
     <div class="flex items-center gap-x-3">
 
       <a href="/index.html" class="flex items-center gap-x-2">
-        <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
   
       </a>
       
@@ -99,7 +99,7 @@
     <div id="register-step">
 
       <div class="flex justify-center mb-4">
-        <img src="/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
       </div>
 
       <h1 class="text-lg font-bold text-center text-gray-900 mb-0.5">Create account</h1>
@@ -170,7 +170,7 @@
 
 
       <div class="flex justify-center mb-5">
-        <img src="/images/logo.jpeg" alt="Logo" class="h-8 w-auto rounded-lg">
+        <img src="/frontend/images/logo.jpeg" alt="Logo" class="h-8 w-auto rounded-lg">
       </div>
 
       <h2 class="text-lg font-bold text-gray-900 mb-1">Create your account</h2>
@@ -194,16 +194,9 @@
     </div>
 
 
-    <div id="profile-step" class="hidden mt-12">
-      <button onclick="backToOtpStep()" class="flex items-center gap-1 text-gray-400 hover:text-black transition-colors mb-6">
-        <svg xmlns="http://w3.org" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span class="text-xs font-bold">Back</span>
-      </button>
-
+    <div id="profile-step" class="hidden mt-16 text-center">
       <div class="flex justify-center mb-4">
-        <img src="/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
       </div>
 
       <h2 class="text-lg font-bold text-center text-gray-900 mb-0.5">Complete your profile</h2>
@@ -212,8 +205,7 @@
       <p id="profile-error-msg" class="text-red-500 text-[10px] mb-4 hidden text-center"></p>
       <p id="profile-success-msg" class="text-emerald-600 text-[10px] mb-4 hidden text-center"></p>
 
-      <div class="space-y-3">
-        <input id="profile-fullName" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Full name">
+      <div class="space-y-3 text-left">\n        <input id="profile-fullName" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Full name">
         <input id="profile-email" type="email" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Email address">
         <input id="profile-phone" type="tel" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="+2348012345678 (optional)">
         <input id="profile-dob" type="date" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all">

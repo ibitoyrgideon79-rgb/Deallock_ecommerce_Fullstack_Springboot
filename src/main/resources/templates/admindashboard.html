@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/x-icon" href="/images/logo.jpeg">
+  <title>deallock.ng</title>
+</head>
+<body>
+
+ <header class="bg-white border-b border-gray-100 shadow-sm">
+  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    
+    
+    <div class="flex items-center gap-x-3">
+
+      <a href="/index.html" class="flex items-center gap-x-2">
+        <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
+  
+      </a>
+      
+      <span class="text-gray-700 text-sm font-medium hidden sm:block">
+        Deal securing and purchase support.
+      </span>
+    </div>
+
+    <div class="hidden md:flex items-center gap-x-2">
+      <a href="/index.html" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Home
+      </a>
+      <a href="/pages/marketplace.html" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Marketplace
+      </a>
+      <a href="/pages/terms.html" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Terms
+      </a>
+      <a href="/pages/contactus.html" 
+         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        Contact
+      </a>
+    </div>
+
+    <div class="flex items-center gap-x-3">
+      <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
+        <a href="/pages/login.html" 
+           class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+          Login
+        </a>
+        <a href="/pages/register.html" 
+           class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
+          Register
+        </a>
+      </div>
+
+      
+      <div th:if="${currentUser != null}" class="relative group">
+        <button onclick="toggleDropdown()" 
+                class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
+          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" 
+               alt="User Avatar" 
+               class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+        </button>
+
+        
+        <div id="user-dropdown" 
+             class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+          <a href="/profile" 
+             class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">
+            Profile Settings
+          </a>
+          <a href="/logout" 
+             class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">
+            Log out
+          </a>
+        </div>
+      </div>
+    </div>
+
+  
+    <button id="menu-toggle" class="md:hidden text-gray-700">
+      <i class="fas fa-bars text-2xl"></i>
+    </button>
+  </nav>
+</header>
+
+
+    <!-- LEFT SIDE: Navigation Sidebar -->
+    <aside class="w-64 h-full bg-white flex flex-col border-r border-black">
+        <div class="p-6 border-b border-black">
+            <h2 class="text-[10px] font-black uppercase tracking-[0.2em]">Navigation</h2>
+        </div>
+        <nav class="p-4 space-y-4 overflow-y-auto no-scrollbar">
+            <!-- Marketplace Group -->
+            <div>
+                <button onclick="toggleNav('market-drop')" class="w-full flex justify-between p-3 border border-black text-[11px] font-black uppercase">
+                    Marketplace <i class="fas fa-plus text-[8px]"></i>
+                </button>
+                <div id="market-drop" class="hidden border-l border-r border-b border-black">
+                    <button onclick="switchPage('Orders')" class="w-full text-left p-3 pl-8 text-[10px] font-bold uppercase hover:bg-black hover:text-white">Orders</button>
+                    <button onclick="switchPage('Products')" class="w-full text-left p-3 pl-8 text-[10px] font-bold uppercase hover:bg-black hover:text-white">Products</button>
+                </div>
+            </div>
+            
+            <!-- Deal Flow Group -->
+            <div>
+                <button onclick="toggleNav('deals-drop')" class="w-full flex justify-between p-3 border border-black text-[11px] font-black uppercase">
+                    Deal Flow <i class="fas fa-plus text-[8px]"></i>
+                </button>
+                <div id="deals-drop" class="hidden border-l border-r border-b border-black">
+                    <button onclick="switchPage('Pending')" class="w-full text-left p-3 pl-8 text-[10px] font-bold uppercase hover:bg-black hover:text-white">Pending Deals</button>
+                    <button onclick="switchPage('Concluded')" class="w-full text-left p-3 pl-8 text-[10px] font-bold uppercase hover:bg-black hover:text-white">Concluded Deals</button>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- RIGHT SIDE: Main Content & Table -->
+    <main class="flex-1 overflow-y-auto p-8 bg-white">
+        
+        <!-- Header & Filters -->
+        <div class="mb-10">
+            <h1 id="page-title" class="text-3xl font-black uppercase tracking-tighter italic border-b-4 border-black pb-4 mb-8 text-black">
+                Marketplace: Orders
+            </h1>
+            
+            <div class="flex flex-wrap justify-between items-end gap-6">
+                <!-- Status Toggles -->
+                <div class="flex border border-black">
+                    <button onclick="filterStatus('all')" id="btn-all" class="px-6 py-2 text-[10px] font-black uppercase bg-black text-white">All</button>
+                    <button onclick="filterStatus('active')" id="btn-active" class="px-6 py-2 text-[10px] font-black uppercase border-l border-black hover:bg-black hover:text-white transition">Active</button>
+                    <button onclick="filterStatus('completed')" id="btn-completed" class="px-6 py-2 text-[10px] font-black uppercase border-l border-black hover:bg-black hover:text-white transition">Completed</button>
+                </div>
+
+                <!-- Sort & Date Filter -->
+                <div class="flex gap-4 items-center">
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-bold uppercase mb-1">Timeframe</span>
+                        <div class="flex border border-black">
+                            <input type="date" id="date-from" class="p-2 text-[10px] font-bold outline-none">
+                            <span class="p-2 bg-black text-white text-[10px] border-l border-r border-black">TO</span>
+                            <input type="date" id="date-to" class="p-2 text-[10px] font-bold outline-none">
+                        </div>
+                    </div>
+                    <button onclick="applyFilters()" class="bg-black text-white px-6 py-[14px] text-[10px] font-black uppercase mt-auto border border-black">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="border border-black overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-black text-white uppercase text-[9px] tracking-widest">
+                        <th class="p-4 border-r border-gray-800">S/N</th>
+                        <th class="p-4 border-r border-gray-800">Item ID</th>
+                        <th class="p-4 border-r border-gray-800">Name</th>
+                        <th class="p-4 border-r border-gray-800">Price</th>
+                        <th class="p-4 border-r border-gray-800">Status</th>
+                        <th class="p-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="text-[11px] font-medium uppercase text-black">
+                    <!-- Dynamic Data -->
+                </tbody>
+            </table>
+        </div>
+
+
+
+
+
+
+</body>
+<script src="/js/addashboard.js"></script>
+</html>
+

@@ -135,7 +135,7 @@ public class AdminController {
                 model.addAttribute("notificationCount", notificationService.countUnread(user));
             });
         }
-        return "admin";
+        return "admindashboard";
     }
 
     @GetMapping("/admin/payment-proofs")

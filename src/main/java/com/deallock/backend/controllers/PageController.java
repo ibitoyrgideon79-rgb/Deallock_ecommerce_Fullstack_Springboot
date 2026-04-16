@@ -5,6 +5,7 @@ import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.services.NotificationService;
 import java.security.Principal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -44,17 +45,27 @@ public class PageController {
     @GetMapping("/frontend/pages/marketplace.html") public String marketplaceLegacy() { return "redirect:/marketplace"; }
 
     @GetMapping("/ai-agent")
-    public String aiAgent(Principal principal) {
+    public String aiAgent(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
         var userOpt = userRepository.findByEmail(principal.getName());
         if (userOpt.isEmpty()) return "redirect:/login";
-        return "dashboard";
+        var user = userOpt.get();
+        model.addAttribute("currentUser", user);
+        model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
+        model.addAttribute("notificationCount", notificationService.countUnread(user));
+        return "userdashboard";
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Principal principal) {
+    public String dashboard(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
-        return "dashboard";
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) return "redirect:/login";
+        var user = userOpt.get();
+        model.addAttribute("currentUser", user);
+        model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
+        model.addAttribute("notificationCount", notificationService.countUnread(user));
+        return "userdashboard";
     }
 
     @GetMapping("/dashboard/deal/{id}")

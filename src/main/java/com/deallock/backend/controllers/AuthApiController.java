@@ -37,6 +37,7 @@ public class AuthApiController {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String PHONE_REGEX = "^\\+[1-9]\\d{7,14}$";
+    private static final String ADMIN_EMAIL = "info@deallock.ng";
 
     private final UserRepository userRepository;
     private final OtpCodeRepository otpRepo;
@@ -285,6 +286,9 @@ public class AuthApiController {
         }
         user.setDateOfBirth(req.dateOfBirth);
         user.setPassword(passwordEncoder.encode(req.password));
+        if (email != null && ADMIN_EMAIL.equalsIgnoreCase(email)) {
+            user.setRole("ROLE_ADMIN");
+        }
         user.setEnabled(true);
         userRepository.save(user);
 
