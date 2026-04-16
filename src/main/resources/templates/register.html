@@ -6,425 +6,273 @@
   <link rel="stylesheet" href="/frontend/css/tailwind.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="/images/logo.jpeg">
-  <title>deallock.ng</title>
+  <title>Create Account | DealLock</title>
 </head>
-<body>
-
- <header class="bg-white border-b border-gray-100 shadow-sm">
-  <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-    
-    
-    <div class="flex items-center gap-x-3">
-
-      <a href="/" class="flex items-center gap-x-2">
-        <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
-  
-      </a>
-      
-      <span class="text-gray-700 text-sm font-medium hidden sm:block">
-        Deal securing and purchase support.
-      </span>
-    </div>
-
-    <div class="hidden md:flex items-center gap-x-2">
-      <a href="/" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Home
-      </a>
-      <a href="/marketplace" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Marketplace
-      </a>
-      <a href="/terms" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Terms
-      </a>
-      <a href="/ourteam" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Contact
-      </a>
-    </div>
-
-    <div class="flex items-center gap-x-3">
-      <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
-        <a href="/login" 
-           class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-          Login
-        </a>
-        <a href="/register" 
-           class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
-          Register
-        </a>
-      </div>
-
-      
-      <div th:if="${currentUser != null}" class="relative group">
-        <button onclick="toggleDropdown()" 
-                class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" 
-               alt="User Avatar" 
-               class="w-8 h-8 rounded-full object-cover border border-gray-200">
-          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
-          <i class="fas fa-chevron-down text-xs text-gray-500"></i>
-        </button>
-
-        
-        <div id="user-dropdown" 
-             class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-          <a href="/profile" 
-             class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">
-            Profile Settings
-          </a>
-          <a href="/logout" 
-             class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">
-            Log out
-          </a>
+<body class="bg-slate-50 text-slate-900">
+<section class="min-h-screen px-4 py-10">
+  <div class="mx-auto max-w-5xl">
+    <div class="mb-8 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <img src="/images/logo.jpeg" alt="DealLock Logo" class="h-10 w-10 rounded-xl object-cover">
+        <div>
+          <p class="text-lg font-semibold">DealLock</p>
+          <p class="text-sm text-slate-500">Secure deals and purchase support</p>
         </div>
-      </div>
+      </a>
+      <a href="/login" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">Sign in</a>
     </div>
 
-  
-    <button id="menu-toggle" class="md:hidden text-gray-700">
-      <i class="fas fa-bars text-2xl"></i>
-    </button>
-  </nav>
-</header>
-
-
-<section class="min-md-screen bg-white flex items-center justify-center px-4 font-sans mt-[50px]">
-  
-  <div class="max-w-[340px] w-full"> <!-- Reduced width and vertical padding -->
-
-    
-    <div id="register-step">
-
-      <div class="flex justify-center mb-4">
-        <img src="/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
-      </div>
-
-      <h1 class="text-lg font-bold text-center text-gray-900 mb-0.5">Create account</h1>
-      <p class="text-gray-500 text-center text-[11px] mb-5">Join DealLock today</p>
-
-     
-      <button class="w-full border border-gray-200 py-2 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold mb-4 hover:bg-gray-50 transition-colors">
-        <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 48 48">
-          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 11.85 2 2 11.85 2 24s9.85 22 22 22c11.045 0 20-8.955 20-20 0-1.303-.115-2.583-.389-3.833z""")/>>
-          <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 16.202 2 9.428 6.04 5.512 12.142z""")/>>
-          <path fill="#4CAF50" d="M24 46c5.066 0 9.617-1.547 13.354-4.181l-6.195-5.204C29.043 37.95 26.657 38 24 38c-5.182 0-9.61-3.262-11.332-7.85l-6.49 5.011C10.026 41.656 16.533 46 24 46z""")/>>
-          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.203C42.304 34.698 46 29.778 46 24c0-1.38-.117-2.72-.34-4.027l-.049.11z""")/>>
-        </svg>
-        Continue with Google
-      </button>
-
-      
-      <div class="flex items-center gap-2 mb-4">
-        <div class="flex-1 h-px bg-gray-100"></div>
-        <span class="text-gray-300 text-[9px] font-bold tracking-widest uppercase">or</span>
-        <div class="flex-1 h-px bg-gray-100"></div>
-      </div>
-
-      
-      <div class="flex border-b border-gray-100 mb-4">
-        <button onclick="switchMethod(1)" id="tab-email" class="flex-1 py-1.5 text-[11px] font-bold border-b-2 border-black text-black">Email</button>
-        <button onclick="switchMethod(2)" id="tab-phone" class="flex-1 py-1.5 text-[11px] font-bold text-gray-400">Mobile</button>
-      </div>
-
-      
-      <div id="email-form">
-        <input id="email-input" type="email" class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Enter your email">
-        <p id="email-error" class="text-red-500 text-[10px] mt-1 hidden"></p>
-      </div>
-
-      
-      <div id="phone-form" class="hidden">
-        <div class="flex">
-          <div class="px-3 py-2 border border-gray-200 rounded-l-xl bg-gray-50 text-xs font-medium border-r-0 text-gray-500">+234</div>
-          <input id="phone-input" type="tel" class="flex-1 px-3 py-2 border border-gray-200 rounded-r-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="703 103 1944">
+    <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+      <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-8">
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold tracking-tight">Create your account</h1>
+          <p class="mt-2 text-sm text-slate-600">Fill in your details, verify your email or phone with OTP, and we'll send an activation link to your email.</p>
         </div>
-        <p id="phone-error" class="text-red-500 text-[10px] mt-1 hidden"></p>
+
+        <form id="register-form" method="post" action="/register" th:object="${registerDto}" class="space-y-6">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+          <input type="hidden" th:field="*{otp}" id="otp-hidden">
+
+          <div class="space-y-3">
+            <div th:if="${error}" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" th:text="${error}"></div>
+            <div th:if="${#fields.hasAnyErrors()}" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Please correct the highlighted fields and try again.
+            </div>
+            <div id="otp-status" class="hidden rounded-2xl px-4 py-3 text-sm"></div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 p-4">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">OTP Verification</h2>
+                <p class="mt-1 text-sm text-slate-600">Choose where to receive your one-time code.</p>
+              </div>
+              <div class="inline-flex rounded-full bg-slate-100 p-1">
+                <button type="button" id="email-tab" class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Email</button>
+                <button type="button" id="phone-tab" class="rounded-full px-4 py-2 text-sm font-semibold text-slate-600">Phone</button>
+              </div>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="fullName">Full name</label>
+                <input id="fullName" type="text" th:field="*{fullName}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="Jane Doe">
+                <p th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="mt-1 text-sm text-red-600"></p>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="username">Username</label>
+                <input id="username" type="text" th:field="*{username}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="janedoe">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="email">Email</label>
+                <input id="email" type="email" th:field="*{email}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="name@example.com">
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="mt-1 text-sm text-red-600"></p>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="phone">Phone</label>
+                <input id="phone" type="tel" th:field="*{phone}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="+2348012345678">
+                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="mt-1 text-sm text-red-600"></p>
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="dateOfBirth">Date of birth</label>
+                <input id="dateOfBirth" type="date" th:field="*{dateOfBirth}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900">
+              </div>
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="address">Address</label>
+                <input id="address" type="text" th:field="*{address}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="Street, city, state">
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
+              <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="otp-input">OTP code</label>
+                <input id="otp-input" type="text" inputmode="numeric" maxlength="6" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm tracking-[0.4em] outline-none transition focus:border-slate-900" placeholder="123456">
+                <p class="mt-2 text-xs text-slate-500">Email OTP uses the email address above. Phone OTP requires international format like <span class="font-semibold">+2348012345678</span>.</p>
+              </div>
+              <div class="flex items-end gap-3">
+                <button type="button" id="send-otp-btn" class="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Send OTP</button>
+                <button type="button" id="verify-otp-btn" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-700">Verify OTP</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700" for="password">Password</label>
+              <input id="password" type="password" th:field="*{password}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="Strong password">
+              <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="mt-1 text-sm text-red-600"></p>
+            </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium text-slate-700" for="confirmPassword">Confirm password</label>
+              <input id="confirmPassword" type="password" th:field="*{confirmPassword}" class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-slate-900" placeholder="Repeat password">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700">Create account</button>
+        </form>
       </div>
 
-      <button onclick="sendOTP()" class="w-full bg-black text-white py-2.5 rounded-xl font-bold mt-4 text-xs hover:bg-gray-800 transition-colors">
-        Continue
-      </button>
-
-     
-      <div class="mt-5 text-center space-y-2">
-        <p class="text-[9px] text-gray-400 px-2 leading-tight">
-          By continuing, you agree to our <span class="underline cursor-pointer">Terms</span> and <span class="underline cursor-pointer">Privacy</span>.
-        </p>
-        <p class="text-xs text-gray-600">
-          Already have an account? <a href="/login" class="font-bold text-black hover:underline">Sign in</a>
-        </p>
-      </div>
+      <aside class="rounded-3xl bg-slate-900 p-6 text-white shadow-sm md:p-8">
+        <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-300">Before You Submit</p>
+        <div class="mt-5 space-y-5 text-sm text-slate-200">
+          <div>
+            <h2 class="font-semibold text-white">1. Verify one contact</h2>
+            <p class="mt-1 leading-6">The backend only allows signup after an OTP has been verified for your email or phone.</p>
+          </div>
+          <div>
+            <h2 class="font-semibold text-white">2. Activation happens by email</h2>
+            <p class="mt-1 leading-6">After signup, DealLock emails an activation link. Your email field must be valid even if you verify by phone.</p>
+          </div>
+          <div>
+            <h2 class="font-semibold text-white">3. Password rules</h2>
+            <p class="mt-1 leading-6">Use at least 8 characters with uppercase, lowercase, number, and special character.</p>
+          </div>
+        </div>
+      </aside>
     </div>
-
-    
-    <div id="otp-step" class="hidden mt-16 text-center">
-
-    <button onclick="registerStep()" class="flex items-center gap-1 text-gray-400 hover:text-black transition-colors mb-6">
-      <svg xmlns="http://w3.org" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
-
-
-      <div class="flex justify-center mb-5">
-        <img src="/images/logo.jpeg" alt="Logo" class="h-8 w-auto rounded-lg">
-      </div>
-
-      <h2 class="text-lg font-bold text-gray-900 mb-1">Create your account</h2>
-      <p class="text-gray-500 text-xs leading-relaxed mb-6">
-        We've sent you a one-time passcode.<br>
-        Please check your inbox at <span id="masked-contact" class="font-semibold text-gray-800 underline"></span>
-      </p>
-
-      <div id="otp-container" class="flex justify-center gap-2 mb-2">
-        <input type="text" maxlength="1" id="otp1" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" oninput="moveToNext(this,2)">
-        <input type="text" maxlength="1" id="otp2" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" oninput="moveToNext(this,3)">
-        <input type="text" maxlength="1" id="otp3" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" oninput="moveToNext(this,4)">
-        <input type="text" maxlength="1" id="otp4" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" oninput="moveToNext(this,5)">
-        <input type="text" maxlength="1" id="otp5" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" oninput="moveToNext(this,6)">
-        <input type="text" maxlength="1" id="otp6" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" oninput="validateAndVerify(this)">
-      </div>
-
-      <p id="otp-error-msg" class="text-red-500 text-[10px] mb-5 hidden">Invalid passcode. Please try again.</p>
-
-      <p onclick="resendOTP()" class="text-xs font-bold text-gray-400 cursor-pointer hover:text-black transition-colors">Resend code</p>
-    </div>
-
   </div>
 </section>
 
-<style>
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-  }
-  .otp-error {
-    border-color: #ef4444 !important;
-    background-color: #fef2f2;
-    animation: shake 0.2s ease-in-out 0s 2;
-  }
-  .input-error-border {
-    border-color: #ef4444 !important;
-  }
-</style>
-
 <script>
-  function switchMethod(n) {
-    const emailForm = document.getElementById('email-form');
-    const phoneForm = document.getElementById('phone-form');
-    const tabEmail = document.getElementById('tab-email');
-    const tabPhone = document.getElementById('tab-phone');
-    resetErrors();
+  const verificationState = {
+    channel: "email",
+    verified: false,
+    verifiedValue: ""
+  };
 
-    if (n === 1) {
-      emailForm.classList.remove('hidden');
-      phoneForm.classList.add('hidden');
-      tabEmail.className = "flex-1 py-1.5 text-[11px] font-bold border-b-2 border-black text-black";
-      tabPhone.className = "flex-1 py-1.5 text-[11px] font-bold text-gray-400";
-    } else {
-      emailForm.classList.add('hidden');
-      phoneForm.classList.remove('hidden');
-      tabPhone.className = "flex-1 py-1.5 text-[11px] font-bold border-b-2 border-black text-black";
-      tabEmail.className = "flex-1 py-1.5 text-[11px] font-bold text-gray-400";
-    }
+  const emailTab = document.getElementById("email-tab");
+  const phoneTab = document.getElementById("phone-tab");
+  const emailInput = document.getElementById("email");
+  const phoneInput = document.getElementById("phone");
+  const otpInput = document.getElementById("otp-input");
+  const otpHidden = document.getElementById("otp-hidden");
+  const statusBox = document.getElementById("otp-status");
+  const registerForm = document.getElementById("register-form");
+
+  function setChannel(channel) {
+    verificationState.channel = channel;
+    verificationState.verified = false;
+    verificationState.verifiedValue = "";
+    otpHidden.value = "";
+    renderStatus("Verification reset. Send a new OTP for the selected channel.", "info");
+
+    const emailActive = channel === "email";
+    emailTab.className = emailActive
+      ? "rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+      : "rounded-full px-4 py-2 text-sm font-semibold text-slate-600";
+    phoneTab.className = !emailActive
+      ? "rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+      : "rounded-full px-4 py-2 text-sm font-semibold text-slate-600";
   }
 
-  function resetErrors() {
-    ['email', 'phone'].forEach(id => {
-      const input = document.getElementById(id + '-input');
-      const error = document.getElementById(id + '-error');
-      if (input) input.classList.remove('input-error-border');
-      if (error) error.classList.add('hidden');
-    });
-    document.getElementById('otp-error-msg').classList.add('hidden');
-  }
-
-  let registrationEmail = '';
-  let registrationPhone = '';
-  let registrationChannel = '';
-  let resendTimer = 0;
-  let resendInterval = null;
-
-  function sendOTP() {
-    const isEmail = !document.getElementById('email-form').classList.contains('hidden');
-    const emailInput = document.getElementById('email-input');
-    const phoneInput = document.getElementById('phone-input');
-    const emailError = document.getElementById('email-error');
-    const phoneError = document.getElementById('phone-error');
-    
-    resetErrors();
-
-    if (isEmail) {
-      const val = emailInput.value.trim();
-      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!val) {
-        showInputError(emailInput, emailError, "Email address is required");
-      } else if (!regex.test(val)) {
-        showInputError(emailInput, emailError, "Invalid email format");
-      } else {
-        registrationEmail = val;
-        registrationChannel = 'email';
-        sendOTPToBackend(val, 'email');
-      }
-    } else {
-      const val = phoneInput.value.trim();
-      if (!val) {
-        showInputError(phoneInput, phoneError, "Phone number is required");
-      } else if (val.length < 10) {
-        showInputError(phoneInput, phoneError, "Enter a valid phone number");
-      } else {
-        registrationPhone = val;
-        registrationChannel = 'phone';
-        sendOTPToBackend("+234" + val, 'phone');
-      }
-    }
-  }
-
-  function sendOTPToBackend(contact, channel) {
-    fetch('/api/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: contact, channel: channel })
-    })
-    .then(res => res.json())
-    .then(data => {
-      proceed(contact);
-      startResendTimer();
-    })
-    .catch(err => {
-      console.error('Error sending OTP:', err);
-      alert('Failed to send OTP. Please try again.');
-    });
-  }
-
-  function proceed(contact) {
-    document.getElementById('masked-contact').innerText = contact;
-    document.getElementById('register-step').classList.add('hidden');
-    document.getElementById('otp-step').classList.remove('hidden');
-    document.getElementById('otp1').focus();
-  }
-
-  function showInputError(input, errorEl, msg) {
-    input.classList.add('input-error-border');
-    errorEl.innerText = msg;
-    errorEl.classList.remove('hidden');
-  }
-
-  function moveToNext(current, next) {
-    if (current.value.length === 1) {
-      const nextInput = document.getElementById('otp' + next);
-      if (nextInput) nextInput.focus();
-    }
-  }
-
-   function registerStep() {
-    document.getElementById('register-step').classList.remove('hidden');
-    document.getElementById('otp-step').classList.add('hidden');
-  }
-
-  function validateAndVerify(lastInput) {
-    if (lastInput.value.length === 1) {
-      const fields = document.querySelectorAll('.otp-field');
-      const code = Array.from(fields).map(f => f.value).join('');
-      
-      // Call backend API to verify OTP
-      verifyOTPWithBackend(registrationEmail, code, registrationChannel);
-    }
-  }
-
-  function verifyOTPWithBackend(email, otpCode, channel) {
-    fetch('/api/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, otpCode: otpCode, channel: channel })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success || data.message) {
-        // OTP verified, now sign up
-        completeSignup(email, otpCode);
-      } else {
-        showOTPError();
-      }
-    })
-    .catch(err => {
-      console.error('Error verifying OTP:', err);
-      showOTPError();
-    });
-  }
-
-  function completeSignup(email, otpCode) {
-    const signupData = {
-      email: email,
-      fullName: "User",
-      phone: registrationPhone,
-      otpCode: otpCode,
-      channel: registrationChannel
+  function renderStatus(message, type) {
+    const styles = {
+      success: "rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700",
+      error: "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700",
+      info: "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
     };
+    statusBox.className = styles[type] || styles.info;
+    statusBox.textContent = message;
+    statusBox.classList.remove("hidden");
+  }
 
-    fetch('/api/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signupData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success || data.message) {
-        alert("Account created successfully! Redirecting to login...");
-        window.location.href = '/login';
-      } else {
-        alert("Signup failed. Please try again.");
+  function clearVerificationIfChanged() {
+    const currentValue = verificationState.channel === "email" ? emailInput.value.trim() : phoneInput.value.trim();
+    if (verificationState.verified && currentValue !== verificationState.verifiedValue) {
+      verificationState.verified = false;
+      otpHidden.value = "";
+      renderStatus("Contact details changed. Please verify OTP again.", "info");
+    }
+  }
+
+  function getContactPayload() {
+    const channel = verificationState.channel;
+    if (channel === "email") {
+      const email = emailInput.value.trim();
+      if (!email) {
+        renderStatus("Enter your email address first.", "error");
+        emailInput.focus();
+        return null;
       }
-    })
-    .catch(err => {
-      console.error('Error completing signup:', err);
-      alert("An error occurred during signup.");
+      return { channel, email };
+    }
+
+    const phone = phoneInput.value.trim();
+    const phoneRegex = /^\+[1-9]\d{7,14}$/;
+    if (!phone) {
+      renderStatus("Enter your phone number first.", "error");
+      phoneInput.focus();
+      return null;
+    }
+    if (!phoneRegex.test(phone)) {
+      renderStatus("Phone number must be in international format, for example +2348012345678.", "error");
+      phoneInput.focus();
+      return null;
+    }
+    return { channel, phone };
+  }
+
+  async function postJson(url, payload) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || "Request failed");
+    }
+    return data;
   }
 
-  function showOTPError() {
-    const fields = document.querySelectorAll('.otp-field');
-    const errorMsg = document.getElementById('otp-error-msg');
-    errorMsg.classList.remove('hidden');
-    fields.forEach(f => {
-      f.classList.add('otp-error');
-      f.value = "";
-      setTimeout(() => f.classList.remove('otp-error'), 500);
-    });
-    document.getElementById('otp1').focus();
-  }
+  emailTab.addEventListener("click", () => setChannel("email"));
+  phoneTab.addEventListener("click", () => setChannel("phone"));
+  emailInput.addEventListener("input", clearVerificationIfChanged);
+  phoneInput.addEventListener("input", clearVerificationIfChanged);
 
-  function startResendTimer() {
-    resendTimer = 60;
-    const resendBtn = document.querySelector('[onclick="resendOTP()"]');
-    if (resendBtn) resendBtn.style.opacity = '0.5';
-    
-    resendInterval = setInterval(() => {
-      resendTimer--;
-      if (resendBtn) resendBtn.innerText = `Resend code (${resendTimer}s)`;
-      if (resendTimer <= 0) {
-        clearInterval(resendInterval);
-        resendBtn.style.opacity = '1';
-        resendBtn.innerText = 'Resend code';
-      }
-    }, 1000);
-  }
+  document.getElementById("send-otp-btn").addEventListener("click", async () => {
+    const payload = getContactPayload();
+    if (!payload) return;
 
-  function resendOTP() {
-    if (resendTimer > 0) return;
-    resetErrors();
-    sendOTPToBackend(registrationEmail || registrationPhone, registrationChannel);
-  }
+    try {
+      await postJson("/api/send-otp", payload);
+      renderStatus("OTP sent successfully. Enter the 6-digit code to continue.", "success");
+    } catch (error) {
+      renderStatus(error.message, "error");
+    }
+  });
+
+  document.getElementById("verify-otp-btn").addEventListener("click", async () => {
+    const payload = getContactPayload();
+    const otp = otpInput.value.trim();
+    if (!payload) return;
+    if (!/^\d{6}$/.test(otp)) {
+      renderStatus("Enter a valid 6-digit OTP code.", "error");
+      otpInput.focus();
+      return;
+    }
+
+    try {
+      await postJson("/api/verify-otp", { ...payload, otp });
+      verificationState.verified = true;
+      verificationState.verifiedValue = payload.email || payload.phone;
+      otpHidden.value = otp;
+      renderStatus("OTP verified. You can now submit the registration form.", "success");
+    } catch (error) {
+      verificationState.verified = false;
+      otpHidden.value = "";
+      renderStatus(error.message, "error");
+    }
+  });
+
+  registerForm.addEventListener("submit", (event) => {
+    clearVerificationIfChanged();
+    if (!verificationState.verified) {
+      event.preventDefault();
+      renderStatus("Verify your email or phone OTP before creating the account.", "error");
+    }
+  });
 </script>
-
-
-
-
-
 </body>
 </html>
-

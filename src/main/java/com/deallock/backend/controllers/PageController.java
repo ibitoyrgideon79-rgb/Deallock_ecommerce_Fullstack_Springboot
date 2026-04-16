@@ -22,6 +22,9 @@ public class PageController {
         this.notificationService = notificationService;
     }
 
+    @GetMapping("/login")
+    public String login() { return "login"; }
+
     @GetMapping("/marketplace") 
     public String marketplace() { return "marketplace"; }
 

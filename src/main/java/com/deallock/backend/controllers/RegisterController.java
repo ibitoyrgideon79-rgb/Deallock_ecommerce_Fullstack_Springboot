@@ -41,6 +41,9 @@ public class RegisterController {
     private String baseUrl;
     @GetMapping
     public String register(Model model){
+        if (!model.containsAttribute("registerDto")) {
+            model.addAttribute("registerDto", new RegisterDto());
+        }
         return "register";
     }
     @PostMapping

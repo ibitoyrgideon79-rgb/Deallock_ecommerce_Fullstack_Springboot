@@ -2,7 +2,7 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.dtos.OtpRequest;
 import com.deallock.backend.dtos.OtpverifyRequest;
-import com.deallock.backend.dtos.SignupRequest;
+import com.deallock.backend.dtos.RegisterDto;
 import com.deallock.backend.entities.ActivationToken;
 import com.deallock.backend.entities.OtpCode;
 import com.deallock.backend.entities.User;
@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -156,40 +155,45 @@ public class AuthApiController {
 
     @PostMapping("/signup")
     @Transactional
-    public ResponseEntity<?> signup(@Validated @RequestBody SignupRequest req, HttpServletRequest request) {
-        if (req.phone != null && !req.phone.isBlank() && !req.phone.trim().matches(PHONE_REGEX)) {
-            auditLogService.log("SIGNUP", req.email, request, false, "phone_invalid");
+    public ResponseEntity<?> signup(@Validated @RequestBody RegisterDto req, HttpServletRequest request) {
+        String email = req.getEmail() == null ? null : req.getEmail().trim();
+        String phone = req.getPhone() == null ? null : req.getPhone().trim();
+
+        if (phone != null && !phone.isBlank() && !phone.matches(PHONE_REGEX)) {
+            auditLogService.log("SIGNUP", email, request, false, "phone_invalid");
             return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
         }
 
-        if (userRepository.findByEmail(req.email).isPresent()) {
-            auditLogService.log("SIGNUP", req.email, request, false, "email_exists");
+        if (userRepository.findByEmail(email).isPresent()) {
+            auditLogService.log("SIGNUP", email, request, false, "email_exists");
             return ResponseEntity.badRequest().body(Map.of("message", "Email already exists"));
         }
 
-        var emailEntry = otpRepo.findTopByEmailOrderByIdDesc(req.email);
-        var phoneEntry = otpRepo.findTopByPhoneOrderByIdDesc(req.phone);
-        boolean verified = emailEntry.isPresent() && emailEntry.get().isVerified()
-                || phoneEntry.isPresent() && phoneEntry.get().isVerified();
+        var emailEntry = otpRepo.findTopByEmailOrderByIdDesc(email);
+        var phoneEntry = phone == null || phone.isBlank()
+                ? java.util.Optional.<OtpCode>empty()
+                : otpRepo.findTopByPhoneOrderByIdDesc(phone);
+        boolean verified = (emailEntry.isPresent() && emailEntry.get().isVerified())
+                || (phoneEntry.isPresent() && phoneEntry.get().isVerified());
 
         if (!verified) {
-            auditLogService.log("SIGNUP", req.email, request, false, "email_not_verified");
-            return ResponseEntity.badRequest().body(Map.of("message", "Email not verified"));
+            auditLogService.log("SIGNUP", email, request, false, "contact_not_verified");
+            return ResponseEntity.badRequest().body(Map.of("message", "Verify your email or phone OTP before signing up"));
         }
 
-        if (req.password == null || !req.password.equals(req.confirmPassword)) {
-            auditLogService.log("SIGNUP", req.email, request, false, "password_mismatch");
+        if (req.getPassword() == null || !req.getPassword().equals(req.getConfirmPassword())) {
+            auditLogService.log("SIGNUP", email, request, false, "password_mismatch");
             return ResponseEntity.badRequest().body(Map.of("message", "Passwords do not match"));
         }
 
         User user = User.builder()
-                .fullName(req.fullName)
-                .email(req.email)
-                .username(req.username)
-                .password(passwordEncoder.encode(req.password))
-                .address(req.address)
-                .phone(req.phone)
-                .dateOfBirth(LocalDate.parse(req.dob))
+                .fullName(req.getFullName())
+                .email(email)
+                .username(req.getUsername())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .address(req.getAddress())
+                .phone(phone)
+                .dateOfBirth(req.getDateOfBirth())
                 .role("ROLE_USER")
                 .enabled(false)
                 .creation(Instant.now())
@@ -199,19 +203,19 @@ public class AuthApiController {
 
         String token = java.util.UUID.randomUUID().toString();
         ActivationToken activation = new ActivationToken();
-        activation.setEmail(req.email);
+        activation.setEmail(email);
         activation.setToken(token);
         activation.setExpiresAt(Instant.now().plusSeconds(3600));
         activation.setUsed(false);
         activationRepo.save(activation);
 
         String link = baseUrl + "/activate?token=" + token;
-        emailService.sendActivationLink(req.email, link);
+        emailService.sendActivationLink(email, link);
         // Consume the OTP that was used for verification now that signup is successful
         emailEntry.ifPresent(otpRepo::delete);
         phoneEntry.ifPresent(otpRepo::delete);
 
-        auditLogService.log("SIGNUP", req.email, request, true, null);
+        auditLogService.log("SIGNUP", email, request, true, null);
         return ResponseEntity.ok(Map.of(
                 "message", "Account created",
                 "activationLink", link
