@@ -25,7 +25,6 @@ public class PageController {
     @GetMapping("/marketplace") 
     public String marketplace() { return "marketplace"; }
 
-    // Legacy static URLs -> clean Thymeleaf routes
     @GetMapping("/frontend/pages/login.html") public String loginLegacy() { return "redirect:/login"; }
     @GetMapping("/frontend/pages/register.html") public String registerLegacy() { return "redirect:/register"; }
     @GetMapping("/frontend/pages/terms.html") public String termsLegacy() { return "redirect:/terms"; }
@@ -34,44 +33,32 @@ public class PageController {
 
     @GetMapping("/ai-agent")
     public String aiAgent(Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
+        if (principal == null) return "redirect:/login";
         var userOpt = userRepository.findByEmail(principal.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
-        }
+        if (userOpt.isEmpty()) return "redirect:/login";
         return "dashboard";
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
+        if (principal == null) return "redirect:/login";
         return "dashboard";
     }
 
     @GetMapping("/dashboard/deal/{id}")
     public String dealDetails(@PathVariable("id") Long id, Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
-
+        if (principal == null) return "redirect:/login";
         var userOpt = userRepository.findByEmail(principal.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
-        }
+        if (userOpt.isEmpty()) return "redirect:/login";
 
         var dealOpt = dealRepository.findById(id);
-        if (dealOpt.isEmpty()) {
-            return "redirect:/dashboard?deal=not-found";
-        }
+        if (dealOpt.isEmpty()) return "redirect:/dashboard?deal=not-found";
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
         if (!isAdmin) {
-            if (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId())) {
+            // Using != because your IDs are primitive ints
+            if (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId()) {
                 return "redirect:/dashboard?deal=not-found";
             }
         }
@@ -81,7 +68,6 @@ public class PageController {
     @GetMapping("/dashboard/deal/{id}/pay")
     public String dealPay(@PathVariable("id") Long id, Principal principal) {   
         if (principal == null) return "redirect:/login";
-
         var userOpt = userRepository.findByEmail(principal.getName());
         if (userOpt.isEmpty()) return "redirect:/login";
 
@@ -90,7 +76,7 @@ public class PageController {
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
-        if (!isAdmin && (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId()))) {
+        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
         return "deal-pay";
@@ -99,7 +85,6 @@ public class PageController {
     @GetMapping("/dashboard/deal/{id}/track")
     public String dealTrack(@PathVariable("id") Long id, Principal principal) {
         if (principal == null) return "redirect:/login";
-
         var userOpt = userRepository.findByEmail(principal.getName());
         if (userOpt.isEmpty()) return "redirect:/login";
 
@@ -108,7 +93,7 @@ public class PageController {
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
-        if (!isAdmin && (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId()))) {
+        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
         return "deal-track";
@@ -117,7 +102,6 @@ public class PageController {
     @GetMapping("/dashboard/deal/{id}/balance-pay")
     public String balancePay(@PathVariable("id") Long id, Principal principal) {
         if (principal == null) return "redirect:/login";
-
         var userOpt = userRepository.findByEmail(principal.getName());
         if (userOpt.isEmpty()) return "redirect:/login";
 
@@ -126,7 +110,7 @@ public class PageController {
 
         var deal = dealOpt.get();
         boolean isAdmin = "ROLE_ADMIN".equals(userOpt.get().getRole());
-        if (!isAdmin && (deal.getUser() == null || !deal.getUser().getId().equals(userOpt.get().getId()))) {
+        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
         return "deal-balance-pay";
