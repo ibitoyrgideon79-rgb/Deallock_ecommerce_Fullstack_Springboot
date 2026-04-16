@@ -61,10 +61,10 @@
       <div th:if="${currentUser != null}" class="relative group">
         <button onclick="toggleDropdown()" 
                 class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" 
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
                alt="User Avatar" 
                class="w-8 h-8 rounded-full object-cover border border-gray-200">
-          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
 
@@ -91,7 +91,7 @@
 </header>
 
 
-<section class="min-md-screen bg-white flex items-center justify-center px-4 font-sans mt-[50px]">
+<section class="min-h-screen bg-white flex items-center justify-center px-4 font-sans">
   
   <div class="max-w-[340px] w-full"> <!-- Reduced width and vertical padding -->
 
@@ -194,7 +194,7 @@
     </div>
 
 
-    <div id="profile-step" class="hidden mt-16 text-center">
+    <div id="profile-step" class="hidden text-center">
       <div class="flex justify-center mb-4">
         <img src="/frontend/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
       </div>
@@ -205,7 +205,8 @@
       <p id="profile-error-msg" class="text-red-500 text-[10px] mb-4 hidden text-center"></p>
       <p id="profile-success-msg" class="text-emerald-600 text-[10px] mb-4 hidden text-center"></p>
 
-      <div class="space-y-3 text-left">\n        <input id="profile-fullName" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Full name">
+      <div class="space-y-3 text-left">
+        <input id="profile-fullName" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Full name">
         <input id="profile-email" type="email" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Email address">
         <input id="profile-phone" type="tel" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="+2348012345678 (optional)">
         <input id="profile-dob" type="date" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all">

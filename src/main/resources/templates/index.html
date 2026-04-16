@@ -89,8 +89,8 @@
 
       <div th:if="${currentUser != null}" class="relative group">
         <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
-          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
         <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">

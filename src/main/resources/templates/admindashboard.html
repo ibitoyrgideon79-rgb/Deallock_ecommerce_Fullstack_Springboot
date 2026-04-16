@@ -61,10 +61,10 @@
       <div th:if="${currentUser != null}" class="relative group">
         <button onclick="toggleDropdown()" 
                 class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.avatar ?: '/default-avatar.png'}" 
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
                alt="User Avatar" 
                class="w-8 h-8 rounded-full object-cover border border-gray-200">
-          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.name}"></span>
+          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
 

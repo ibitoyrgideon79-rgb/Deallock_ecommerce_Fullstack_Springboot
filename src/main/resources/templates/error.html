@@ -47,8 +47,8 @@
 </head>
 <body>
   <div class="error-card">
-    <div class="error-code" th:text="${statusCode != null ? 'Error ' + statusCode : 'Error'}">Error</div>
-    <div class="error-message" th:text="${errorMessage != null && !#strings.isEmpty(errorMessage) ? errorMessage : 'Something went wrong. Please try again.'}">Something went wrong. Please try again.</div>
+    <div class="error-code" th:text="${status != null ? 'Error ' + status : 'Error'}">Error</div>
+    <div class="error-message" th:text="${message != null && !#strings.isEmpty(message) ? message : 'Something went wrong. Please try again.'}">Something went wrong. Please try again.</div>
     <div class="error-actions">
       <a href="/login">Go to Login</a>
     </div>
