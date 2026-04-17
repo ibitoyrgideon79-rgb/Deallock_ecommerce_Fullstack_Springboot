@@ -82,7 +82,7 @@
       <a href="/" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
       <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
       <a href="/terms" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
-      <a href="/ourteam" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
+      <a href="/contactus" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
     </div>
 
     
@@ -452,6 +452,387 @@
 
   <script src="/frontend/js/home.js" defer></script>
   <script src="/frontend/js/userdashboard.js" defer></script>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+    var currentUser = [[${currentUser}]];
+    var isAdmin = [[${isAdmin}]];
+/*]]>*/
+</script>
+
+<script>
+// Fetch deals when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    fetchDeals();
+    fetchUserProfile();
+});
+
+async function fetchDeals() {
+    try {
+        const response = await fetch('/api/deals');
+        if (!response.ok) throw new Error('Failed to fetch deals');
+        
+        const deals = await response.json();
+        renderDealsTable(deals);
+    } catch (error) {
+        console.error('Error fetching deals:', error);
+        showError('Failed to load deals');
+    }
+}
+
+function renderDealsTable(deals) {
+    const tbody = document.getElementById('deals-table-body');
+    if (!tbody) return;
+    
+    if (!deals || deals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-5">No deals found. Create your first deal!</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = deals.map((deal, index) => `
+        <tr class="border-b hover:bg-gray-50">
+            <td class="p-4">${index + 1}</td>
+            <td class="p-4">DL-${String(deal.id).padStart(4, '0')}</td>
+            <td class="p-4">${escapeHtml(deal.title)}</td>
+            <td class="p-4">₦ ${formatNumber(deal.value)}</td>
+            <td class="p-4">
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                    deal.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                    deal.status === 'Pending Approval' ? 'bg-yellow-100 text-yellow-800' :
+                    deal.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                }">
+                    ${deal.status}
+                </span>
+            </td>
+            <td class="p-4">
+                <a href="/dashboard/deal/${deal.id}" class="text-emerald-600 hover:text-emerald-700 font-medium">
+                    View Details →
+                </a>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function fetchUserProfile() {
+    try {
+        const response = await fetch('/api/users/profile');
+        if (!response.ok) throw new Error('Failed to fetch profile');
+        
+        const profile = await response.json();
+        updateProfileUI(profile);
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+    }
+}
+
+function updateProfileUI(profile) {
+    // Update profile name
+    const nameElement = document.querySelector('#sidebar h2');
+    if (nameElement && profile.fullName) {
+        nameElement.textContent = `Hi, ${profile.fullName.split(' ')[0]}`;
+    }
+    
+    // Update full name field in settings
+    const fullNameInput = document.getElementById('full-name');
+    if (fullNameInput && profile.fullName) {
+        fullNameInput.value = profile.fullName;
+    }
+    
+    // Update email field
+    const emailInput = document.getElementById('email');
+    if (emailInput && profile.email) {
+        emailInput.value = profile.email;
+    }
+    
+    // Update phone field
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput && profile.phone) {
+        phoneInput.value = profile.phone;
+    }
+}
+
+async function submitNewDeal() {
+    const itemName = document.getElementById('item-name').value;
+    const expectedValue = document.getElementById('expected-value').value;
+    const weeks = document.getElementById('weeks').value;
+    const sellerName = document.getElementById('seller-name').value;
+    const sellerPhone = document.getElementById('seller-phone').value;
+    const sellerAddress = document.getElementById('seller-address').value;
+    const deliveryAddress = document.getElementById('delivery-address').value;
+    const itemSize = document.getElementById('item-size').value;
+    const description = document.getElementById('description').value;
+    const itemLink = document.getElementById('item-link').value;
+    const agreeTerms = document.getElementById('agree-terms').checked;
+    
+    // Validate
+    if (!itemName) {
+        showFieldError('error-item-name', 'Item name is required');
+        return;
+    }
+    if (!expectedValue || expectedValue < 1000) {
+        showFieldError('error-value', 'Expected value must be at least ₦1,000');
+        return;
+    }
+    if (!weeks || weeks < 1) {
+        showFieldError('error-weeks', 'Number of weeks is required');
+        return;
+    }
+    if (!agreeTerms) {
+        alert('Please agree to the Terms and Conditions');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('deal-title', itemName);
+    formData.append('deal-link', itemLink || '');
+    formData.append('client-name', sellerName || '');
+    formData.append('seller-phone', sellerPhone || '');
+    formData.append('seller-address', sellerAddress || '');
+    formData.append('delivery-address', deliveryAddress || '');
+    formData.append('item-size', itemSize || '');
+    formData.append('weeks', weeks);
+    formData.append('deal-value', expectedValue);
+    formData.append('description', description || '');
+    
+    try {
+        const response = await fetch('/api/deals', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to create deal');
+        }
+        
+        const result = await response.json();
+        alert('Deal created successfully!');
+        closeNewDealModal();
+        fetchDeals(); // Refresh the deals list
+        resetNewDealForm();
+    } catch (error) {
+        console.error('Error creating deal:', error);
+        alert(error.message || 'Failed to create deal');
+    }
+}
+
+function calculatePaymentPlan() {
+    const value = parseFloat(document.getElementById('expected-value').value) || 0;
+    const weeks = parseInt(document.getElementById('weeks').value) || 0;
+    
+    if (value > 0 && weeks > 0) {
+        const holdingFee = (value * 0.05 * weeks);
+        const vatAmount = holdingFee * 0.075;
+        const logisticsFee = 1950;
+        const totalAmount = value + holdingFee + vatAmount + logisticsFee;
+        const upfrontAmount = (value * 0.5) + logisticsFee;
+        
+        document.getElementById('plan-item-value').innerHTML = `₦ ${formatNumber(value)}`;
+        document.getElementById('plan-holding').innerHTML = `₦ ${formatNumber(holdingFee + vatAmount)}`;
+        document.getElementById('plan-total').innerHTML = `₦ ${formatNumber(totalAmount)}`;
+        document.getElementById('plan-upfront').innerHTML = `₦ ${formatNumber(upfrontAmount)}`;
+    } else {
+        document.getElementById('plan-item-value').innerHTML = `₦ 0.00`;
+        document.getElementById('plan-holding').innerHTML = `₦ 0.00`;
+        document.getElementById('plan-total').innerHTML = `₦ 1,950.00`;
+        document.getElementById('plan-upfront').innerHTML = `₦ 1,950.00`;
+    }
+}
+
+// Helper functions
+function formatNumber(num) {
+    return num.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showFieldError(elementId, message) {
+    const errorDiv = document.getElementById(elementId);
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        setTimeout(() => {
+            errorDiv.textContent = '';
+        }, 3000);
+    }
+}
+
+function showError(message) {
+    // You can implement a toast notification here
+    console.error(message);
+    alert(message);
+}
+
+function resetNewDealForm() {
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-link').value = '';
+    document.getElementById('seller-name').value = '';
+    document.getElementById('seller-phone').value = '';
+    document.getElementById('seller-address').value = '';
+    document.getElementById('delivery-address').value = '';
+    document.getElementById('item-size').value = '';
+    document.getElementById('expected-value').value = '';
+    document.getElementById('weeks').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('agree-terms').checked = false;
+    calculatePaymentPlan();
+}
+
+// Make functions global for onclick handlers
+window.filterDeals = function(type) {
+    // Implement filtering logic
+    console.log('Filter deals:', type);
+};
+
+window.openDateFilter = function() {
+    alert('Date filter coming soon');
+};
+
+window.openNewDealModal = function() {
+    const modal = document.getElementById('new-deal-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        calculatePaymentPlan();
+    }
+};
+
+window.closeNewDealModal = function() {
+    const modal = document.getElementById('new-deal-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        resetNewDealForm();
+    }
+};
+
+window.showTab = function(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    document.querySelectorAll('.tab-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(`${tabName}-tab`);
+    if (selectedTab) {
+        selectedTab.classList.remove('hidden');
+    }
+    
+    // Update active link
+    event.target.closest('.tab-link').classList.add('active');
+    
+    // Load orders if orders tab is selected
+    if (tabName === 'orders') {
+        fetchOrders();
+    }
+};
+
+async function fetchOrders() {
+    try {
+        const response = await fetch('/api/orders');
+        if (!response.ok) throw new Error('Failed to fetch orders');
+        
+        const orders = await response.json();
+        renderOrdersTable(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+    }
+}
+
+function renderOrdersTable(orders) {
+    const tbody = document.getElementById('orders-table-body');
+    if (!tbody) return;
+    
+    if (!orders || orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center p-5">No orders found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = orders.map((order, index) => `
+        <tr class="border-b hover:bg-gray-50">
+            <td class="p-4">${index + 1}</td>
+            <td class="p-4">ORD-${String(order.id).padStart(4, '0')}</td>
+            <td class="p-4">${escapeHtml(order.productName)}</td>
+            <td class="p-4">₦ ${formatNumber(order.amount)}</td>
+            <td class="p-4">
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ${order.status}
+                </span>
+            </td>
+            <td class="p-4">
+                <a href="/dashboard/order/${order.id}" class="text-emerald-600 hover:text-emerald-700">
+                    View Details →
+                </a>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.saveProfileChanges = async function() {
+    const fullName = document.getElementById('full-name').value;
+    
+    try {
+        const response = await fetch('/api/users/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fullName: fullName })
+        });
+        
+        if (!response.ok) throw new Error('Failed to update profile');
+        
+        alert('Profile updated successfully');
+        fetchUserProfile(); // Refresh profile data
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile');
+    }
+};
+
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('hidden');
+    }
+};
+
+window.changeProfilePicture = function() {
+    alert('Profile picture upload coming soon');
+};
+
+window.addNewDeliveryAddress = function() {
+    alert('Add delivery address feature coming soon');
+};
+
+window.openChangePasswordModal = function() {
+    alert('Change password feature coming soon');
+};
+
+window.handleSubscribe = function(event) {
+    event.preventDefault();
+    const email = document.getElementById('newsletter-email').value;
+    if (email) {
+        alert(`Thank you for subscribing with ${email}!`);
+        document.getElementById('newsletter-email').value = '';
+    }
+};
+
+window.scrollToTop = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Update copyright year
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+
 </body>
 </html>
 

@@ -35,7 +35,7 @@ public class PageController {
 
     @GetMapping("/ourteam")
     public String ourteam() {
-        return "ourteam";
+        return "/contactus";
     }
 
     @GetMapping("/contactus")
