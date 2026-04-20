@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
@@ -154,7 +154,9 @@
         <input type="text" inputmode="numeric" maxlength="1" id="otp5" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 5)" oninput="moveToNext(this, 6)">
         <input type="text" inputmode="numeric" maxlength="1" id="otp6" class="otp-field w-9 h-13 text-center text-2xl font-light border border-gray-200 rounded-xl focus:border-black outline-none transition-all" onkeydown="handleBackspace(event, 6)" oninput="validateOTP()">
       </div>
-      
+
+      <p id="otp-error" class="text-red-500 text-[9px] -mt-6 mb-4 hidden"></p>
+
       <div class="space-y-4">
         <p onclick="resendOTP()" class="text-[10px] font-bold text-gray-400 cursor-pointer hover:text-black uppercase tracking-tighter">Resend code</p>
         <p class="text-[11px] text-gray-400">Can't find code? <span onclick="switchToPassword()" class="text-gray-600 underline cursor-pointer">Use password</span></p>
@@ -174,7 +176,8 @@
       
       <div class="space-y-2 mb-5">
         <input id="display-user" type="text" readonly class="w-full px-3 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-gray-500 text-xs cursor-not-allowed">
-        <input id="password-input" type="password" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:border-black text-xs outline-none" placeholder="••••••••">
+        <input id="password-input" type="password" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:border-black text-xs outline-none" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+        <p id="password-error" class="text-red-500 text-[9px] mt-1 hidden"></p>
       </div>
       
       <button onclick="handlePasswordLogin()" class="w-full bg-[#0d0c22] text-white py-3 rounded-full font-bold text-[11px]">Login</button>
@@ -211,12 +214,16 @@
   async function postJson(url, payload) {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
       credentials: "include",
       body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.message || "Request failed");
+    if (!res.ok) {
+      const e = new Error(data.message || "Request failed");
+      e.nextUrl = data.nextUrl;
+      throw e;
+    }
     return data;
   }
 
@@ -307,12 +314,19 @@
     const fields = document.querySelectorAll('.otp-field');
     const code = Array.from(fields).map(f => f.value).join('');
     if (code.length === 6) {
+      const otpErr = document.getElementById('otp-error');
+      otpErr?.classList.add('hidden');
       finishOtpLogin(code).catch(err => {
+        if (err && err.nextUrl) {
+          window.location.href = err.nextUrl;
+          return;
+        }
         fields.forEach(f => { f.classList.add('otp-error'); f.value = ""; setTimeout(() => f.classList.remove('otp-error'), 500); });
         document.getElementById('otp1').focus();
-        const loginErr = document.getElementById('login-error');
-        loginErr.textContent = err.message || "Invalid OTP";
-        loginErr.classList.remove('hidden');
+        if (otpErr) {
+          otpErr.textContent = err.message || "Invalid OTP";
+          otpErr.classList.remove('hidden');
+        }
       });
     }
   }
@@ -331,25 +345,27 @@
   }
 
   async function finishOtpLogin(otp) {
-    await postJson(`${API_BASE}/login/otp`, {
+    const data = await postJson(`${API_BASE}/login/otp`, {
       login: loginIdentifier,
       otp,
       channel: currentChannel
     });
 
     // Server session is now created; go to the app.
-    window.location.href = "/dashboard";
+    window.location.href = data.nextUrl || "/dashboard";
   }
 
   function handlePasswordLogin() {
     const loginVal = (document.getElementById('display-user').value || "").trim();
     const passwordVal = document.getElementById('password-input').value || "";
-    const loginErr = document.getElementById('login-error');
-    loginErr.classList.add('hidden');
+    const pwdErr = document.getElementById('password-error');
+    pwdErr?.classList.add('hidden');
 
     if (!loginVal || !passwordVal) {
-      loginErr.textContent = "Enter username/email and password";
-      loginErr.classList.remove('hidden');
+      if (pwdErr) {
+        pwdErr.textContent = "Enter username/email and password";
+        pwdErr.classList.remove('hidden');
+      }
       return;
     }
 
@@ -374,4 +390,5 @@
 
 </body>
 </html>
+
 

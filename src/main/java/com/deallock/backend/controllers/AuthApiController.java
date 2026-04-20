@@ -1,4 +1,4 @@
-package com.deallock.backend.controllers;
+﻿package com.deallock.backend.controllers;
 
 import com.deallock.backend.dtos.OtpRequest;
 import com.deallock.backend.dtos.OtpverifyRequest;
@@ -205,6 +205,7 @@ public class AuthApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Verify OTP before continuing"));
         }
 
+        boolean isAdminEmail = email != null && ADMIN_EMAIL.equalsIgnoreCase(email);
         User user = User.builder()
                 .fullName(null)
                 .email(email)
@@ -213,8 +214,9 @@ public class AuthApiController {
                 .address(null)
                 .phone(phone)
                 .dateOfBirth(null)
-                .role("ROLE_USER")
-                .enabled(false)
+                .role(isAdminEmail ? "ROLE_ADMIN" : "ROLE_USER")
+                // Admin email is trusted via OTP to that mailbox; let admin log in immediately.
+                .enabled(isAdminEmail)
                 .creation(Instant.now())
                 .build();
 
@@ -338,16 +340,38 @@ public class AuthApiController {
         }
 
         var user = userOpt.get();
-        if (!user.isEnabled()) {
-            auditLogService.log("LOGIN_OTP", login, request, false, "disabled");
-            return ResponseEntity.badRequest().body(Map.of("message", "Account not active"));
-        }
-        if (user.getPassword() == null || user.getPassword().isBlank()) {
-            auditLogService.log("LOGIN_OTP", login, request, false, "profile_incomplete");
-            return ResponseEntity.badRequest().body(Map.of("message", "Complete your profile first"));
+
+        boolean isAdminEmail = user.getEmail() != null && ADMIN_EMAIL.equalsIgnoreCase(user.getEmail());
+        boolean isAdmin = "ROLE_ADMIN".equals(user.getRole()) || isAdminEmail;
+
+        // Admin bootstrap: if the admin email signed up but never completed profile,
+        // allow OTP login and make the account active.
+        if (isAdmin) {
+            if (!"ROLE_ADMIN".equals(user.getRole())) {
+                user.setRole("ROLE_ADMIN");
+            }
+            if (!user.isEnabled()) {
+                user.setEnabled(true);
+            }
+            userRepository.save(user);
         }
 
-        String role = user.getRole() == null || user.getRole().isBlank() ? "ROLE_USER" : user.getRole();
+        if (!user.isEnabled()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "disabled");
+            return ResponseEntity.status(409).body(Map.of(
+                    "message", "Account not active. Complete your profile first.",
+                    "nextUrl", "/register"
+            ));
+        }
+        if ((user.getPassword() == null || user.getPassword().isBlank()) && !isAdmin) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "profile_incomplete");
+            return ResponseEntity.status(409).body(Map.of(
+                    "message", "Complete your profile first.",
+                    "nextUrl", "/register"
+            ));
+        }
+
+        String role = isAdmin ? "ROLE_ADMIN" : (user.getRole() == null || user.getRole().isBlank() ? "ROLE_USER" : user.getRole());
         var auth = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
                 null,
@@ -364,6 +388,15 @@ public class AuthApiController {
         otpRepo.delete(entry);
 
         auditLogService.log("LOGIN_OTP", login, request, true, null);
-        return ResponseEntity.ok(Map.of("message", "Logged in"));
+        return ResponseEntity.ok(Map.of(
+                "message", "Logged in",
+                "nextUrl", isAdmin ? "/admin" : "/dashboard"
+        ));
     }
 }
+
+
+
+
+
+
