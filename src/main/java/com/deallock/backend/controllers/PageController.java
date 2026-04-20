@@ -83,6 +83,7 @@ public class PageController {
         model.addAttribute("currentUser", user);
         model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
         model.addAttribute("notificationCount", notificationService.countUnread(user));
+        model.addAttribute("deals", dealRepository.findByUserOrderByCreatedAtDesc(user));
         return "userdashboard";
     }
 
@@ -95,6 +96,7 @@ public class PageController {
         model.addAttribute("currentUser", user);
         model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
         model.addAttribute("notificationCount", notificationService.countUnread(user));
+        model.addAttribute("deals", dealRepository.findByUserOrderByCreatedAtDesc(user));
         return "userdashboard";
     }
 
