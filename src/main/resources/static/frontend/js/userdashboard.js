@@ -3,6 +3,16 @@ function toggleSidebar() {
   document.getElementById('sidebar')?.classList.toggle('hidden');
 }
 
+function showToast(message, type) {
+  const t = document.createElement("div");
+  const tone = type === "error" ? "bg-red-600" : "bg-emerald-600";
+  t.className = `fixed bottom-6 right-6 z-[9999] ${tone} text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[320px]`;
+  t.textContent = message;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
+
+
 // Tab Switching
 function showTab(tab) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -217,13 +227,13 @@ async function submitNewDeal() {
 
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
-    alert(payload?.message || `Failed to submit deal (${res.status}).`);
+    showToast(payload?.message || `Failed to submit deal (${res.status}).`, "error");
     return;
   }
 
   const upfront = payload?.upfrontPaymentAmount != null ? naira(payload.upfrontPaymentAmount) : '';
   const total = payload?.totalAmount != null ? naira(payload.totalAmount) : '';
-  alert(`Deal saved.\n\nUpfront: ${upfront}\nTotal: ${total}`);
+  showToast(`Deal saved. Upfront: ${upfront} Total: ${total}`, "success");
 
   closeNewDealModal();
   dealFilter = 'all';
