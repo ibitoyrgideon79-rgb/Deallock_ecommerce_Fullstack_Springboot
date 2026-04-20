@@ -4,14 +4,13 @@ from pathlib import Path
 from tempfile import mkdtemp
 from doc_chunks import documents
 from dotenv import load_dotenv
-from pymilvus import MilvusClient, connections
+import faiss
 from google import genai
 import tqdm
+from sklearn.preprocessing import normalize
 
-milvus_client= MilvusClient("http://localhost:19530")
 load_dotenv()
 
-COLLECTION_NAME = "deal_lock_kb"
 
 # Better model
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -23,8 +22,10 @@ def build_index():
     texts = [doc["question"] + " " + doc["answer"] for doc in documents]
     response= client.models.embed_content(model = "models/gemini-embedding-001", contents=texts)
     embeddings= response.embeddings
+    # embeddings = normalize(embeddings, norm = "l2")
     dim = len(embeddings[0].values)
-    milvus_client.create_collection(COLLECTION_NAME, dimension=dim, metric="COSINE")
+    global index
+    index= faiss.IndexFlatIP(dim)
     rows= [
         {
             "id": i,
@@ -34,22 +35,14 @@ def build_index():
         }
         for i in range(len(documents))  
     ]
-    milvus_client.insert(COLLECTION_NAME, rows)
-    print(f"Indexed {len(rows)} documents into Milvus collection '{COLLECTION_NAME}'.")
-
-existing = milvus_client.list_collections()
-if COLLECTION_NAME not in existing:
-    print(f"Collection '{COLLECTION_NAME}' not found. Building index...")
-    build_index()   
-else:
-    count= milvus_client.get_collection_stats(COLLECTION_NAME).get("row_count", 0)
-    if count == 0:
-        milvus_client.drop_collection(COLLECTION_NAME)
-        build_index()
+    index.add(np.array([row["vector"] for row in rows], dtype=np.float32))
+    print(f"Indexed {len(rows)} documents into Faiss index.")
 
 
 def search(query: str, top_k: int = 3) -> list[str]:
     data= client.models.embed_content(model = "models/gemini-embedding-001", contents=[query])
     query_vector= data.embeddings[0].values
-    results = milvus_client.search(COLLECTION_NAME, data= [query_vector], limit=top_k, search_params={"metric_type": "COSINE"}, output_fields=[ "answer"])
-    return [res["entity"]["answer"] for res in results[0]]
+    # query_vector= normalize(query_vector, norm = "l2")
+    build_index()
+    D, I = index.search(np.array([query_vector], dtype=np.float32), k=top_k)
+    return [documents[i]["answer"] for i in I[0]]

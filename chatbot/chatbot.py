@@ -137,11 +137,16 @@ Context:
 User: {user_input}
 Assistant:"""
 
+
+        # generation_config= genai.types.GenerationConfig(
+        #         frequency_penalty= 1.5
+            
+            # ) 
         # 4. Call Gemini
         response = gemini.models.generate_content(
             model    = "gemini-2.5-flash",
-            contents = prompt,
-            repetition_penalty = 1.2,   # discourage copy-pasting from context
+            contents = prompt
+            # generation_config = generation_config  # discourage copy-pasting from context
         )
         reply = response.text.strip()
 
