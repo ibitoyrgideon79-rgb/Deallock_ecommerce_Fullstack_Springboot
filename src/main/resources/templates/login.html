@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
@@ -91,43 +91,42 @@
 </header>
 
 
-<section class="min-md-screen bg-white flex items-center justify-center px-4 font-sans">
-  <div class="max-w-[330px] w-full py-16 text-center relative">
+<section class="min-h-screen bg-white flex items-center justify-center px-4 font-sans">
+  <div class="max-w-[340px] w-full">    <div id="login-step">
+      <div class="flex justify-center mb-4">
+        <img src="/frontend/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg">
+      </div>
 
-    
-    <div id="login-step">
-      <img src="/frontend/images/logo.jpeg" alt="DealLock" class="h-8 w-auto rounded-lg mx-auto mb-4">
-      <h1 class="text-lg font-bold text-gray-900 mb-5">Welcome back</h1>
-      
-      <button class="w-full border border-gray-200 py-2.5 rounded-full flex items-center justify-center gap-2 text-[11px] font-semibold mb-4 hover:bg-gray-50">
-        <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 48 48">
-          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 11.85 2 2 11.85 2 24s9.85 22 22 22c11.045 0 20-8.955 20-20 0-1.303-.115-2.583-.389-3.833z""")/>>
-          <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 16.202 2 9.428 6.04 5.512 12.142z""")/>>
-          <path fill="#4CAF50" d="M24 46c5.066 0 9.617-1.547 13.354-4.181l-6.195-5.204C29.043 37.95 26.657 38 24 38c-5.182 0-9.61-3.262-11.332-7.85l-6.49 5.011C10.026 41.656 16.533 46 24 46z""")/>>
-          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.203C42.304 34.698 46 29.778 46 24c0-1.38-.117-2.72-.34-4.027l-.049.11z""")/>>
+      <h1 class="text-lg font-bold text-center text-gray-900 mb-0.5">Welcome back</h1>
+      <p class="text-gray-500 text-center text-[11px] mb-5">Continue to your dashboard</p>
+
+      <button class="w-full border border-gray-200 py-2 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold mb-4 hover:bg-gray-50 transition-colors">
+        <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 11.85 2 2 11.85 2 24s9.85 22 22 22c11.045 0 20-8.955 20-20 0-1.303-.115-2.583-.389-3.833z"/>
+          <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 3.653 29.315 2 24 2 16.202 2 9.428 6.04 5.512 12.142z"/>
+          <path fill="#4CAF50" d="M24 46c5.066 0 9.617-1.547 13.354-4.181l-6.195-5.204C29.043 37.95 26.657 38 24 38c-5.182 0-9.61-3.262-11.332-7.85l-6.49 5.011C10.026 41.656 16.533 46 24 46z"/>
+          <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.203C42.304 34.698 46 29.778 46 24c0-1.38-.117-2.72-.34-4.027l-.049.11z"/>
         </svg>
         Continue with Google
       </button>
 
       <div class="flex items-center gap-2 mb-4">
         <div class="flex-1 h-px bg-gray-100"></div>
-        <span class="text-gray-300 text-[9px] font-bold uppercase tracking-widest">or</span>
+        <span class="text-gray-300 text-[9px] font-bold tracking-widest uppercase">or</span>
         <div class="flex-1 h-px bg-gray-100"></div>
       </div>
 
-      <div class="text-left mb-4">
-        <input id="login-input" type="text" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs" placeholder="Email or username">
-        <p id="login-error" class="text-red-500 text-[9px] mt-1 hidden"></p>
+      <div class="text-left">
+        <input id="login-input" type="text" class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Email or username">
+        <p id="login-error" class="text-red-500 text-[10px] mt-1 hidden"></p>
       </div>
-      
-      <button onclick="handleLoginContinue()" class="w-full bg-[#0d0c22] text-white py-3 rounded-full font-bold text-[11px] hover:opacity-90 transition-opacity">Continue</button>
-      
-      <p class="text-[11px] text-gray-600 mt-6">
-        No account? <a href="/pages/register.html" class="font-bold text-black underline">Sign up</a>
+
+      <button onclick="handleLoginContinue()" class="w-full bg-black text-white py-2.5 rounded-xl font-bold mt-4 text-xs hover:bg-gray-800 transition-colors">Continue</button>
+
+      <p class="text-[11px] text-gray-600 mt-6 text-center">
+        No account? <a href="/register" class="font-bold text-black underline">Sign up</a>
       </p>
     </div>
-
-    
     <div id="otp-step" class="hidden">
       <button onclick="goBackToStep1()" class="absolute left-0 top-1 p-2 py-16 text-gray-400 hover:text-black transition-colors">
         <svg xmlns="http://w3.org" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
