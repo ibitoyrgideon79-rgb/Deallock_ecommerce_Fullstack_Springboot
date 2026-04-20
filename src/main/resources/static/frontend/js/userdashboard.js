@@ -1,64 +1,13 @@
-﻿// Toggle Sidebar on Mobile
-function toggleSidebar() {
-  document.getElementById('sidebar')?.classList.toggle('hidden');
-}
+﻿// User dashboard UI logic.
+// Key point: always treat non-JSON responses as "not logged in" (Spring redirects to /login).
 
 function showToast(message, type) {
-  const t = document.createElement("div");
-  const tone = type === "error" ? "bg-red-600" : "bg-emerald-600";
+  const t = document.createElement('div');
+  const tone = type === 'error' ? 'bg-red-600' : 'bg-emerald-600';
   t.className = `fixed bottom-6 right-6 z-[9999] ${tone} text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[320px]`;
   t.textContent = message;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 4500);
-}
-
-
-// Tab Switching
-function showTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.getElementById(tab + '-tab')?.classList.add('active');
-
-  document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active', 'bg-gray-100'));
-  // Inline onclick uses `event` in browsers; guard for safety.
-  if (typeof event !== 'undefined' && event?.currentTarget) {
-    event.currentTarget.classList.add('active', 'bg-gray-100');
-  }
-}
-
-let dealsCache = [];
-let dealFilter = 'all'; // all | active | completed
-
-// Filter Deals (buttons: All / Active / Completed)
-function filterDeals(type) {
-  dealFilter = type;
-  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-  if (typeof event !== 'undefined' && event?.currentTarget) {
-    event.currentTarget.classList.add('active');
-  }
-  renderDealsTable();
-}
-
-function dealUiStage(deal) {
-  // Normalize backend fields to a small set the UI understands.
-  const status = (deal?.status || '').toString().toLowerCase();
-  if (deal?.deliveryConfirmedAt) return 'completed';
-  if (status.includes('rejected')) return 'completed';
-  return 'active';
-}
-
-function dealStatusLabel(deal) {
-  const raw = (deal?.status || '').toString().trim();
-  if (!raw) return 'PENDING';
-  // Make it consistent on the UI.
-  if (raw.toLowerCase().includes('pending')) return 'PENDING';
-  if (raw.toLowerCase() === 'approved') return 'APPROVED';
-  if (raw.toLowerCase().includes('reject')) return 'REJECTED';
-  return raw.toUpperCase();
-}
-
-function naira(amount) {
-  const n = typeof amount === 'number' ? amount : Number(amount || 0);
-  return `\u20A6 ${n.toLocaleString()}`;
 }
 
 function escapeHtml(value) {
@@ -70,21 +19,100 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
+function naira(amount) {
+  const n = typeof amount === 'number' ? amount : Number(amount || 0);
+  return `\u20A6 ${n.toLocaleString()}`;
+}
+
+async function apiJson(url, options) {
+  const res = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      Accept: 'application/json',
+      ...(options && options.headers ? options.headers : {})
+    }
+  });
+
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+
+  // If auth expired, Spring Security typically redirects to /login and returns HTML.
+  if (res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Session expired. Please log in again.');
+    e.redirectToLogin = true;
+    throw e;
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error((data && data.message) ? data.message : `Request failed (${res.status}).`);
+  }
+  return data;
+}
+
+// Toggle Sidebar on Mobile
+function toggleSidebar() {
+  document.getElementById('sidebar')?.classList.toggle('hidden');
+}
+
+// Tab Switching
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.getElementById(tab + '-tab')?.classList.add('active');
+
+  document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active', 'bg-gray-100'));
+  if (typeof event !== 'undefined' && event?.currentTarget) {
+    event.currentTarget.classList.add('active', 'bg-gray-100');
+  }
+}
+
+let dealsCache = [];
+let dealFilter = 'all'; // all | active | completed
+
+function dealUiStage(deal) {
+  const status = (deal?.status || '').toString().toLowerCase();
+  if (deal?.deliveryConfirmedAt) return 'completed';
+  if (status.includes('rejected')) return 'completed';
+  return 'active';
+}
+
+function dealStatusLabel(deal) {
+  const raw = (deal?.status || '').toString().trim();
+  if (!raw) return 'PENDING';
+  if (raw.toLowerCase().includes('pending')) return 'PENDING';
+  if (raw.toLowerCase() === 'approved') return 'APPROVED';
+  if (raw.toLowerCase().includes('reject')) return 'REJECTED';
+  return raw.toUpperCase();
+}
+
+// Filter Deals (buttons: All / Active / Completed)
+function filterDeals(type) {
+  dealFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  if (typeof event !== 'undefined' && event?.currentTarget) {
+    event.currentTarget.classList.add('active');
+  }
+  renderDealsTable();
+}
+
 async function loadDeals() {
   const tbody = document.getElementById('deals-table-body');
   if (tbody) {
     tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500">Loading...</td></tr>`;
   }
 
-  const res = await fetch('/api/deals', { headers: { 'Accept': 'application/json' } });
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-600">Failed to load deals (${res.status}).</td></tr>`;
+  try {
+    dealsCache = await apiJson('/api/deals');
+    renderDealsTable();
+  } catch (e) {
+    if (e && e.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-600">${escapeHtml(e?.message || 'Failed to load deals.')}</td></tr>`;
+    }
   }
-  dealsCache = await res.json();
-  renderDealsTable();
 }
 
 function renderDealsTable() {
@@ -129,7 +157,6 @@ function renderDealsTable() {
 }
 
 function renderOrdersTable() {
-  // Orders are not wired to backend yet. Keep the UI but show an empty state.
   const tbody = document.getElementById('orders-table-body');
   if (!tbody) return;
   tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">No orders yet.</td></tr>`;
@@ -151,13 +178,9 @@ function calculatePaymentPlan() {
   const value = parseFloat(document.getElementById('expected-value')?.value) || 0;
   const weeks = parseInt(document.getElementById('weeks')?.value) || 0;
 
-  // Match backend logic in DealApiController:
-  // holdingFee = value * 0.05 * weeks; vat = holdingFee * 0.075
   const holdingFee = value * 0.05 * weeks;
   const vat = holdingFee * 0.075;
 
-  // Backend logistics is calculated by addresses + item size.
-  // Here we only show an estimate; actual values are returned after submission.
   const logisticsEstimate = 0;
   const totalEstimate = value + holdingFee + vat + logisticsEstimate;
   const upfrontEstimate = (value * 0.5) + logisticsEstimate;
@@ -203,7 +226,7 @@ async function submitNewDeal() {
 
   const agree = document.getElementById('agree-terms');
   if (agree && !agree.checked) {
-    alert('Please agree to the Terms and Conditions.');
+    showToast('Please agree to the Terms and Conditions.', 'error');
     return;
   }
 
@@ -219,56 +242,30 @@ async function submitNewDeal() {
   fd.append('deal-value', String(value));
   if (description) fd.append('description', description);
 
-  const res = await fetch('/api/deals', {
-    method: 'POST',
-    body: fd,
-    headers: { 'Accept': 'application/json' }
-  });
-
-  const payload = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    showToast(payload?.message || `Failed to submit deal (${res.status}).`, "error");
+  let payload;
+  try {
+    payload = await apiJson('/api/deals', { method: 'POST', body: fd });
+  } catch (e) {
+    if (e && e.redirectToLogin) {
+      window.location.href = '/login';
+      return;
+    }
+    showToast(e?.message || 'Failed to submit deal.', 'error');
     return;
   }
 
   const upfront = payload?.upfrontPaymentAmount != null ? naira(payload.upfrontPaymentAmount) : '';
   const total = payload?.totalAmount != null ? naira(payload.totalAmount) : '';
-  showToast(`Deal saved. Upfront: ${upfront} Total: ${total}`, "success");
+  showToast(`Deal saved. Upfront: ${upfront} Total: ${total}`, 'success');
 
   closeNewDealModal();
   dealFilter = 'all';
   await loadDeals();
 }
 
-function changeProfilePicture() {
-  alert('Profile picture upload triggered');
-}
-
-function addNewDeliveryAddress() {
-  const addr = prompt('Enter new delivery address:');
-  if (addr) alert('New address added: ' + addr);
-}
-
-function openChangePasswordModal() {
-  alert('Change Password modal would open here');
-}
-
-function saveProfileChanges() {
-  alert('Profile changes saved successfully!');
-}
-
-function openDateFilter() {
-  alert('Date Range Filter');
-}
-
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   renderOrdersTable();
   showTab('deals');
-  loadDeals().catch(() => {
-    const tbody = document.getElementById('deals-table-body');
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-600">Failed to load deals.</td></tr>`;
-    }
-  });
+  loadDeals();
 });

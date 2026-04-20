@@ -1,4 +1,4 @@
-﻿package com.deallock.backend.config;
+package com.deallock.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

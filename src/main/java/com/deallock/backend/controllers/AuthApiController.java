@@ -1,4 +1,4 @@
-﻿package com.deallock.backend.controllers;
+package com.deallock.backend.controllers;
 
 import com.deallock.backend.dtos.OtpRequest;
 import com.deallock.backend.dtos.OtpverifyRequest;
