@@ -72,6 +72,7 @@ let dealFilter = 'all'; // all | active | completed
 function dealUiStage(deal) {
   const status = (deal?.status || '').toString().toLowerCase();
   if (deal?.deliveryConfirmedAt) return 'completed';
+  if (status.includes('concluded') || status.includes('completed') || status.includes('delivered')) return 'completed';
   if (status.includes('rejected')) return 'completed';
   return 'active';
 }

@@ -26,6 +26,7 @@ function showToast(message, type) {
 
 let currentPage = 'Pending Approval';
 let dealsCache = [];
+let statusFilter = 'all'; // all | active | completed
 
 function naira(amount) {
   const n = typeof amount === 'number' ? amount : Number(amount || 0);
@@ -59,7 +60,24 @@ function isPendingApproval(deal) {
 }
 
 function isConcluded(deal) {
-  return !!deal?.deliveryConfirmedAt || isRejected(deal);
+  const s = getStatus(deal).toLowerCase();
+  return !!deal?.deliveryConfirmedAt || isRejected(deal) || s.includes('concluded') || s.includes('completed');
+}
+
+function filterStatus(type) {
+  statusFilter = type;
+
+  const btnAll = document.getElementById('btn-all');
+  const btnActive = document.getElementById('btn-active');
+  const btnCompleted = document.getElementById('btn-completed');
+
+  [btnAll, btnActive, btnCompleted].forEach(b => b?.classList.remove('bg-black', 'text-white'));
+
+  if (type === 'active') btnActive?.classList.add('bg-black', 'text-white');
+  else if (type === 'completed') btnCompleted?.classList.add('bg-black', 'text-white');
+  else btnAll?.classList.add('bg-black', 'text-white');
+
+  render();
 }
 
 function switchPage(pageName) {
@@ -72,7 +90,10 @@ function switchPage(pageName) {
 }
 
 function filterDealsForPage() {
-  const rows = Array.isArray(dealsCache) ? dealsCache : [];
+  let rows = Array.isArray(dealsCache) ? dealsCache : [];
+
+  if (statusFilter === 'active') rows = rows.filter(d => !isConcluded(d));
+  if (statusFilter === 'completed') rows = rows.filter(d => isConcluded(d));
 
   switch (currentPage) {
     case 'Pending Approval':
