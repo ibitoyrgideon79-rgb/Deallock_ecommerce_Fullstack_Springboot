@@ -26,6 +26,7 @@ function showToast(message, type) {
 
 let currentPage = 'Pending Approval';
 let dealsCache = [];
+let marketItemsCache = [];
 let statusFilter = 'all'; // all | active | completed
 
 function naira(amount) {
@@ -61,7 +62,7 @@ function isPendingApproval(deal) {
 
 function isConcluded(deal) {
   const s = getStatus(deal).toLowerCase();
-  return !!deal?.deliveryConfirmedAt || isRejected(deal) || s.includes('concluded') || s.includes('completed');
+  return !!deal?.deliveryConfirmedAt || isRejected(deal) || !!deal?.expiredUnpaid || s.includes('concluded') || s.includes('completed');
 }
 
 function filterStatus(type) {
@@ -84,12 +85,35 @@ function switchPage(pageName) {
   currentPage = pageName;
   const title = document.getElementById('page-title');
   if (title) {
-    title.innerText = `Deal Flow: ${pageName}`;
+    const group = isMarketplacePage(pageName) ? 'Marketplace' : 'Deal Flow';
+    title.innerText = `${group}: ${pageName}`;
   }
-  render();
+  updateHeaderActions();
+  loadCurrentPageData().catch(e => showToast(e.message || 'Failed to load', 'error'));
+}
+
+function isMarketplacePage(pageName) {
+  return pageName === 'Orders' || pageName === 'Products';
+}
+
+function updateHeaderActions() {
+  const btn = document.getElementById('btn-new-product');
+  if (!btn) return;
+  btn.style.display = currentPage === 'Products' ? 'inline-flex' : 'none';
 }
 
 function filterDealsForPage() {
+  if (currentPage === 'Products') {
+    let rows = Array.isArray(marketItemsCache) ? marketItemsCache : [];
+    if (statusFilter === 'active') rows = rows.filter(i => !!i?.listed);
+    if (statusFilter === 'completed') rows = rows.filter(i => !i?.listed);
+    return rows;
+  }
+
+  if (currentPage === 'Orders') {
+    return [];
+  }
+
   let rows = Array.isArray(dealsCache) ? dealsCache : [];
 
   if (statusFilter === 'active') rows = rows.filter(d => !isConcluded(d));
@@ -141,6 +165,34 @@ async function approveDeal(id) {
   await apiPost(`/api/admin/deals/${id}/approve`);
   showToast('Deal approved', 'success');
   await loadDeals();
+}
+
+async function listDealOnMarketplace(id) {
+  if (!confirm('List this expired unpaid item on marketplace?')) return;
+  await apiPost(`/api/admin/deals/${id}/list-on-marketplace`);
+  showToast('Listed on marketplace', 'success');
+  await loadDeals();
+}
+
+async function toggleProductListed(id) {
+  await apiPost(`/api/admin/marketplace/items/${id}/toggle-listed`);
+  showToast('Updated', 'success');
+  await loadMarketItems();
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this marketplace item?')) return;
+  const res = await fetch(`/api/admin/marketplace/items/${id}`, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin'
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(payload?.message || `Request failed (${res.status})`);
+  }
+  showToast('Deleted', 'success');
+  await loadMarketItems();
 }
 
 async function rejectDeal(id) {
@@ -197,6 +249,16 @@ function actionCell(deal) {
   const id = deal?.id;
   if (!id) return '';
 
+  if (currentPage === 'Products') {
+    const listed = !!deal?.listed;
+    return `
+      <div class="flex gap-2 justify-center">
+        <button onclick="toggleProductListed(${id})" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">${listed ? 'UNLIST' : 'LIST'}</button>
+        <button onclick="deleteProduct(${id})" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-gray-100">DELETE</button>
+      </div>
+    `;
+  }
+
   if (currentPage === 'Pending Approval') {
     return `
       <div class="flex gap-2 justify-center">
@@ -248,6 +310,16 @@ function actionCell(deal) {
     `;
   }
 
+  if (currentPage === 'Concluded') {
+    if (deal?.expiredUnpaid && deal?.allowMarketplaceListing && !deal?.marketplaceListed) {
+      return `
+        <div class="flex gap-2 justify-center">
+          <button onclick="listDealOnMarketplace(${id})" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">LIST ON MARKETPLACE</button>
+        </div>
+      `;
+    }
+  }
+
   const detailsHref = `/dashboard/deal/${id}`;
   return `
     <div class="flex gap-2 justify-center">
@@ -262,15 +334,17 @@ function renderTable(data) {
   if (!tbody) return;
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">No deals in this bucket</td></tr>`;
+    const label = currentPage === 'Products' ? 'No marketplace items' : (currentPage === 'Orders' ? 'No orders yet' : 'No deals in this bucket');
+    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">${label}</td></tr>`;
     return;
   }
 
   tbody.innerHTML = data.map((item, idx) => {
-    const id = item?.id != null ? `DL-${item.id}` : `DL-${idx + 1}`;
-    const name = item?.title || 'Untitled Deal';
-    const price = naira(item?.value || 0);
-    const status = (item?.status || 'PENDING').toString().toUpperCase();
+    const isProduct = currentPage === 'Products';
+    const id = item?.id != null ? `${isProduct ? 'MP' : 'DL'}-${item.id}` : `${isProduct ? 'MP' : 'DL'}-${idx + 1}`;
+    const name = isProduct ? (item?.name || 'Untitled Item') : (item?.title || 'Untitled Deal');
+    const price = naira(isProduct ? (item?.price || 0) : (item?.value || 0));
+    const status = isProduct ? (item?.listed ? 'LISTED' : 'UNLISTED') : ((item?.status || 'PENDING').toString().toUpperCase());
 
     return `
       <tr class="border-b border-black hover:bg-gray-50 transition">
@@ -289,6 +363,41 @@ function renderTable(data) {
 
 function render() {
   renderTable(filterDealsForPage());
+}
+
+async function loadMarketItems() {
+  const tbody = document.getElementById('table-body');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
+  }
+
+  const res = await fetch('/api/admin/marketplace/items', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+  if (res.status === 401) {
+    window.location.href = '/login';
+    return;
+  }
+  if (!res.ok) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+    }
+    return;
+  }
+
+  marketItemsCache = await res.json();
+  render();
+}
+
+async function loadCurrentPageData() {
+  if (currentPage === 'Products') {
+    await loadMarketItems();
+    return;
+  }
+  if (currentPage === 'Orders') {
+    marketItemsCache = [];
+    render();
+    return;
+  }
+  await loadDeals();
 }
 
 async function loadDeals() {
@@ -317,8 +426,61 @@ function toggleNav(id) {
   document.getElementById(id)?.classList.toggle('hidden');
 }
 
+function openNewProductModal() {
+  document.getElementById('new-product-modal')?.classList.remove('hidden');
+  document.getElementById('new-product-modal')?.classList.add('flex');
+}
+
+function closeNewProductModal() {
+  document.getElementById('new-product-modal')?.classList.add('hidden');
+  document.getElementById('new-product-modal')?.classList.remove('flex');
+}
+
+async function submitNewProduct() {
+  const name = document.getElementById('mp-name')?.value?.trim() || '';
+  const price = document.getElementById('mp-price')?.value;
+  const oldPrice = document.getElementById('mp-old-price')?.value;
+  const description = document.getElementById('mp-description')?.value?.trim() || '';
+  const size = document.getElementById('mp-size')?.value?.trim() || 'small';
+  const listed = document.getElementById('mp-listed')?.checked ? 'true' : 'false';
+  const photo = document.getElementById('mp-photo')?.files?.[0] || null;
+
+  if (!name) {
+    showToast('Name is required', 'error');
+    return;
+  }
+  if (!price || Number(price) <= 0) {
+    showToast('Valid price is required', 'error');
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('price', String(price));
+  if (oldPrice && Number(oldPrice) > 0) fd.append('oldPrice', String(oldPrice));
+  if (description) fd.append('description', description);
+  fd.append('size', size);
+  fd.append('listed', listed);
+  if (photo) fd.append('photo', photo);
+
+  const res = await fetch('/api/admin/marketplace/items', {
+    method: 'POST',
+    body: fd,
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin'
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    showToast(payload?.message || `Request failed (${res.status})`, 'error');
+    return;
+  }
+
+  showToast('Marketplace item created', 'success');
+  closeNewProductModal();
+  await loadMarketItems();
+}
+
 // Initial Run
 document.addEventListener('DOMContentLoaded', () => {
   switchPage('Pending Approval');
-  loadDeals().catch(e => showToast(e.message || 'Failed to load', 'error'));
 });

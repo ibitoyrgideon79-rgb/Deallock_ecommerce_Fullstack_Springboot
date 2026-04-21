@@ -149,6 +149,7 @@
                         </div>
                     </div>
                     <button onclick="applyFilters()" class="bg-black text-white px-6 py-[14px] text-[10px] font-black uppercase mt-auto border border-black">Apply Filters</button>
+                    <button id="btn-new-product" onclick="openNewProductModal()" style="display:none" class="bg-white text-black px-6 py-[14px] text-[10px] font-black uppercase mt-auto border border-black hover:bg-black hover:text-white transition">New Product</button>
                 </div>
             </div>
         </div>
@@ -172,10 +173,41 @@
             </table>
         </div>
 
+        <!-- NEW MARKETPLACE PRODUCT MODAL -->
+        <div id="new-product-modal" class="hidden fixed inset-0 bg-black/70 items-center justify-center z-[200] p-4">
+            <div class="bg-white w-full max-w-2xl max-h-[92vh] overflow-auto border border-black">
+                <div class="p-6 border-b border-black flex justify-between items-center">
+                    <h2 class="text-xl font-black uppercase">New Marketplace Item</h2>
+                    <button onclick="closeNewProductModal()" class="text-3xl leading-none">&times;</button>
+                </div>
 
+                <div class="p-6 space-y-4">
+                    <input id="mp-name" type="text" placeholder="Item Name *" class="w-full border border-black p-3 text-[12px] font-bold uppercase outline-none">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input id="mp-price" type="number" placeholder="Price (NGN) *" class="border border-black p-3 text-[12px] font-bold uppercase outline-none">
+                        <input id="mp-old-price" type="number" placeholder="Old Price (Optional)" class="border border-black p-3 text-[12px] font-bold uppercase outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <select id="mp-size" class="border border-black p-3 text-[12px] font-bold uppercase outline-none bg-white">
+                            <option value="small" selected>Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="big">Big</option>
+                        </select>
+                        <input id="mp-photo" type="file" accept="image/*" class="border border-black p-3 text-[12px] font-bold uppercase outline-none bg-white">
+                    </div>
+                    <textarea id="mp-description" rows="4" placeholder="Description" class="w-full border border-black p-3 text-[12px] font-bold outline-none"></textarea>
+                    <label class="flex items-center gap-2 text-[11px] font-black uppercase">
+                        <input id="mp-listed" type="checkbox" checked>
+                        List immediately
+                    </label>
+                </div>
 
-
-
+                <div class="p-6 border-t border-black flex gap-3">
+                    <button onclick="closeNewProductModal()" class="flex-1 border border-black py-3 text-[11px] font-black uppercase hover:bg-gray-100">Cancel</button>
+                    <button onclick="submitNewProduct()" class="flex-1 bg-black text-white border border-black py-3 text-[11px] font-black uppercase hover:bg-gray-800">Create</button>
+                </div>
+            </div>
+        </div>
 
 </body>
 <script src="/frontend/js/addashboard.js"></script>

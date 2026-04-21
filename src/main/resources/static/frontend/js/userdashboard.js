@@ -212,9 +212,11 @@ async function submitNewDeal() {
   const sellerAddress = document.getElementById('seller-address')?.value?.trim() || '';
   const deliveryAddress = document.getElementById('delivery-address')?.value?.trim() || '';
   const itemSize = document.getElementById('item-size')?.value?.trim() || '';
+  const itemPhoto = document.getElementById('item-photo')?.files?.[0] || null;
   const value = document.getElementById('expected-value')?.value;
   const weeks = document.getElementById('weeks')?.value;
   const description = document.getElementById('description')?.value?.trim() || '';
+  const listingChoice = document.querySelector('input[name=\"listing\"]:checked')?.value || 'yes';
 
   let hasError = false;
   document.querySelectorAll('.error-text').forEach(el => (el.textContent = ''));
@@ -247,9 +249,11 @@ async function submitNewDeal() {
   fd.append('seller-address', sellerAddress || 'N/A');
   fd.append('delivery-address', deliveryAddress || 'N/A');
   fd.append('item-size', itemSize || 'small');
+  fd.append('listing', listingChoice);
   fd.append('weeks', String(weeks));
   fd.append('deal-value', String(value));
   if (description) fd.append('description', description);
+  if (itemPhoto) fd.append('itemPhoto', itemPhoto);
 
   let payload;
   try {

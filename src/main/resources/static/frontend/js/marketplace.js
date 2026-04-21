@@ -7,24 +7,7 @@
   setTimeout(() => t.remove(), 4500);
 }
 
-const products = [
-  { id: 1, name: '900ML Steel Flask', price: 11920, oldPrice: 14900, image: 'https://picsum.photos/seed/deallock-1/600/400' },
-  { id: 2, name: 'LED Coffee Mug', price: 6690, oldPrice: 13410, image: 'https://picsum.photos/seed/deallock-2/600/400' },
-  { id: 3, name: 'Vacuum Tumbler Pro', price: 8542, oldPrice: 20360, image: 'https://picsum.photos/seed/deallock-3/600/400' },
-  { id: 4, name: 'Electric Mixer', price: 4500, oldPrice: 9000, image: 'https://picsum.photos/seed/deallock-4/600/400' },
-  { id: 5, name: 'Wireless Speaker', price: 12500, oldPrice: 18900, image: 'https://picsum.photos/seed/deallock-5/600/400' },
-  { id: 6, name: 'Studio Headphones', price: 28500, oldPrice: 45000, image: 'https://picsum.photos/seed/deallock-6/600/400' },
-  { id: 7, name: 'Smart Fitness Watch', price: 18990, oldPrice: 29900, image: 'https://picsum.photos/seed/deallock-7/600/400' },
-  { id: 8, name: 'Desk Lamp White', price: 8950, oldPrice: 15900, image: 'https://picsum.photos/seed/deallock-8/600/400' },
-  { id: 9, name: 'Portable Cooler', price: 12400, oldPrice: 18500, image: 'https://picsum.photos/seed/deallock-9/600/400' },
-  { id: 10, name: 'Insulated Box', price: 6750, oldPrice: 12000, image: 'https://picsum.photos/seed/deallock-10/600/400' },
-  { id: 11, name: 'HD Web Camera', price: 16800, oldPrice: 25000, image: 'https://picsum.photos/seed/deallock-11/600/400' },
-  { id: 12, name: 'Hand Warmer USB', price: 4200, oldPrice: 7800, image: 'https://picsum.photos/seed/deallock-12/600/400' },
-  { id: 13, name: 'Travel Kettle', price: 9500, oldPrice: 14500, image: 'https://picsum.photos/seed/deallock-13/600/400' },
-  { id: 14, name: 'Power Bank Max', price: 12450, oldPrice: 19900, image: 'https://picsum.photos/seed/deallock-14/600/400' },
-  { id: 15, name: 'Ergo Office Chair', price: 42500, oldPrice: 68000, image: 'https://picsum.photos/seed/deallock-15/600/400' },
-  { id: 16, name: 'RGB Gaming Mouse', price: 6800, oldPrice: 12900, image: 'https://picsum.photos/seed/deallock-16/600/400' }
-];
+let products = [];
 
 let cart = JSON.parse(localStorage.getItem('bw_cart')) || [];
 let currentProduct = null;
@@ -39,11 +22,16 @@ function renderProducts() {
   const grid = document.getElementById('product-grid');
   if (!grid) return;
 
+  if (!products || products.length === 0) {
+    grid.innerHTML = `<div class="col-span-full p-10 text-center text-[10px] font-bold uppercase text-gray-400">No items yet</div>`;
+    return;
+  }
+
   grid.innerHTML = products
     .map(
       p => `
         <div onclick="showProductDetail(${p.id})" class="border border-black bg-white cursor-pointer group">
-          <img src="${p.image}" class="w-full h-40 object-cover border-b border-black" alt="${p.name}">
+          <img src="${p.image}" class="w-full ${imageHeightClass(p.size)} object-cover border-b border-black" alt="${p.name}">
           <div class="p-3">
             <h3 class="text-[10px] font-black uppercase mb-2">${p.name}</h3>
             <div class="flex justify-between items-center">
@@ -55,6 +43,33 @@ function renderProducts() {
       `
     )
     .join('');
+}
+
+function imageHeightClass(size) {
+  const v = (size || '').toString().toLowerCase();
+  if (v === 'big' || v === 'large') return 'h-48';
+  if (v === 'medium') return 'h-44';
+  return 'h-40';
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch('/api/marketplace/items', { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error(`Failed to load (${res.status})`);
+    const rows = await res.json();
+    products = (Array.isArray(rows) ? rows : []).map(r => ({
+      id: r.id,
+      name: r.name || 'Item',
+      price: Number(r.price || 0),
+      oldPrice: r.oldPrice != null ? Number(r.oldPrice) : null,
+      size: r.size || 'small',
+      image: r.imageUrl || '/frontend/images/logo.jpeg'
+    }));
+  } catch (e) {
+    products = [];
+    showToast(e?.message || 'Failed to load marketplace items', 'error');
+  }
+  renderProducts();
 }
 
 function renderCart() {
@@ -138,7 +153,10 @@ function showProductDetail(id) {
   if (img) img.src = currentProduct.image;
   if (title) title.textContent = currentProduct.name;
   if (price) price.textContent = formatPrice(currentProduct.price);
-  if (oldPrice) oldPrice.textContent = formatPrice(currentProduct.oldPrice);
+  if (oldPrice) {
+    oldPrice.textContent = currentProduct.oldPrice != null ? formatPrice(currentProduct.oldPrice) : '';
+    oldPrice.style.display = currentProduct.oldPrice != null ? 'inline' : 'none';
+  }
   if (modal) modal.classList.replace('hidden', 'flex');
 }
 
@@ -175,6 +193,6 @@ function proceedToCheckout() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderProducts();
+  loadProducts();
   handleDeliveryUI();
 });

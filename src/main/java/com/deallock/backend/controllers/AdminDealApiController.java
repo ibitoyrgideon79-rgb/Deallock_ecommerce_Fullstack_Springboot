@@ -1,12 +1,17 @@
 package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.Deal;
+import com.deallock.backend.entities.MarketplaceItem;
 import com.deallock.backend.repositories.DealRepository;
+import com.deallock.backend.repositories.MarketplaceItemRepository;
 import com.deallock.backend.services.DealCacheService;
 import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NotificationDispatchService;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,15 +27,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminDealApiController {
 
     private final DealRepository dealRepository;
+    private final MarketplaceItemRepository marketplaceItemRepository;
     private final NotificationDispatchService notifier;
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
 
+    @Value("${app.deals.payment-timeout:24h}")
+    private Duration paymentTimeout;
+
     public AdminDealApiController(DealRepository dealRepository,
+                                  MarketplaceItemRepository marketplaceItemRepository,
                                   NotificationDispatchService notifier,
                                   DealReadService dealReadService,
                                   DealCacheService dealCacheService) {
         this.dealRepository = dealRepository;
+        this.marketplaceItemRepository = marketplaceItemRepository;
         this.notifier = notifier;
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
@@ -349,6 +360,55 @@ public class AdminDealApiController {
         return ResponseEntity.ok(Map.of("message", "deleted"));
     }
 
+    @PostMapping("/{id}/list-on-marketplace")
+    public ResponseEntity<?> listOnMarketplace(@PathVariable("id") Long id, Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Deal deal = dealRepository.findById(id).orElse(null);
+        if (deal == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        boolean allowListing = deal.getAllowMarketplaceListing() == null || deal.getAllowMarketplaceListing();
+        if (!allowListing) {
+            return ResponseEntity.badRequest().body(Map.of("message", "User did not allow marketplace listing for this item"));
+        }
+
+        // "Expired unpaid" policy: approved + NOT_PAID + older than configured timeout.
+        String paymentStatus = deal.getPaymentStatus() == null ? "NOT_PAID" : deal.getPaymentStatus();
+        if (deal.getCreatedAt() == null
+                || deal.getStatus() == null
+                || !"Approved".equalsIgnoreCase(deal.getStatus())
+                || !"NOT_PAID".equalsIgnoreCase(paymentStatus)
+                || paymentTimeout == null
+                || !deal.getCreatedAt().isBefore(Instant.now().minus(paymentTimeout))) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Deal is not eligible (must be approved, unpaid, and expired)"));
+        }
+
+        if (marketplaceItemRepository.existsBySourceDealId(deal.getId())) {
+            return ResponseEntity.ok(Map.of("message", "already-listed"));
+        }
+
+        MarketplaceItem item = new MarketplaceItem();
+        item.setName(deal.getTitle() == null || deal.getTitle().isBlank() ? "Untitled Deal" : deal.getTitle().trim());
+        item.setDescription(deal.getDescription());
+        item.setPrice(deal.getValue() == null ? java.math.BigDecimal.ZERO : deal.getValue());
+        item.setOldPrice(null);
+        item.setSize(normalizeSize(deal.getItemSize()));
+        item.setListed(true);
+        item.setCreatedAt(Instant.now());
+        item.setSourceDealId(deal.getId());
+        if (deal.getItemPhoto() != null && deal.getItemPhoto().length > 0) {
+            item.setPhoto(deal.getItemPhoto());
+            item.setPhotoContentType(deal.getItemPhotoContentType());
+        }
+
+        marketplaceItemRepository.save(item);
+        return ResponseEntity.ok(Map.of("message", "listed", "marketplaceItemId", item.getId()));
+    }
+
     private boolean isAdmin(Authentication authentication) {
         return authentication != null && authentication.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
@@ -356,5 +416,15 @@ public class AdminDealApiController {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private String normalizeSize(String raw) {
+        String v = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        return switch (v) {
+            case "small", "s" -> "small";
+            case "medium", "m" -> "medium";
+            case "big", "large", "l" -> "big";
+            default -> "small";
+        };
     }
 }

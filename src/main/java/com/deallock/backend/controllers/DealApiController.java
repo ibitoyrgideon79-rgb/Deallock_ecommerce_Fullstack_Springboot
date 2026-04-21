@@ -83,6 +83,7 @@ public class DealApiController {
                                         @RequestParam("seller-address") String sellerAddress,
                                         @RequestParam("delivery-address") String deliveryAddress,
                                         @RequestParam("item-size") String itemSize,
+                                        @RequestParam(value = "listing", required = false) String listing,
                                         @RequestParam(value = "courier-partner", required = false) String courierPartner,
                                         @RequestParam("weeks") String weeksSelection,
                                         @RequestParam(value = "customWeeks", required = false) Integer customWeeks,
@@ -113,7 +114,8 @@ public class DealApiController {
         deal.setSellerPhoneNumber(sellerPhone);
         deal.setSellerAddress(sellerAddress);
         deal.setDeliveryAddress(deliveryAddress);
-        deal.setItemSize(itemSize);
+        deal.setItemSize(normalizeSize(itemSize));
+        deal.setAllowMarketplaceListing(!"no".equalsIgnoreCase(listing));
         deal.setCourierPartner(courierPartner == null || courierPartner.isBlank() ? "Auto-select" : courierPartner);
         deal.setInstallmentWeeks(weeks);
         deal.setValue(value);
@@ -187,6 +189,16 @@ public class DealApiController {
                 "logisticsFeeAmount", deal.getLogisticsFeeAmount(),
                 "totalAmount", deal.getTotalAmount()
         ));
+    }
+
+    private String normalizeSize(String raw) {
+        String v = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        return switch (v) {
+            case "small", "s" -> "small";
+            case "medium", "m" -> "medium";
+            case "big", "large", "l" -> "big";
+            default -> "small";
+        };
     }
 
     @GetMapping("/{id}/photo")

@@ -38,6 +38,14 @@ public class Deal {
     @Column(length = 1000)
     private String deliveryAddress;
     private String itemSize;
+
+    /**
+     * Whether the user allows DealLock to list this item on the marketplace
+     * (for example if the deal expires without payment).
+     *
+     * Nullable for backward compatibility with existing rows. Treat null as "allowed".
+     */
+    private Boolean allowMarketplaceListing;
     private String courierPartner;
     private Integer installmentWeeks;
     private BigDecimal value;

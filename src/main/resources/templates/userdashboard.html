@@ -305,7 +305,15 @@
 
       <input type="text" id="seller-address" placeholder="Seller's Address" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
       <input type="text" id="delivery-address" placeholder="Delivery Address" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
-      <input type="text" id="item-size" placeholder="Item Size" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+
+      <div class="grid grid-cols-2 gap-4">
+        <select id="item-size" class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
+          <option value="small" selected>Small</option>
+          <option value="medium">Medium</option>
+          <option value="big">Big</option>
+        </select>
+        <input type="file" id="item-photo" accept="image/*" class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
+      </div>
 
       <div>
         <input type="number" id="expected-value" oninput="calculatePaymentPlan()" placeholder="Expected Value (NGN)" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
