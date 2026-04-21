@@ -1,4 +1,4 @@
-﻿// User dashboard UI logic.
+// User dashboard UI logic.
 // Key point: always treat non-JSON responses as "not logged in" (Spring redirects to /login).
 
 function showToast(message, type) {
@@ -66,7 +66,7 @@ function showTab(tab) {
   }
 }
 
-let dealsCache = [];
+let dealsCache = Array.isArray(window.__DEALLOCK_DEALS__) ? window.__DEALLOCK_DEALS__ : [];
 let dealFilter = 'all'; // all | active | completed
 
 function dealUiStage(deal) {
@@ -109,6 +109,14 @@ async function loadDeals() {
       window.location.href = '/login';
       return;
     }
+
+    // If we have server-rendered/initial deals, keep showing them so filters still work.
+    if (Array.isArray(dealsCache) && dealsCache.length > 0) {
+      showToast(e?.message || 'Failed to refresh deals list.', 'error');
+      renderDealsTable();
+      return;
+    }
+
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-600">${escapeHtml(e?.message || 'Failed to load deals.')}</td></tr>`;
     }

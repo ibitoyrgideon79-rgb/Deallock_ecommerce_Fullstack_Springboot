@@ -2,8 +2,13 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.entities.Deal;
 import com.deallock.backend.services.NotificationService;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -83,7 +88,9 @@ public class PageController {
         model.addAttribute("currentUser", user);
         model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
         model.addAttribute("notificationCount", notificationService.countUnread(user));
-        model.addAttribute("deals", dealRepository.findByUserOrderByCreatedAtDesc(user));
+        var deals = dealRepository.findByUserOrderByCreatedAtDesc(user);
+        model.addAttribute("deals", deals);
+        model.addAttribute("dealsVm", toDealsVm(deals));
         return "userdashboard";
     }
 
@@ -96,7 +103,9 @@ public class PageController {
         model.addAttribute("currentUser", user);
         model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
         model.addAttribute("notificationCount", notificationService.countUnread(user));
-        model.addAttribute("deals", dealRepository.findByUserOrderByCreatedAtDesc(user));
+        var deals = dealRepository.findByUserOrderByCreatedAtDesc(user);
+        model.addAttribute("deals", deals);
+        model.addAttribute("dealsVm", toDealsVm(deals));
         return "userdashboard";
     }
 
@@ -186,7 +195,21 @@ public class PageController {
         return "deal-balance-pay";
     }
 
-    private UserCtx requireUser(Principal principal) {
+    
+    private List<Map<String, Object>> toDealsVm(List<Deal> deals) {
+        return deals.stream()
+                .map(d -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("id", d.getId());
+                    row.put("title", d.getTitle() == null ? "Untitled Deal" : d.getTitle());
+                    row.put("status", d.getStatus() == null ? "Pending Approval" : d.getStatus());
+                    row.put("value", d.getValue() == null ? 0 : d.getValue());
+                    row.put("deliveryConfirmedAt", d.getDeliveryConfirmedAt());
+                    return row;
+                })
+                .collect(Collectors.toList());
+    }
+private UserCtx requireUser(Principal principal) {
         if (principal == null) return null;
         var userOpt = userRepository.findByEmail(principal.getName());
         if (userOpt.isEmpty()) return null;

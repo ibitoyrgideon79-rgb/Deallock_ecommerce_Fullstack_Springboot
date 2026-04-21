@@ -247,18 +247,20 @@
         <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-8">
           <div>
             <label class="block text-sm font-medium mb-2">Full Name</label>
-            <input type="text" id="full-name" value="Tazer" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
-          </div>
-          <div class="grid grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium mb-2">Email Address</label>
-              <input type="email" id="email" value="tazer@example.com" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Phone Number</label>
-              <input type="tel" id="phone" value="+234 701 153 3736" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
-            </div>
-          </div>
+    <label class="block text-sm font-medium mb-2">Full Name</label>
+    <input type="text" id="full-name" th:value="${currentUser.fullName}" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+</div>
+<div class="grid grid-cols-2 gap-6">
+    <div>
+        <label class="block text-sm font-medium mb-2">Email Address</label>
+        <input type="email" id="email" th:value="${currentUser.email}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+    </div>
+    <div>
+        <label class="block text-sm font-medium mb-2">Phone Number</label>
+        <input type="tel" id="phone" th:value="${currentUser.phoneNumber}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+    </div>
+</div>
           <div>
             <label class="block text-sm font-medium mb-3">Delivery Addresses</label>
             <div id="address-list" class="space-y-3 text-sm"></div>
@@ -467,6 +469,12 @@
 
 
   <script src="/frontend/js/home.js" defer></script>
+  <script th:inline="javascript">
+  /*<![CDATA[*/
+    window.__DEALLOCK_DEALS__ = [[${dealsVm}]];
+  /*]]>*/
+  </script>
+
   <script src="/frontend/js/userdashboard.js" defer></script>
 </body>
 </html>
