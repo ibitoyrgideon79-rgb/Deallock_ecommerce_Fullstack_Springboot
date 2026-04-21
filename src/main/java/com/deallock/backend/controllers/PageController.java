@@ -1,4 +1,4 @@
-package com.deallock.backend.controllers;
+﻿package com.deallock.backend.controllers;
 
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
@@ -50,7 +50,7 @@ public class PageController {
 
     @GetMapping("/marketplace")
     public String marketplace() {
-        return "forward:/frontend/pages/marketplace.html";
+        return "marketplace";
     }
 
     // Legacy static links -> clean routes
@@ -74,10 +74,10 @@ public class PageController {
         return "redirect:/ourteam";
     }
 
-    @GetMapping("/frontend/pages/marketplace.html")
-    public String marketplaceLegacy() {
-        return "redirect:/marketplace";
-    }
+    //@GetMapping("/frontend/pages/marketplace.html")
+    //public String marketplaceLegacy() {
+        //return "redirect:/marketplace";
+    //}
 
     @GetMapping("/ai-agent")
     public String aiAgent(Model model, Principal principal) {
