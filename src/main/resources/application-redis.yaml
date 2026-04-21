@@ -1,0 +1,30 @@
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+
+  # Use Redis for Spring's @Cacheable caches
+  cache:
+    type: redis
+    redis:
+      # Default TTL for caches (we override specific cache TTLs in CacheConfig)
+      time-to-live: 10m
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "deallock:cache:"
+
+  # Use Redis for HTTP sessions so logged-in users remain logged in across app restarts / multiple instances
+  session:
+    store-type: redis
+    redis:
+      namespace: "deallock:sessions"
+
+server:
+  servlet:
+    session:
+      # How long the user stays logged in without activity
+      timeout: 7d
+

@@ -2,12 +2,11 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
+import com.deallock.backend.services.DealCacheService;
+import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NotificationDispatchService;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,11 +23,17 @@ public class AdminDealApiController {
 
     private final DealRepository dealRepository;
     private final NotificationDispatchService notifier;
+    private final DealReadService dealReadService;
+    private final DealCacheService dealCacheService;
 
     public AdminDealApiController(DealRepository dealRepository,
-                                  NotificationDispatchService notifier) {
+                                  NotificationDispatchService notifier,
+                                  DealReadService dealReadService,
+                                  DealCacheService dealCacheService) {
         this.dealRepository = dealRepository;
         this.notifier = notifier;
+        this.dealReadService = dealReadService;
+        this.dealCacheService = dealCacheService;
     }
 
     @GetMapping
@@ -36,28 +41,7 @@ public class AdminDealApiController {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        List<Map<String, Object>> deals = dealRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(d -> {
-                    Map<String, Object> row = new HashMap<>();
-                    row.put("id", d.getId());
-                    row.put("title", d.getTitle() == null ? "Untitled Deal" : d.getTitle());
-                    row.put("status", d.getStatus() == null ? "Pending Approval" : d.getStatus());
-                    row.put("value", d.getValue() == null ? 0 : d.getValue());
-                    row.put("paymentStatus", d.getPaymentStatus() == null ? "NOT_PAID" : d.getPaymentStatus());
-                    row.put("secured", d.isSecured());
-                    row.put("balancePaymentStatus", d.getBalancePaymentStatus() == null ? "NOT_PAID" : d.getBalancePaymentStatus());
-                    row.put("deliveryInitiatedAt", d.getDeliveryInitiatedAt());
-                    row.put("deliveryConfirmedByUser", d.isDeliveryConfirmedByUser());
-                    row.put("deliveryConfirmedAt", d.getDeliveryConfirmedAt());
-                    row.put("createdAt", d.getCreatedAt());
-                    row.put("userEmail", d.getUser() == null ? null : d.getUser().getEmail());
-                    row.put("rejectionReason", d.getRejectionReason());
-                    return row;
-                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(deals);
+        return ResponseEntity.ok(dealReadService.listAllDealsForAdmin());
     }
 
     @PostMapping("/{id}/approve")
@@ -74,6 +58,10 @@ public class AdminDealApiController {
         deal.setStatus("Approved");
         deal.setRejectionReason(null);
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Your deal was approved. Please proceed to payment.",
@@ -114,6 +102,10 @@ public class AdminDealApiController {
         deal.setStatus("Rejected");
         deal.setRejectionReason(reason);
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
@@ -146,6 +138,10 @@ public class AdminDealApiController {
 
         deal.setPaymentStatus("PAID_CONFIRMED");
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Payment confirmed for your deal.",
@@ -178,6 +174,10 @@ public class AdminDealApiController {
 
         deal.setPaymentStatus("NOT_PAID");
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         return ResponseEntity.ok(Map.of("message", "payment-not-received"));
     }
@@ -202,6 +202,10 @@ public class AdminDealApiController {
         deal.setSecured(true);
         deal.setSecuredAt(Instant.now());
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Deal secured: " + safe(deal.getTitle()),
@@ -234,6 +238,10 @@ public class AdminDealApiController {
 
         deal.setBalancePaymentStatus("PAID_CONFIRMED");
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Balance payment confirmed for your deal.",
@@ -266,6 +274,10 @@ public class AdminDealApiController {
 
         deal.setDeliveryInitiatedAt(Instant.now());
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Delivery initiated for your deal.",
@@ -298,6 +310,10 @@ public class AdminDealApiController {
 
         deal.setDeliveryConfirmedAt(Instant.now());
         dealRepository.save(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
 
         notifier.notifyUser(deal.getUser(),
                 "Delivery confirmed by admin.",
@@ -326,6 +342,10 @@ public class AdminDealApiController {
         }
 
         dealRepository.delete(deal);
+        dealCacheService.evictAdminDeals();
+        if (deal.getUser() != null) {
+            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        }
         return ResponseEntity.ok(Map.of("message", "deleted"));
     }
 

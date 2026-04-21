@@ -3,6 +3,8 @@ package com.deallock.backend.controllers;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.services.DealCacheService;
+import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.SmsService;
 import java.math.BigDecimal;
@@ -39,6 +41,8 @@ public class DealApiController {
     private final UserRepository userRepository;
     private final SmsService smsService;
     private final NotificationDispatchService notifier;
+    private final DealReadService dealReadService;
+    private final DealCacheService dealCacheService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -46,11 +50,15 @@ public class DealApiController {
     public DealApiController(DealRepository dealRepository,
                              UserRepository userRepository,
                              SmsService smsService,
-                             NotificationDispatchService notifier) {
+                             NotificationDispatchService notifier,
+                             DealReadService dealReadService,
+                             DealCacheService dealCacheService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.smsService = smsService;
         this.notifier = notifier;
+        this.dealReadService = dealReadService;
+        this.dealCacheService = dealCacheService;
     }
 
     @GetMapping
@@ -58,32 +66,13 @@ public class DealApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var user = userRepository.findByEmail(principal.getName());
+        var email = principal.getName();
+        var user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<Map<String, Object>> deals = dealRepository.findByUserOrderByCreatedAtDesc(user.get()).stream()
-                .map(d -> {
-                    Map<String, Object> row = new HashMap<>();
-                    row.put("id", d.getId());
-                    row.put("title", d.getTitle() == null ? "Untitled Deal" : d.getTitle());
-                    row.put("status", d.getStatus() == null ? "Pending Approval" : d.getStatus());
-                    row.put("value", d.getValue() == null ? 0 : d.getValue());
-                    row.put("paymentStatus", d.getPaymentStatus() == null ? "NOT_PAID" : d.getPaymentStatus());
-                    row.put("rejectionReason", d.getRejectionReason());
-                    row.put("secured", d.isSecured());
-                    row.put("balancePaymentStatus", d.getBalancePaymentStatus() == null ? "NOT_PAID" : d.getBalancePaymentStatus());
-                    row.put("deliveryInitiatedAt", d.getDeliveryInitiatedAt());
-                    row.put("deliveryConfirmedByUser", d.isDeliveryConfirmedByUser());
-                    row.put("deliveryConfirmedAt", d.getDeliveryConfirmedAt());
-                    row.put("feedback", d.getFeedback());
-                    row.put("createdAt", d.getCreatedAt());
-                    return row;
-                })
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(deals);
+        return ResponseEntity.ok(dealReadService.listDealsForUserEmail(email));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -163,6 +152,8 @@ public class DealApiController {
         }
 
         dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
         CompletableFuture.runAsync(() -> {
             try {
                 notifyAdminsAndUserOnCreate(deal);
@@ -336,6 +327,8 @@ public class DealApiController {
 
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
         dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
         return ResponseEntity.ok(Map.of("message", "Payment marked as processing"));
     }
 
@@ -387,6 +380,8 @@ public class DealApiController {
         }
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
         dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
         notifier.notifyUser(deal.getUser(),
                 "Payment proof received. We are verifying your payment.",
                 "Payment Proof Received",
@@ -445,6 +440,8 @@ public class DealApiController {
         }
         deal.setBalancePaymentStatus("PAID_PENDING_CONFIRMATION");
         dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
 
         notifier.notifyUser(deal.getUser(),
                 "Balance payment proof received. We are verifying your payment.",
@@ -522,6 +519,8 @@ public class DealApiController {
 
         deal.setDeliveryConfirmedByUser(true);
         dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
 
         notifier.notifyUser(deal.getUser(),
                 "Delivery confirmed. Thank you!",
@@ -572,6 +571,8 @@ public class DealApiController {
         deal.setFeedback(trimmed);
         deal.setFeedbackSubmittedAt(Instant.now());
         dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
         notifier.notifyAdmins(
                 "New feedback submitted: " + safe(deal.getTitle()),
                 "Deal Feedback",
