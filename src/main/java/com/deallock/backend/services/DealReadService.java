@@ -20,16 +20,19 @@ public class DealReadService {
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
     private final MarketplaceItemRepository marketplaceItemRepository;
+    private final MarketplaceLockPolicy lockPolicy;
 
     @Value("${app.deals.payment-timeout:24h}")
     private Duration paymentTimeout;
 
     public DealReadService(DealRepository dealRepository,
                            UserRepository userRepository,
-                           MarketplaceItemRepository marketplaceItemRepository) {
+                           MarketplaceItemRepository marketplaceItemRepository,
+                           MarketplaceLockPolicy lockPolicy) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.marketplaceItemRepository = marketplaceItemRepository;
+        this.lockPolicy = lockPolicy;
     }
 
     @Cacheable(cacheNames = "userDeals", key = "#email")
@@ -38,6 +41,7 @@ public class DealReadService {
         if (userOpt.isEmpty()) {
             return List.of();
         }
+        Instant now = Instant.now();
 
         return dealRepository.findByUserOrderByCreatedAtDesc(userOpt.get()).stream()
                 .map(d -> {
@@ -49,6 +53,9 @@ public class DealReadService {
                     row.put("paymentStatus", d.getPaymentStatus() == null ? "NOT_PAID" : d.getPaymentStatus());
                     row.put("rejectionReason", d.getRejectionReason());
                     row.put("secured", d.isSecured());
+                    row.put("securedAt", d.getSecuredAt());
+                    row.put("lockedUntil", lockPolicy.lockedUntil(d.getSecuredAt()));
+                    row.put("isLocked", lockPolicy.isStillLocked(d.getSecuredAt(), now));
                     row.put("balancePaymentStatus", d.getBalancePaymentStatus() == null ? "NOT_PAID" : d.getBalancePaymentStatus());
                     row.put("deliveryInitiatedAt", d.getDeliveryInitiatedAt());
                     row.put("deliveryConfirmedByUser", d.isDeliveryConfirmedByUser());
@@ -80,6 +87,9 @@ public class DealReadService {
                     row.put("value", d.getValue() == null ? 0 : d.getValue());
                     row.put("paymentStatus", d.getPaymentStatus() == null ? "NOT_PAID" : d.getPaymentStatus());
                     row.put("secured", d.isSecured());
+                    row.put("securedAt", d.getSecuredAt());
+                    row.put("lockedUntil", lockPolicy.lockedUntil(d.getSecuredAt()));
+                    row.put("isLocked", lockPolicy.isStillLocked(d.getSecuredAt(), now));
                     row.put("balancePaymentStatus", d.getBalancePaymentStatus() == null ? "NOT_PAID" : d.getBalancePaymentStatus());
                     row.put("deliveryInitiatedAt", d.getDeliveryInitiatedAt());
                     row.put("deliveryConfirmedByUser", d.isDeliveryConfirmedByUser());

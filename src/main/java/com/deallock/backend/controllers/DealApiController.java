@@ -84,6 +84,7 @@ public class DealApiController {
                                         @RequestParam("delivery-address") String deliveryAddress,
                                         @RequestParam("item-size") String itemSize,
                                         @RequestParam(value = "listing", required = false) String listing,
+                                        @RequestParam(value = "allowMarketplaceListing", required = false) Boolean allowMarketplaceListing,
                                         @RequestParam(value = "courier-partner", required = false) String courierPartner,
                                         @RequestParam("weeks") String weeksSelection,
                                         @RequestParam(value = "customWeeks", required = false) Integer customWeeks,
@@ -115,7 +116,14 @@ public class DealApiController {
         deal.setSellerAddress(sellerAddress);
         deal.setDeliveryAddress(deliveryAddress);
         deal.setItemSize(normalizeSize(itemSize));
-        deal.setAllowMarketplaceListing(!"no".equalsIgnoreCase(listing));
+        Boolean allow = allowMarketplaceListing;
+        if (allow == null) {
+            String v = listing == null ? "" : listing.trim().toLowerCase(Locale.ROOT);
+            if (v.isBlank()) allow = Boolean.TRUE;
+            else if (v.equals("no") || v.equals("false") || v.equals("0")) allow = Boolean.FALSE;
+            else allow = Boolean.TRUE;
+        }
+        deal.setAllowMarketplaceListing(allow);
         deal.setCourierPartner(courierPartner == null || courierPartner.isBlank() ? "Auto-select" : courierPartner);
         deal.setInstallmentWeeks(weeks);
         deal.setValue(value);
@@ -288,6 +296,8 @@ public class DealApiController {
         }
 
         dealRepository.deleteById(id);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
         String actor = isAdmin ? "admin" : "user";
         notifier.notifyAdmins(
                 "Deal canceled by " + actor + ": " + safe(deal.getTitle()),

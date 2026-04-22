@@ -1,9 +1,10 @@
-﻿package com.deallock.backend.controllers;
+package com.deallock.backend.controllers;
 
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.services.NotificationService;
+import com.deallock.backend.services.MarketplaceLockPolicy;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -19,13 +20,16 @@ public class PageController {
     private final UserRepository userRepository;
     private final DealRepository dealRepository;
     private final NotificationService notificationService;
+    private final MarketplaceLockPolicy lockPolicy;
 
     public PageController(UserRepository userRepository,
                           DealRepository dealRepository,
-                          NotificationService notificationService) {
+                          NotificationService notificationService,
+                          MarketplaceLockPolicy lockPolicy) {
         this.userRepository = userRepository;
         this.dealRepository = dealRepository;
         this.notificationService = notificationService;
+        this.lockPolicy = lockPolicy;
     }
 
     @GetMapping("/login")
@@ -205,6 +209,9 @@ public class PageController {
                     row.put("status", d.getStatus() == null ? "Pending Approval" : d.getStatus());
                     row.put("value", d.getValue() == null ? 0 : d.getValue());
                     row.put("deliveryConfirmedAt", d.getDeliveryConfirmedAt());
+                    row.put("securedAt", d.getSecuredAt());
+                    row.put("lockedUntil", lockPolicy.lockedUntil(d.getSecuredAt()));
+                    row.put("allowMarketplaceListing", d.getAllowMarketplaceListing() == null ? Boolean.TRUE : d.getAllowMarketplaceListing());
                     return row;
                 })
                 .collect(Collectors.toList());

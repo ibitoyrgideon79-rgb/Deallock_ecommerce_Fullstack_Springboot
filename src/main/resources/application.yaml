@@ -33,6 +33,8 @@ server:
 app:
   base-url: http://localhost:8080
   admin-emails: ""
+  marketplace:
+    lock-days: 7
   deals:
     # If a deal is approved but the user doesn't pay within this time, it becomes "expired unpaid"
     # and can optionally be listed on the marketplace by admins (if the user allowed listing).

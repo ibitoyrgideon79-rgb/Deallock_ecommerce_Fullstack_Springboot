@@ -28,7 +28,7 @@ public class LegacyPagesController {
 
     @GetMapping("/pages/marketplace.html")
     public String marketplaceHtml() {
-        return "forward:/frontend/pages/marketplace.html";
+        return "redirect:/marketplace";
     }
 
     @GetMapping("/pages/contactus.html")

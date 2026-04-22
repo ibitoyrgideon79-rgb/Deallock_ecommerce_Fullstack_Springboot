@@ -75,6 +75,12 @@ This project currently uses two important runtime modes:
   - SMTP and Termii settings are expected through environment variables
   - Cookie and proxy settings are stricter
 
+## Frontend integration notes
+
+If you're working on the frontend (Marketplace + dashboards), see:
+
+- `docs/frontend-integration.md`
+
 ## Prerequisites
 
 - JDK 25 installed
