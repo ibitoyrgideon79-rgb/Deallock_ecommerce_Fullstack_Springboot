@@ -149,20 +149,55 @@ function showProductDetail(id) {
   const price = document.getElementById('modal-price');
   const oldPrice = document.getElementById('modal-old-price');
   const modal = document.getElementById('product-modal');
+  
+  // NEW: Get the description container and thumbnail wrapper
+  const description = document.getElementById('modal-description');
+  const thumbContainer = document.getElementById('modal-thumbnails');
 
+  // Set basic details
   if (img) img.src = currentProduct.image;
   if (title) title.textContent = currentProduct.name;
   if (price) price.textContent = formatPrice(currentProduct.price);
+  
+  // Handle old price visibility
   if (oldPrice) {
     oldPrice.textContent = currentProduct.oldPrice != null ? formatPrice(currentProduct.oldPrice) : '';
     oldPrice.style.display = currentProduct.oldPrice != null ? 'inline' : 'none';
   }
-  if (modal) modal.classList.replace('hidden', 'flex');
+
+  // 1. FETCHED DESCRIPTION: Use innerHTML to render fetched admin content
+  if (description) {
+    description.innerHTML = currentProduct.descriptionHTML || '<p>No details available.</p>';
+  }
+
+  // 2. THUMBNAILS: Generate 3 clickable images
+  if (thumbContainer && currentProduct.images) {
+    thumbContainer.innerHTML = ''; // Clear old thumbs
+    // Assuming currentProduct.images is an array of 3+ strings
+    currentProduct.images.slice(0, 3).forEach((src) => {
+      const thumb = document.createElement('img');
+      thumb.src = src;
+      thumb.className = "w-20 h-20 object-cover border border-black cursor-pointer hover:opacity-70 transition-opacity";
+      // Update main image on click
+      thumb.onclick = () => { if (img) img.src = src; };
+      thumbContainer.appendChild(thumb);
+    });
+  }
+
+  if (modal) {
+    modal.classList.replace('hidden', 'flex');
+    document.body.style.overflow = 'hidden'; // 3. MOBILE: Disable background scroll
+  }
 }
 
 function closeProductModal() {
-  document.getElementById('product-modal')?.classList.replace('flex', 'hidden');
+  const modal = document.getElementById('product-modal');
+  if (modal) {
+    modal.classList.replace('flex', 'hidden');
+    document.body.style.overflow = ''; // Restore scroll
+  }
 }
+
 
 function addCurrentProductToCart() {
   if (!currentProduct) return;

@@ -173,31 +173,51 @@
     </section>
 
     <!-- PRODUCT DETAIL MODAL -->
-    <div id="product-modal" class="hidden fixed inset-0 bg-black/90 items-center justify-center z-50">
-        <div class="bg-white w-full max-w-5xl h-full md:h-auto overflow-y-auto border border-black relative">
-            <button onclick="closeProductModal()" class="absolute top-4 right-6 text-4xl">&times;</button>
-            <div class="grid grid-cols-1 md:grid-cols-2">
-                <div class="p-8 border-r border-black flex items-center justify-center">
-                    <img id="modal-main-image" class="w-full max-h-[400px] object-contain" src="">
+    <div id="product-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 md:p-8">
+    <!-- Modal Container: Added 'max-h-full' and 'overflow-y-auto' for scrollability -->
+    <div class="bg-white w-full max-w-5xl max-h-full overflow-y-auto border border-black relative">
+        
+        <!-- Close Button -->
+        <button onclick="closeProductModal()" class="absolute top-4 right-6 text-4xl z-10 hover:text-emerald-600 transition-colors">&times;</button>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2">
+            <!-- Left Side: Images -->
+            <div class="p-8 border-b md:border-b-0 md:border-r border-black flex flex-col items-center justify-center gap-6">
+                <!-- Main Image: Specific Size (400px) -->
+                <div class="w-full h-[400px] flex items-center justify-center bg-gray-50">
+                    <img id="modal-main-image" class="max-w-full max-h-full object-contain" src="">
                 </div>
-                <div class="p-8">
-                    <h2 id="modal-title" class="text-2xl font-black uppercase italic mb-4"></h2>
-                    <div class="flex items-baseline gap-4 mb-6">
-                        <span id="modal-price" class="text-4xl font-black"></span>
-                        <span id="modal-old-price" class="text-gray-400 line-through text-sm"></span>
-                    </div>
-                    <button onclick="addCurrentProductToCart()" class="w-full bg-black text-white py-5 font-black uppercase tracking-widest">Add to Cart</button>
+                
+                <!-- Thumbnails: 3 small clickable images -->
+                <div id="modal-thumbnails" class="flex gap-4">
+                    <!-- Thumbnails injected by JS -->
                 </div>
             </div>
-            <div class="p-8 border-t border-black bg-gray-50">
-                <h3 class="text-sm font-black uppercase mb-6">Product details</h3>
-                <div class="text-xs leading-loose text-gray-700 space-y-4">
-                    <p><strong>Double-walled Can maintain</strong> the temperature of water, and the coldness of iced coffee and iced drinks. 900ML large capacity, designed to fit perfectly in a car cup holder.</p>
-                    <p>Durable cup body coated with a layer that is not easy to fade or crack. The flip straw has a leak-proof design.</p>
+
+            <!-- Right Side: Product Info -->
+            <div class="p-8 flex flex-col justify-center">
+                <h2 id="modal-title" class="text-2xl font-black uppercase italic mb-4"></h2>
+                <div class="flex items-baseline gap-4 mb-6">
+                    <span id="modal-price" class="text-4xl font-black"></span>
+                    <span id="modal-old-price" class="text-gray-400 line-through text-sm"></span>
                 </div>
+                <button onclick="addCurrentProductToCart()" class="w-full bg-black text-white py-5 font-black uppercase tracking-widest hover:bg-emerald-600 transition-colors">
+                    Add to Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- Dynamic Description Section -->
+        <div class="p-8 border-t border-black bg-gray-50">
+            <h3 class="text-sm font-black uppercase mb-6">Product details</h3>
+            <!-- This ID is used to inject dynamic HTML from your admin/database -->
+            <div id="modal-description" class="text-xs leading-loose text-gray-700 space-y-4">
+                <!-- Content fetched from admin side goes here -->
             </div>
         </div>
     </div>
+</div>
+
 
 <!-- Footer -->   
 <footer class="bg-white border-t border-gray-200 text-gray-600">
