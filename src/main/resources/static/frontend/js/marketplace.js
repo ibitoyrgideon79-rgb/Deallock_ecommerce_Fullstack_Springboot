@@ -31,7 +31,7 @@ function renderProducts() {
     .map(
       p => `
         <div onclick="showProductDetail(${p.id})" class="border border-black bg-white cursor-pointer group">
-          <img src="${p.image}" class="w-full ${imageHeightClass(p.size)} object-cover border-b border-black" alt="${p.name}">
+          <img src="${p.image}" class="w-full h-48 object-cover border-b border-black" alt="${p.name}">
           <div class="p-3">
             <h3 class="text-[10px] font-black uppercase mb-2">${p.name}</h3>
             <div class="flex justify-between items-center">
