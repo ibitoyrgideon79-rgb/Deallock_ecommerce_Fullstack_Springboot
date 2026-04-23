@@ -90,9 +90,11 @@
   </nav>
 </header>
 
+<div class="flex h-[calc(100vh-80px)]">
 
     <!-- LEFT SIDE: Navigation Sidebar -->
-    <aside class="w-64 h-full bg-white flex flex-col border-r border-black">
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white flex flex-col border-r border-black transform -translate-x-full transition-transform duration-300 z-50 md:translate-x-0 md:static">
+        <div id="overlay" class="fixed inset-0 bg-black/50 hidden z-40 md:hidden"></div>
         <div class="p-6 border-b border-black">
             <h2 class="text-[10px] font-black uppercase tracking-[0.2em]">Navigation</h2>
         </div>
@@ -226,9 +228,26 @@
                 </div>
             </div>
         </div>
+        </main>
+    </div>
 
 </body>
 <script src="/frontend/js/addashboard.js"></script>
+<script>
+  const menuToggle = document.getElementById('menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+  });
+
+  overlay.addEventListener('click', () => {
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+  });
+</script>
 </html>
 
 
