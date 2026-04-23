@@ -1,9 +1,10 @@
 package com.deallock.backend.services;
 
+import jakarta.mail.internet.InternetAddress;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,7 +12,10 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     @Value("${SMTP_FROM:no-reply@deallock.ng}")
-    private String smtpFrom;
+    private String smtpFromEmail;
+
+    @Value("${SMTP_FROM_NAME:DealLock}")
+    private String smtpFromName;
 
     public EmailService(@Nullable JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -23,11 +27,12 @@ public class EmailService {
             return;
         }
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(smtpFrom);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(text);
+            var message = mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, false);
+            helper.setFrom(new InternetAddress(smtpFromEmail, smtpFromName).toString());
             mailSender.send(message);
         } catch (Exception ex) {
             System.out.println("[WARN] SMTP send failed: " + ex.getMessage());
