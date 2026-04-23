@@ -5,6 +5,7 @@ import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.DealCacheService;
 import com.deallock.backend.services.DealReadService;
+import com.deallock.backend.services.NewsletterService;
 import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.SmsService;
 import java.math.BigDecimal;
@@ -43,6 +44,7 @@ public class DealApiController {
     private final NotificationDispatchService notifier;
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
+    private final NewsletterService newsletterService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -52,13 +54,15 @@ public class DealApiController {
                              SmsService smsService,
                              NotificationDispatchService notifier,
                              DealReadService dealReadService,
-                             DealCacheService dealCacheService) {
+                             DealCacheService dealCacheService,
+                             NewsletterService newsletterService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.smsService = smsService;
         this.notifier = notifier;
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
+        this.newsletterService = newsletterService;
     }
 
     @GetMapping
@@ -89,6 +93,7 @@ public class DealApiController {
                                         @RequestParam("weeks") String weeksSelection,
                                         @RequestParam(value = "customWeeks", required = false) Integer customWeeks,
                                         @RequestParam("deal-value") BigDecimal value,
+                                        @RequestParam(value = "subscribeUpdates", required = false) Boolean subscribeUpdates,
                                         @RequestParam(value = "description", required = false) String description,
                                         // Backwards compatible: older UI sends a single `itemPhoto`.
                                         @RequestParam(value = "itemPhoto", required = false) MultipartFile itemPhoto,
@@ -189,6 +194,16 @@ public class DealApiController {
         dealCacheService.evictUserDeals(principal.getName());
         dealCacheService.evictAdminDeals();
         CompletableFuture.runAsync(() -> {
+            try {
+                if (Boolean.TRUE.equals(subscribeUpdates) && userOpt.get().getEmail() != null) {
+                    newsletterService.subscribe(
+                            userOpt.get().getEmail(),
+                            userOpt.get().getFullName(),
+                            "deal-submit"
+                    );
+                }
+            } catch (Exception ignored) {
+            }
             try {
                 notifyAdminsAndUserOnCreate(deal);
             } catch (Exception ignored) {

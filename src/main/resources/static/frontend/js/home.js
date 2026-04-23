@@ -93,18 +93,68 @@ if (mobileMenuBtn && mobileMenu) {
 
   const newsletterForm = document.getElementById('newsletter-form');
   if (newsletterForm) {
-    newsletterForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('newsletter-email');
-      if (email && email.value.trim()) {
-        email.value = '';
-      }
-    });
+    newsletterForm.addEventListener('submit', window.handleSubscribe);
   }
 
  
 
 });
+
+function newsletterToast(message, ok) {
+  const t = document.createElement('div');
+  t.className = `fixed bottom-6 right-6 z-[9999] text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[320px] ${
+    ok ? 'bg-emerald-600' : 'bg-red-600'
+  }`;
+  t.textContent = message;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
+
+window.handleSubscribe = async function handleSubscribe(e) {
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+  const form = document.getElementById('newsletter-form');
+  const emailInput = document.getElementById('newsletter-email');
+  const email = emailInput?.value?.trim() || '';
+  if (!email) {
+    newsletterToast('Enter your email address first.', false);
+    return false;
+  }
+
+  const btn = form?.querySelector('button[type="submit"]');
+  const prevText = btn ? btn.textContent : null;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Subscribing...';
+  }
+
+  try {
+    const payload = {
+      email,
+      source: window.location.pathname || 'website'
+    };
+    const res = await fetch('/api/newsletter/subscribe', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.message || `Request failed (${res.status})`);
+
+    newsletterToast(body?.message || 'Subscribed successfully.', true);
+    if (emailInput) emailInput.value = '';
+    return false;
+  } catch (err) {
+    newsletterToast(err?.message || 'Subscription failed. Please try again.', false);
+    return false;
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = prevText || 'SUBSCRIBE';
+    }
+  }
+};
 
  const steps = {
     1: { 

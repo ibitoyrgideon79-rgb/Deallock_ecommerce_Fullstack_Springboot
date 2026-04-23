@@ -4,6 +4,7 @@ import com.deallock.backend.entities.MarketplaceItem;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,7 +167,11 @@ public class AdminMarketplaceApiController {
         String img2 = (item.getPhoto2() == null || item.getPhoto2().length == 0) ? null : (base + "/2");
         String img3 = (item.getPhoto3() == null || item.getPhoto3().length == 0) ? null : (base + "/3");
         row.put("imageUrl", img1);
-        row.put("imageUrls", List.of(img1, img2, img3).stream().filter(u -> u != null && !u.isBlank()).toList());
+        List<String> imageUrls = new ArrayList<>();
+        if (img1 != null && !img1.isBlank()) imageUrls.add(img1);
+        if (img2 != null && !img2.isBlank()) imageUrls.add(img2);
+        if (img3 != null && !img3.isBlank()) imageUrls.add(img3);
+        row.put("imageUrls", imageUrls);
         return row;
     }
 }
