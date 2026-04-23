@@ -404,6 +404,14 @@ public class AdminDealApiController {
             item.setPhoto(deal.getItemPhoto());
             item.setPhotoContentType(deal.getItemPhotoContentType());
         }
+        if (deal.getItemPhoto2() != null && deal.getItemPhoto2().length > 0) {
+            item.setPhoto2(deal.getItemPhoto2());
+            item.setPhoto2ContentType(deal.getItemPhoto2ContentType());
+        }
+        if (deal.getItemPhoto3() != null && deal.getItemPhoto3().length > 0) {
+            item.setPhoto3(deal.getItemPhoto3());
+            item.setPhoto3ContentType(deal.getItemPhoto3ContentType());
+        }
 
         marketplaceItemRepository.save(item);
         return ResponseEntity.ok(Map.of("message", "listed", "marketplaceItemId", item.getId()));

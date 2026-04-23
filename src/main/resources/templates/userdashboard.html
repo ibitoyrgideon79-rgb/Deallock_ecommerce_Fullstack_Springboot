@@ -312,7 +312,7 @@
           <option value="medium">Medium</option>
           <option value="big">Big</option>
         </select>
-        <input type="file" id="item-photo" accept="image/*" class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
+        <input type="file" id="item-photo" accept="image/*" multiple class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
       </div>
 
       <div>
@@ -329,7 +329,7 @@
       </div>
 
       <!-- Payment Plan -->
-      <div class="bg-gray-50 p-6 rounded-2xl">
+      <div id="payment-plan" class="bg-gray-50 p-6 rounded-2xl hidden">
         <h3 class="font-medium mb-4">Payment Plan</h3>
         <div class="space-y-3 text-sm">
           <div class="flex justify-between"><span>Item Value (NGN)</span><span id="plan-item-value">&#8358; 0.00</span></div>

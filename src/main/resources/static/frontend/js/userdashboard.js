@@ -186,6 +186,17 @@ function closeNewDealModal() {
 function calculatePaymentPlan() {
   const value = parseFloat(document.getElementById('expected-value')?.value) || 0;
   const weeks = parseInt(document.getElementById('weeks')?.value) || 0;
+  const planBox = document.getElementById('payment-plan');
+
+  // Hide the entire breakdown until we have enough inputs to calculate something meaningful.
+  if (planBox) {
+    const shouldShow = value > 0 && weeks > 0;
+    planBox.classList.toggle('hidden', !shouldShow);
+  }
+
+  if (value <= 0 || weeks <= 0) {
+    return;
+  }
 
   const holdingFee = value * 0.05 * weeks;
   const vat = holdingFee * 0.075;
@@ -212,7 +223,7 @@ async function submitNewDeal() {
   const sellerAddress = document.getElementById('seller-address')?.value?.trim() || '';
   const deliveryAddress = document.getElementById('delivery-address')?.value?.trim() || '';
   const itemSize = document.getElementById('item-size')?.value?.trim() || '';
-  const itemPhoto = document.getElementById('item-photo')?.files?.[0] || null;
+  const itemPhotos = Array.from(document.getElementById('item-photo')?.files || []).slice(0, 3);
   const value = document.getElementById('expected-value')?.value;
   const weeks = document.getElementById('weeks')?.value;
   const description = document.getElementById('description')?.value?.trim() || '';
@@ -253,7 +264,8 @@ async function submitNewDeal() {
   fd.append('weeks', String(weeks));
   fd.append('deal-value', String(value));
   if (description) fd.append('description', description);
-  if (itemPhoto) fd.append('itemPhoto', itemPhoto);
+  // Send multiple files under one field name (server keeps backward compatibility too).
+  itemPhotos.forEach(f => fd.append('itemPhotos', f));
 
   let payload;
   try {

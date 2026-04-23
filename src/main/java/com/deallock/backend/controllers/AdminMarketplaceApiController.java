@@ -48,7 +48,10 @@ public class AdminMarketplaceApiController {
                                     @RequestParam(value = "description", required = false) String description,
                                     @RequestParam(value = "size", required = false) String size,
                                     @RequestParam(value = "listed", required = false) Boolean listed,
+                                    // Backwards compatible: older UI sends a single `photo`.
                                     @RequestParam(value = "photo", required = false) MultipartFile photo,
+                                    // New UI can send up to 3 files under the same field name.
+                                    @RequestParam(value = "photos", required = false) MultipartFile[] photos,
                                     Authentication authentication) throws Exception {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -71,13 +74,33 @@ public class AdminMarketplaceApiController {
         item.setListed(listed != null && listed);
         item.setCreatedAt(Instant.now());
 
-        if (photo != null && !photo.isEmpty()) {
-            if (photo.getSize() > MAX_UPLOAD_BYTES) {
-                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                        .body(Map.of("message", "Photo too large (max 2MB)"));
+        MultipartFile[] incoming = (photos != null && photos.length > 0) ? photos : null;
+        if (incoming == null && photo != null && !photo.isEmpty()) {
+            incoming = new MultipartFile[]{photo};
+        }
+
+        if (incoming != null) {
+            int saved = 0;
+            for (MultipartFile file : incoming) {
+                if (file == null || file.isEmpty()) continue;
+                if (file.getSize() > MAX_UPLOAD_BYTES) {
+                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                            .body(Map.of("message", "Each photo must be at most 2MB."));
+                }
+
+                saved++;
+                if (saved == 1) {
+                    item.setPhoto(file.getBytes());
+                    item.setPhotoContentType(file.getContentType());
+                } else if (saved == 2) {
+                    item.setPhoto2(file.getBytes());
+                    item.setPhoto2ContentType(file.getContentType());
+                } else if (saved == 3) {
+                    item.setPhoto3(file.getBytes());
+                    item.setPhoto3ContentType(file.getContentType());
+                    break;
+                }
             }
-            item.setPhoto(photo.getBytes());
-            item.setPhotoContentType(photo.getContentType());
         }
 
         marketplaceItemRepository.save(item);
@@ -138,8 +161,12 @@ public class AdminMarketplaceApiController {
         row.put("size", item.getSize());
         row.put("listed", item.isListed());
         row.put("createdAt", item.getCreatedAt());
-        row.put("imageUrl", item.getPhoto() == null || item.getPhoto().length == 0 ? null : ("/api/marketplace/items/" + item.getId() + "/photo"));
+        String base = "/api/marketplace/items/" + item.getId() + "/photo";
+        String img1 = (item.getPhoto() == null || item.getPhoto().length == 0) ? null : base;
+        String img2 = (item.getPhoto2() == null || item.getPhoto2().length == 0) ? null : (base + "/2");
+        String img3 = (item.getPhoto3() == null || item.getPhoto3().length == 0) ? null : (base + "/3");
+        row.put("imageUrl", img1);
+        row.put("imageUrls", List.of(img1, img2, img3).stream().filter(u -> u != null && !u.isBlank()).toList());
         return row;
     }
 }
-

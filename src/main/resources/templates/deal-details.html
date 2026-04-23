@@ -174,9 +174,17 @@
       </div>
 
       <div style="margin-top:16px;" th:if="${deal.itemPhoto != null}">
-        <strong>Item Photo</strong>
+        <strong>Item Photos</strong>
         <div class="deal-photo-box">
           <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal item photo">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+          <a th:if="${deal.itemPhoto2 != null}" th:href="@{'/api/deals/' + ${deal.id} + '/photo/2'}" target="_blank" rel="noopener">
+            <img th:src="@{'/api/deals/' + ${deal.id} + '/photo/2'}" alt="Deal item photo 2" style="width:80px; height:80px; object-fit:cover; border-radius:10px; border:1px solid #e5e7eb;">
+          </a>
+          <a th:if="${deal.itemPhoto3 != null}" th:href="@{'/api/deals/' + ${deal.id} + '/photo/3'}" target="_blank" rel="noopener">
+            <img th:src="@{'/api/deals/' + ${deal.id} + '/photo/3'}" alt="Deal item photo 3" style="width:80px; height:80px; object-fit:cover; border-radius:10px; border:1px solid #e5e7eb;">
+          </a>
         </div>
       </div>
 

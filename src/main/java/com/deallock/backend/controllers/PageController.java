@@ -44,7 +44,8 @@ public class PageController {
 
     @GetMapping("/ourteam")
     public String ourteam() {
-        return "/contactus";
+        // Some templates still link "Contact" to /ourteam. Make that path safe for logged-out users too.
+        return "redirect:/contactus";
     }
 
     @GetMapping("/contactus")
