@@ -30,13 +30,14 @@ function renderProducts() {
   grid.innerHTML = products
     .map(
       p => `
-        <div onclick="showProductDetail(${p.id})" class="border border-black bg-white cursor-pointer group">
-          <div class="w-full border-b border-black bg-gray-50" style="aspect-ratio: 1 / 1;">
+        <div onclick="showProductDetail(${p.id})" class="flex flex-col border border-black bg-white cursor-pointer group h-full">
+          <div class="h-48 w-full overflow-hidden border-b border-black flex-shrink-0">
             <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}">
           </div>
-          <div class="p-3">
-            <h3 class="text-[10px] font-black uppercase mb-2">${p.name}</h3>
-            <div class="flex justify-between items-center">
+
+          <div class="p-3 flex flex-col justify-between flex-grow">
+            <h3 class="text-[10px] font-black uppercase mb-2 line-clamp-2">${p.name}</h3>
+            <div class="flex justify-between items-center mt-auto">
               <span class="text-sm font-black">${formatPrice(p.price)}</span>
               <button onclick="addToCartDirect(${p.id}); event.stopPropagation()" class="border border-black px-2 py-1 text-[9px] font-black hover:bg-black hover:text-white">ADD</button>
             </div>
@@ -45,6 +46,7 @@ function renderProducts() {
       `
     )
     .join('');
+
 }
 
 function imageHeightClass(size) {

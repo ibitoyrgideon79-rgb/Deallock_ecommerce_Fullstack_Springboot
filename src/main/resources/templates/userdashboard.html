@@ -141,13 +141,17 @@
         <i class="fas fa-bars"></i> Menu
       </button>
 
-      <div id="sidebar" class="lg:block hidden bg-white border border-gray-200 rounded-3xl p-6 sticky top-8 text-center lg:relative">
-        <div class="flex flex-col items-center">
-          <div onclick="changeProfilePicture()" class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
-            <img id="profile-photo" src="https://picsum.photos/id/64/300/300" alt="Profile" class="w-full h-full object-cover">
-          </div>
-          <h2 class="mt-5 text-2xl font-semibold" th:text="'Hi, ' + (${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName.split(' ')[0] : 'User'})">Hi, User</h2>
-        </div>
+     <div class="flex flex-col items-center">
+  <div onclick="changeProfilePicture()" class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
+    <!-- Updated to use Thymeleaf dynamic source -->
+    <img id="profile-photo" 
+         th:src="${currentUser.profilePicture != null ? currentUser.profilePicture : '/images/default-avatar.png'}" 
+         alt="Profile" 
+         class="w-full h-full object-cover">
+  </div>
+  <h2 class="mt-5 text-2xl font-semibold" th:text="'Hi, ' + (${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName.split(' ')[0] : 'User'})">Hi, User</h2>
+</div>
+
 
         <div class="mt-12 space-y-1">
           <a href="#" onclick="showTab('deals'); return false;" class="tab-link active flex items-center gap-3 px-5 py-4 rounded-2xl">
@@ -241,44 +245,48 @@
         </div>
       </div>
 
-      <!-- PROFILE SETTINGS TAB -->
-      <div id="settings-tab" class="tab-content hidden">
-        <h2 class="text-2xl font-semibold mb-6">Profile Settings</h2>
-        <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-8">
-          <div>
-            <label class="block text-sm font-medium mb-2">Full Name</label>
-            <div>
-    <label class="block text-sm font-medium mb-2">Full Name</label>
-    <input type="text" id="full-name" th:value="${currentUser.fullName}" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
-</div>
-<div class="grid grid-cols-2 gap-6">
-    <div>
-        <label class="block text-sm font-medium mb-2">Email Address</label>
-        <input type="email" id="email" th:value="${currentUser.email}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+      div id="settings-tab" class="tab-content hidden">
+  <h2 class="text-2xl font-semibold mb-6">Profile Settings</h2>
+  <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-10">
+    
+    <!-- Profile Picture Section -->
+    <div class="flex flex-col items-center pb-8 border-b border-gray-100">
+      <div class="relative group">
+        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+          <img id="settings-profile-preview" 
+               th:src="${currentUser.profilePicture != null ? currentUser.profilePicture : '/images/default-avatar.png'}" 
+               class="w-full h-full object-cover">
+        </div>
+        <!-- Edit Favicon Overlay -->
+        <button onclick="document.getElementById('profile-upload').click()" 
+                class="absolute bottom-1 right-1 bg-gray-900 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition">
+          <i class="fas fa-camera text-sm"></i>
+        </button>
+        <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="previewImage(this)">
+      </div>
+      <button onclick="uploadNewPicture()" class="mt-4 text-sm font-semibold text-gray-900 border border-gray-900 px-4 py-2 rounded-xl hover:bg-gray-900 hover:text-white transition">
+        Update Profile Picture
+      </button>
     </div>
-    <div>
-        <label class="block text-sm font-medium mb-2">Phone Number</label>
-        <input type="tel" id="phone" th:value="${currentUser.phone}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
-    </div>
-</div>
-          <div>
-            <label class="block text-sm font-medium mb-3">Delivery Addresses</label>
-            <div id="address-list" class="space-y-3 text-sm"></div>
-            <button onclick="addNewDeliveryAddress()" class="mt-4 w-full border border-dashed border-gray-400 text-gray-600 py-4 rounded-2xl hover:bg-gray-50">
-              + Add New Delivery Address
-            </button>
-          </div>
-          <div class="flex gap-6">
-            <button onclick="changeProfilePicture()" class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Change Profile Picture</button>
-            <button onclick="openChangePasswordModal()" class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Change Password</button>
-          </div>
-          <button onclick="saveProfileChanges()" class="mt-6 w-full bg-gray-900 text-white py-4 rounded-2xl font-semibold">
-            Save Changes
-          </button>
+
+    <!-- Basic Info -->
+    <div class="space-y-6">
+      <div>
+        <label class="block text-sm font-medium mb-2 text-gray-700">Full Name</label>
+        <input type="text" id="full-name" th:value="${currentUser.fullName}" class="w-full border border-gray-300 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-gray-200 outline-none">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium mb-2 text-gray-700">Email Address</label>
+          <input type="email" th:value="${currentUser.email}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2 text-gray-700">Phone Number</label>
+          <input type="tel" th:value="${currentUser.phone}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
         </div>
       </div>
-
     </div>
+
   </div>
 </section>
 
@@ -481,6 +489,15 @@
   /*<![CDATA[*/
     window.__DEALLOCK_DEALS__ = [[${dealsVm}]];
   /*]]>*/
+  </script>
+  <script>
+    function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => document.getElementById('settings-profile-preview').src = e.target.result;
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
   </script>
 
   <script src="/frontend/js/userdashboard.js" defer></script>
