@@ -443,7 +443,7 @@ async function submitNewProduct() {
   const description = document.getElementById('mp-description')?.value?.trim() || '';
   const size = document.getElementById('mp-size')?.value?.trim() || 'small';
   const listed = document.getElementById('mp-listed')?.checked ? 'true' : 'false';
-  const photo = document.getElementById('mp-photo')?.files?.[0] || null;
+  const photos = Array.from(document.getElementById('mp-photos')?.files || []).slice(0, 3);
 
   if (!name) {
     showToast('Name is required', 'error');
@@ -461,7 +461,7 @@ async function submitNewProduct() {
   if (description) fd.append('description', description);
   fd.append('size', size);
   fd.append('listed', listed);
-  if (photo) fd.append('photo', photo);
+  photos.forEach(file => fd.append('photos', file));
 
   const res = await fetch('/api/admin/marketplace/items', {
     method: 'POST',

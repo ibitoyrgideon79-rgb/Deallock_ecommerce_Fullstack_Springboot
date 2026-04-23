@@ -33,6 +33,11 @@ server:
 app:
   base-url: http://localhost:8080
   admin-emails: ""
+  contact:
+    inbox: info@deallock.ng
+  newsletter:
+    daily-cron: "0 0 9 * * *"
+    timezone: Africa/Lagos
   marketplace:
     lock-days: 7
   deals:

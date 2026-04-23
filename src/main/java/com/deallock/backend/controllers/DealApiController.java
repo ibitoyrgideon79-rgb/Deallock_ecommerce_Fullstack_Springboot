@@ -5,6 +5,7 @@ import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.DealCacheService;
 import com.deallock.backend.services.DealReadService;
+import com.deallock.backend.services.NewsletterService;
 import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.SmsService;
 import java.math.BigDecimal;
@@ -43,6 +44,7 @@ public class DealApiController {
     private final NotificationDispatchService notifier;
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
+    private final NewsletterService newsletterService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -52,13 +54,15 @@ public class DealApiController {
                              SmsService smsService,
                              NotificationDispatchService notifier,
                              DealReadService dealReadService,
-                             DealCacheService dealCacheService) {
+                             DealCacheService dealCacheService,
+                             NewsletterService newsletterService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.smsService = smsService;
         this.notifier = notifier;
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
+        this.newsletterService = newsletterService;
     }
 
     @GetMapping
@@ -89,8 +93,12 @@ public class DealApiController {
                                         @RequestParam("weeks") String weeksSelection,
                                         @RequestParam(value = "customWeeks", required = false) Integer customWeeks,
                                         @RequestParam("deal-value") BigDecimal value,
+                                        @RequestParam(value = "subscribeUpdates", required = false) Boolean subscribeUpdates,
                                         @RequestParam(value = "description", required = false) String description,
+                                        // Backwards compatible: older UI sends a single `itemPhoto`.
                                         @RequestParam(value = "itemPhoto", required = false) MultipartFile itemPhoto,
+                                        // New UI can send up to 3 files under the same field name.
+                                        @RequestParam(value = "itemPhotos", required = false) MultipartFile[] itemPhotos,
                                         Principal principal) throws Exception {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -153,18 +161,49 @@ public class DealApiController {
         deal.setRemainingBalanceAmount(remaining);
         deal.setWeeklyPaymentAmount(weekly);
 
-        if (itemPhoto != null && !itemPhoto.isEmpty()) {
-            if (itemPhoto.getSize() > MAX_UPLOAD_BYTES) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Item photo must be at most 2MB."));
+        // --- Photos (up to 3) ---
+        MultipartFile[] incoming = (itemPhotos != null && itemPhotos.length > 0) ? itemPhotos : null;
+        if (incoming == null && itemPhoto != null && !itemPhoto.isEmpty()) {
+            incoming = new MultipartFile[]{itemPhoto};
+        }
+
+        if (incoming != null) {
+            int saved = 0;
+            for (MultipartFile file : incoming) {
+                if (file == null || file.isEmpty()) continue;
+                if (file.getSize() > MAX_UPLOAD_BYTES) {
+                    return ResponseEntity.badRequest().body(Map.of("message", "Each item photo must be at most 2MB."));
+                }
+
+                saved++;
+                if (saved == 1) {
+                    deal.setItemPhoto(file.getBytes());
+                    deal.setItemPhotoContentType(file.getContentType());
+                } else if (saved == 2) {
+                    deal.setItemPhoto2(file.getBytes());
+                    deal.setItemPhoto2ContentType(file.getContentType());
+                } else if (saved == 3) {
+                    deal.setItemPhoto3(file.getBytes());
+                    deal.setItemPhoto3ContentType(file.getContentType());
+                    break;
+                }
             }
-            deal.setItemPhoto(itemPhoto.getBytes());
-            deal.setItemPhotoContentType(itemPhoto.getContentType());
         }
 
         dealRepository.save(deal);
         dealCacheService.evictUserDeals(principal.getName());
         dealCacheService.evictAdminDeals();
         CompletableFuture.runAsync(() -> {
+            try {
+                if (Boolean.TRUE.equals(subscribeUpdates) && userOpt.get().getEmail() != null) {
+                    newsletterService.subscribe(
+                            userOpt.get().getEmail(),
+                            userOpt.get().getFullName(),
+                            "deal-submit"
+                    );
+                }
+            } catch (Exception ignored) {
+            }
             try {
                 notifyAdminsAndUserOnCreate(deal);
             } catch (Exception ignored) {
@@ -230,15 +269,58 @@ public class DealApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        if (deal.getItemPhoto() == null || deal.getItemPhoto().length == 0) {
+        return dealPhotoSlot(deal, 1);
+    }
+
+    @GetMapping("/{id}/photo/{slot}")
+    public ResponseEntity<byte[]> dealPhotoSlot(@PathVariable("id") Long id,
+                                                @PathVariable("slot") int slot,
+                                                Principal principal,
+                                                Authentication authentication) {
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        var dealOpt = dealRepository.findById(id);
+        if (dealOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        var deal = dealOpt.get();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!isAdmin && deal.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return dealPhotoSlot(deal, slot);
+    }
+
+    private ResponseEntity<byte[]> dealPhotoSlot(Deal deal, int slot) {
+        byte[] bytes;
+        String contentType;
+
+        if (slot == 2) {
+            bytes = deal.getItemPhoto2();
+            contentType = deal.getItemPhoto2ContentType();
+        } else if (slot == 3) {
+            bytes = deal.getItemPhoto3();
+            contentType = deal.getItemPhoto3ContentType();
+        } else {
+            bytes = deal.getItemPhoto();
+            contentType = deal.getItemPhotoContentType();
+        }
+
+        if (bytes == null || bytes.length == 0) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         MediaType type = MediaType.APPLICATION_OCTET_STREAM;
-        if (deal.getItemPhotoContentType() != null) {
-            type = MediaType.parseMediaType(deal.getItemPhotoContentType());
+        if (contentType != null && !contentType.isBlank()) {
+            type = MediaType.parseMediaType(contentType);
         }
-        return ResponseEntity.ok().contentType(type).body(deal.getItemPhoto());
+        return ResponseEntity.ok().contentType(type).body(bytes);
     }
 
     @GetMapping("/{id}/secured-photo")

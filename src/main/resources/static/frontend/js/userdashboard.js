@@ -10,6 +10,15 @@ function showToast(message, type) {
   setTimeout(() => t.remove(), 4500);
 }
 
+function showShortPopup(message, type = 'success') {
+  const popup = document.createElement('div');
+  const tone = type === 'error' ? 'bg-red-600' : 'bg-black';
+  popup.className = `fixed top-6 right-6 z-[9999] ${tone} text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[340px]`;
+  popup.textContent = message;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 3500);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll('&', '&amp;')
@@ -186,6 +195,17 @@ function closeNewDealModal() {
 function calculatePaymentPlan() {
   const value = parseFloat(document.getElementById('expected-value')?.value) || 0;
   const weeks = parseInt(document.getElementById('weeks')?.value) || 0;
+  const planBox = document.getElementById('payment-plan');
+
+  // Hide the entire breakdown until we have enough inputs to calculate something meaningful.
+  if (planBox) {
+    const shouldShow = value > 0 && weeks > 0;
+    planBox.classList.toggle('hidden', !shouldShow);
+  }
+
+  if (value <= 0 || weeks <= 0) {
+    return;
+  }
 
   const holdingFee = value * 0.05 * weeks;
   const vat = holdingFee * 0.075;
@@ -212,11 +232,12 @@ async function submitNewDeal() {
   const sellerAddress = document.getElementById('seller-address')?.value?.trim() || '';
   const deliveryAddress = document.getElementById('delivery-address')?.value?.trim() || '';
   const itemSize = document.getElementById('item-size')?.value?.trim() || '';
-  const itemPhoto = document.getElementById('item-photo')?.files?.[0] || null;
+  const itemPhotos = Array.from(document.getElementById('item-photo')?.files || []).slice(0, 3);
   const value = document.getElementById('expected-value')?.value;
   const weeks = document.getElementById('weeks')?.value;
   const description = document.getElementById('description')?.value?.trim() || '';
   const listingChoice = document.querySelector('input[name=\"listing\"]:checked')?.value || 'yes';
+  const subscribeUpdates = !!document.getElementById('subscribe-updates')?.checked;
 
   let hasError = false;
   document.querySelectorAll('.error-text').forEach(el => (el.textContent = ''));
@@ -252,8 +273,10 @@ async function submitNewDeal() {
   fd.append('listing', listingChoice);
   fd.append('weeks', String(weeks));
   fd.append('deal-value', String(value));
+  fd.append('subscribeUpdates', subscribeUpdates ? 'true' : 'false');
   if (description) fd.append('description', description);
-  if (itemPhoto) fd.append('itemPhoto', itemPhoto);
+  // Send multiple files under one field name (server keeps backward compatibility too).
+  itemPhotos.forEach(f => fd.append('itemPhotos', f));
 
   let payload;
   try {
@@ -271,14 +294,98 @@ async function submitNewDeal() {
   const total = payload?.totalAmount != null ? naira(payload.totalAmount) : '';
   showToast(`Deal saved. Upfront: ${upfront} Total: ${total}`, 'success');
 
+  if (!subscribeUpdates) {
+    promptNewsletterAfterDeal();
+  } else {
+    showShortPopup("Thanks for subscribing. You'll hear from us faster.");
+  }
+
   closeNewDealModal();
   dealFilter = 'all';
   await loadDeals();
+}
+
+async function subscribeCurrentUser(source = 'dashboard-deal-popup') {
+  const emailFromWindow = (window.__DEALLOCK_CURRENT_EMAIL__ || '').toString().trim();
+  const emailFromInput = document.querySelector('#settings-tab input[type="email"]')?.value?.trim() || '';
+  const email = emailFromWindow || emailFromInput;
+  if (!email) {
+    showShortPopup('Could not find your email for subscription.', 'error');
+    return false;
+  }
+
+  const res = await fetch('/api/newsletter/subscribe', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      email,
+      name: window.__DEALLOCK_CURRENT_NAME__ || '',
+      source
+    })
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(payload?.message || `Request failed (${res.status})`);
+  return true;
+}
+
+function promptNewsletterAfterDeal() {
+  const box = document.createElement('div');
+  box.className = 'fixed inset-0 z-[9999] bg-black/55 flex items-center justify-center p-4';
+  box.innerHTML = `
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-lg font-semibold mb-2">Stay Updated?</h3>
+      <p class="text-sm text-gray-700 mb-5">Would you like to subscribe so you hear from us faster on deals and updates?</p>
+      <div class="flex gap-3">
+        <button id="sub-yes" class="flex-1 bg-black text-white py-2.5 rounded-xl">Yes, subscribe me</button>
+        <button id="sub-no" class="flex-1 border border-gray-300 py-2.5 rounded-xl">No, thanks</button>
+      </div>
+    </div>
+  `;
+
+  const close = () => box.remove();
+  box.querySelector('#sub-no')?.addEventListener('click', close);
+  box.querySelector('#sub-yes')?.addEventListener('click', async () => {
+    const yesBtn = box.querySelector('#sub-yes');
+    if (yesBtn) yesBtn.textContent = 'Subscribing...';
+    try {
+      await subscribeCurrentUser();
+      close();
+      showShortPopup("You'll hear from us faster. Subscription complete.");
+    } catch (e) {
+      close();
+      showShortPopup(e?.message || 'Subscription failed. Try again later.', 'error');
+    }
+  });
+
+  document.body.appendChild(box);
+  setTimeout(() => {
+    if (document.body.contains(box)) box.remove();
+  }, 10000);
+}
+
+function showNewDealIndicatorIfRequested() {
+  const params = new URLSearchParams(window.location.search || '');
+  if (params.get('newDeal') !== '1') return;
+
+  const btn = document.getElementById('new-deal-cta');
+  if (!btn) return;
+
+  btn.classList.add('ring-4', 'ring-emerald-400', 'ring-offset-2', 'animate-pulse');
+  const tip = document.createElement('div');
+  tip.className = 'fixed top-24 right-6 z-[9999] bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg text-sm';
+  tip.textContent = 'Next step: click New Deal to submit your item.';
+  document.body.appendChild(tip);
+  setTimeout(() => {
+    tip.remove();
+    btn.classList.remove('ring-4', 'ring-emerald-400', 'ring-offset-2', 'animate-pulse');
+  }, 6000);
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   renderOrdersTable();
   showTab('deals');
+  showNewDealIndicatorIfRequested();
   loadDeals();
 });

@@ -84,6 +84,16 @@ public class Deal {
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
+    private byte[] itemPhoto2;
+    private String itemPhoto2ContentType;
+
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] itemPhoto3;
+    private String itemPhoto3ContentType;
+
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
     private byte[] paymentProof;
     private String paymentProofContentType;
 

@@ -29,7 +29,7 @@
       <a href="/" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
       <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
       <a href="/terms" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
-      <a href="/ourteam" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
+      <a href="/contactus" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
     </div>
 
     
@@ -46,7 +46,8 @@
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
         <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-          <a href="/profile" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Profile Settings</a>
+          <a th:if="${isAdmin}" href="/admin" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+          <a th:if="${!isAdmin}" href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
           <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
         </div>
       </div>
@@ -63,7 +64,7 @@
     <a href="/" class="block text-gray-700 font-medium">Home</a>
     <a href="/marketplace" class="block text-gray-700 font-medium">Marketplace</a>
     <a href="/terms" class="block text-gray-700 font-medium">Terms</a>
-    <a href="/ourteam" class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
+    <a href="/contactus" class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
     
     
     <div th:if="${currentUser == null}" class="flex flex-col gap-y-3 pt-2">
@@ -71,7 +72,8 @@
       <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
     </div>
     <div th:if="${currentUser != null}" class="pt-2">
-       <a href="/profile" class="block py-2 text-gray-700">Profile Settings</a>
+       <a th:if="${isAdmin}" href="/admin" class="block py-2 text-gray-700">Admin Dashboard</a>
+       <a th:if="${!isAdmin}" href="/dashboard" class="block py-2 text-gray-700">User Dashboard</a>
        <a href="/logout" class="block py-2 text-red-600">Log out</a>
     </div>
   </div>
@@ -91,10 +93,11 @@
           Please feel free to contact us and we will get back to you as soon as we can.
         </p>
 
-        <form class="space-y-5">
+        <form id="contact-form" class="space-y-5">
           <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Name</label>
             <input type="text" 
+                   id="contact-name"
                    class="w-full border-b border-gray-400 py-2 text-base focus:border-black outline-none"
                    placeholder="Your full name">
           </div>
@@ -102,6 +105,7 @@
           <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Email</label>
             <input type="email" 
+                   id="contact-email"
                    class="w-full border-b border-gray-400 py-2 text-base focus:border-black outline-none"
                    placeholder="your@email.com">
           </div>
@@ -109,11 +113,14 @@
           <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Message</label>
             <textarea rows="2"
+                      id="contact-message"
                       class="w-full border-b border-gray-400 py-2 text-base focus:border-black outline-none resize-none"
                       placeholder="How can we help you?"></textarea>
           </div>
+          <p id="contact-status" class="text-sm hidden"></p>
 
           <button type="submit"
+                  id="contact-submit"
                   class="mt-4 bg-black text-white px-10 py-3 rounded-xl font-medium text-base hover:bg-gray-800 transition-colors">
             Send Message
           </button>
@@ -152,6 +159,8 @@
   </div>
 </section>
 
+<script src="/frontend/js/home.js" defer></script>
+<script src="/frontend/js/contactus.js" defer></script>
 </body>
 </html>
 

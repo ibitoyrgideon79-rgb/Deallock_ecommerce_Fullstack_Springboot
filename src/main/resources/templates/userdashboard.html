@@ -99,7 +99,8 @@
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
         <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-          <a href="/profile" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Profile Settings</a>
+          <a th:if="${isAdmin}" href="/admin" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+          <a th:if="${!isAdmin}" href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
           <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
         </div>
       </div>
@@ -124,7 +125,8 @@
       <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
     </div>
     <div th:if="${currentUser != null}" class="pt-2">
-       <a href="/profile" class="block py-2 text-gray-700">Profile Settings</a>
+       <a th:if="${isAdmin}" href="/admin" class="block py-2 text-gray-700">Admin Dashboard</a>
+       <a th:if="${!isAdmin}" href="/dashboard" class="block py-2 text-gray-700">User Dashboard</a>
        <a href="/logout" class="block py-2 text-red-600">Log out</a>
     </div>
   </div>
@@ -145,7 +147,7 @@
   <div onclick="changeProfilePicture()" class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
     <!-- Updated to use Thymeleaf dynamic source -->
     <img id="profile-photo" 
-         th:src="${currentUser.profilePicture != null ? currentUser.profilePicture : '/images/default-avatar.png'}" 
+         th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
          alt="Profile" 
          class="w-full h-full object-cover">
   </div>
@@ -186,7 +188,7 @@
             <button onclick="openDateFilter()" class="flex items-center gap-2 border border-gray-300 px-5 py-2.5 rounded-2xl text-sm hover:bg-gray-50">
               <i class="fas fa-calendar-alt"></i> Date Range
             </button>
-            <button onclick="openNewDealModal()" class="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-2xl text-sm font-medium">
+            <button id="new-deal-cta" onclick="openNewDealModal()" class="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-2xl text-sm font-medium">
               <i class="fas fa-plus"></i> New Deal
             </button>
           </div>
@@ -245,7 +247,7 @@
         </div>
       </div>
 
-      div id="settings-tab" class="tab-content hidden">
+      <div id="settings-tab" class="tab-content hidden">
   <h2 class="text-2xl font-semibold mb-6">Profile Settings</h2>
   <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-10">
     
@@ -254,7 +256,7 @@
       <div class="relative group">
         <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
           <img id="settings-profile-preview" 
-               th:src="${currentUser.profilePicture != null ? currentUser.profilePicture : '/images/default-avatar.png'}" 
+               th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
                class="w-full h-full object-cover">
         </div>
         <!-- Edit Favicon Overlay -->
@@ -288,6 +290,7 @@
     </div>
 
   </div>
+</div>
 </section>
 
 <!-- NEW DEAL MODAL WITH AUTO CALCULATION -->
@@ -320,7 +323,7 @@
           <option value="medium">Medium</option>
           <option value="big">Big</option>
         </select>
-        <input type="file" id="item-photo" accept="image/*" class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
+        <input type="file" id="item-photo" accept="image/*" multiple class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
       </div>
 
       <div>
@@ -337,7 +340,7 @@
       </div>
 
       <!-- Payment Plan -->
-      <div class="bg-gray-50 p-6 rounded-2xl">
+      <div id="payment-plan" class="bg-gray-50 p-6 rounded-2xl hidden">
         <h3 class="font-medium mb-4">Payment Plan</h3>
         <div class="space-y-3 text-sm">
           <div class="flex justify-between"><span>Item Value (NGN)</span><span id="plan-item-value">&#8358; 0.00</span></div>
@@ -360,6 +363,10 @@
       <label class="flex items-start gap-3 text-sm">
         <input type="checkbox" id="agree-terms">
         <span>I have read and agree to the <span class="text-blue-600">Terms and Conditions</span></span>
+      </label>
+      <label class="flex items-start gap-3 text-sm">
+        <input type="checkbox" id="subscribe-updates">
+        <span>Also subscribe me to DealLock updates by email.</span>
       </label>
     </div>
 
@@ -488,6 +495,8 @@
   <script th:inline="javascript">
   /*<![CDATA[*/
     window.__DEALLOCK_DEALS__ = [[${dealsVm}]];
+    window.__DEALLOCK_CURRENT_EMAIL__ = [[${currentUser != null ? currentUser.email : null}]];
+    window.__DEALLOCK_CURRENT_NAME__ = [[${currentUser != null ? currentUser.fullName : null}]];
   /*]]>*/
   </script>
   <script>

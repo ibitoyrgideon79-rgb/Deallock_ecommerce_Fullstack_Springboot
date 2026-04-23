@@ -31,11 +31,10 @@ function renderProducts() {
     .map(
       p => `
         <div onclick="showProductDetail(${p.id})" class="flex flex-col border border-black bg-white cursor-pointer group h-full">
-          <!-- Wrapper ensures the height is strictly enforced -->
           <div class="h-48 w-full overflow-hidden border-b border-black flex-shrink-0">
             <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}">
           </div>
-          
+
           <div class="p-3 flex flex-col justify-between flex-grow">
             <h3 class="text-[10px] font-black uppercase mb-2 line-clamp-2">${p.name}</h3>
             <div class="flex justify-between items-center mt-auto">
@@ -68,7 +67,13 @@ async function loadProducts() {
       price: Number(r.price || 0),
       oldPrice: r.oldPrice != null ? Number(r.oldPrice) : null,
       size: r.size || 'small',
-      image: r.imageUrl || '/frontend/images/logo.jpeg'
+      images: Array.isArray(r.imageUrls) && r.imageUrls.length > 0
+        ? r.imageUrls
+        : (r.imageUrl ? [r.imageUrl] : []),
+      image: (Array.isArray(r.imageUrls) && r.imageUrls.length > 0)
+        ? r.imageUrls[0]
+        : (r.imageUrl || '/frontend/images/logo.jpeg'),
+      descriptionHTML: (r.description || '').toString().trim()
     }));
   } catch (e) {
     products = [];
@@ -90,7 +95,7 @@ function renderCart() {
     .map(
       (item, index) => `
         <div class="flex gap-3 border-b border-gray-100 pb-3">
-          <img src="${item.image}" class="w-10 h-10 border border-black" alt="${item.name}">
+          <img src="${item.image}" class="w-10 h-10 object-cover border border-black" alt="${item.name}">
           <div class="flex-1">
             <p class="text-[9px] font-black uppercase truncate">${item.name}</p>
             <p class="text-[10px] font-bold">${formatPrice(item.price)} x${item.quantity}</p>
@@ -176,7 +181,7 @@ function showProductDetail(id) {
   }
 
   // 2. THUMBNAILS: Generate 3 clickable images
-  if (thumbContainer && currentProduct.images) {
+  if (thumbContainer && Array.isArray(currentProduct.images)) {
     thumbContainer.innerHTML = ''; // Clear old thumbs
     // Assuming currentProduct.images is an array of 3+ strings
     currentProduct.images.slice(0, 3).forEach((src) => {

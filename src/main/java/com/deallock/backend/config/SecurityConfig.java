@@ -56,6 +56,7 @@ public class SecurityConfig {
                                 "/pages/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/marketplace/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/contact", "/api/newsletter/subscribe").permitAll()
                         .requestMatchers("/api/marketplace/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
