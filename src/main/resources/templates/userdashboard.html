@@ -6,296 +6,365 @@
   <link rel="stylesheet" href="/frontend/css/tailwind.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="/frontend/images/logo.jpeg">
-    <script src="https://cdn.tailwindcss.com"></script>
-  <title>deallock.ng</title>
+  <title>deallock.ng — Dashboard</title>
   <style>
-  .step-card {
-    padding: 1.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 1rem;
-    transition: all 0.3s ease;
-    max-width: 520px; 
-  }
-  .step-card:hover {
-    border-color: #10b981;
-    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
-  }
- @keyframes scrollLeft {
-    from {
-      transform: translateX(0);
+    .step-card {
+      padding: 1.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 1rem;
+      transition: all 0.3s ease;
+      max-width: 520px;
     }
-    to {
-      transform: translateX(-50%);
+    .step-card:hover {
+      border-color: #10b981;
+      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
     }
-  }
+    @keyframes scrollLeft {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .sponsors-container { overflow: hidden; position: relative; }
+    .sponsors-track {
+      display: flex;
+      width: max-content;
+      animation: scrollLeft 40s linear infinite;
+    }
+    .sponsors-container:hover .sponsors-track { animation-play-state: paused; }
+    .sponsor-logo img {
+      max-height: 68px;
+      filter: grayscale(100%);
+      transition: all 0.4s ease;
+    }
+    .sponsor-logo img:hover { filter: grayscale(0%); transform: scale(1.05); }
+    .tab-content          { display: none; }
+    .tab-content.active   { display: block; }
+    .tab-link.active      { background-color: #f3f4f6; font-weight: 600; }
+    .filter-btn.active    { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .error-text           { color: #ef4444; font-size: 0.875rem; margin-top: 4px; }
 
-  .sponsors-container {
-    overflow: hidden;
-    position: relative;
-  }
-
-  .sponsors-track {
-    display: flex;
-    width: max-content;
-    animation: scrollLeft 40s linear infinite;
-  }
-
-
-  .sponsors-container:hover .sponsors-track {
-    animation-play-state: paused;
-  }
-
-  .sponsor-logo img {
-    max-height: 68px;           
-    filter: grayscale(100%);
-    transition: all 0.4s ease;
-  }
-
-  .sponsor-logo img:hover {
-    filter: grayscale(0%);
-    transform: scale(1.05);
-  }
-   .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .tab-link.active { background-color: #f3f4f6; font-weight: 600; }
-    .filter-btn.active { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .error-text { color: #ef4444; font-size: 0.875rem; margin-top: 4px; }
-</style>
+    /* Sidebar transition — Tailwind JIT may not ship -translate-x-full by default */
+    #sidebar-drawer {
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    }
+  </style>
 </head>
 <body>
 
-  <header class="bg-white border-b border-gray-100 shadow-sm relative">
+<!-- ═══════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════ -->
+<header class="bg-white border-b border-gray-100 shadow-sm relative z-50">
   <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-    
-    
+
+    <!-- Logo -->
     <div class="flex items-center gap-x-3">
       <a href="/" class="flex items-center gap-x-2">
         <img src="/frontend/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
       </a>
-  
       <span class="text-gray-700 text-sm font-medium hidden sm:block">
         Deal securing and purchase support.
       </span>
     </div>
 
-
+    <!-- Desktop nav -->
     <div class="hidden md:flex items-center gap-x-2">
-      <a href="/" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
+      <a href="/"           class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
       <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
-      <a href="/terms" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
-      <a href="/contactus" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
+      <a href="/terms"       class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
+      <a href="/contactus"   class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
     </div>
 
-    
+    <!-- Desktop auth -->
     <div class="hidden md:flex items-center gap-x-3">
       <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
-        <a href="/login" class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Login</a>
+        <a href="/login"    class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Login</a>
         <a href="/register" class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">Register</a>
       </div>
-
       <div th:if="${currentUser != null}" class="relative group">
         <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
-          <span class="text-sm font-medium text-gray-700" th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
+               class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <span class="text-sm font-medium text-gray-700"
+                th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
         <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-          <a th:if="${isAdmin}" href="/admin" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
-          <a th:if="${!isAdmin}" href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
+          <a th:if="${isAdmin}"   href="/admin"     class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+          <a th:if="${!isAdmin}"  href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
           <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
         </div>
       </div>
     </div>
 
-    
+    <!-- Mobile header hamburger (top nav only) -->
     <button id="menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
       <i class="fas fa-bars text-2xl"></i>
     </button>
   </nav>
 
-  
+  <!-- Mobile top nav dropdown -->
   <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-4 shadow-xl">
-    <a href="/" class="block text-gray-700 font-medium">Home</a>
+    <a href="/"            class="block text-gray-700 font-medium">Home</a>
     <a href="/marketplace" class="block text-gray-700 font-medium">Marketplace</a>
-    <a href="/terms" class="block text-gray-700 font-medium">Terms</a>
-    <a href="/contactus" class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
-    
-    
+    <a href="/terms"       class="block text-gray-700 font-medium">Terms</a>
+    <a href="/contactus"   class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
     <div th:if="${currentUser == null}" class="flex flex-col gap-y-3 pt-2">
-      <a href="/login" class="text-center px-6 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full">Login</a>
+      <a href="/login"    class="text-center px-6 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full">Login</a>
       <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
     </div>
     <div th:if="${currentUser != null}" class="pt-2">
-       <a th:if="${isAdmin}" href="/admin" class="block py-2 text-gray-700">Admin Dashboard</a>
-       <a th:if="${!isAdmin}" href="/dashboard" class="block py-2 text-gray-700">User Dashboard</a>
-       <a href="/logout" class="block py-2 text-red-600">Log out</a>
+      <a th:if="${isAdmin}"  href="/admin"     class="block py-2 text-gray-700">Admin Dashboard</a>
+      <a th:if="${!isAdmin}" href="/dashboard" class="block py-2 text-gray-700">User Dashboard</a>
+      <a href="/logout" class="block py-2 text-red-600">Log out</a>
     </div>
   </div>
 </header>
 
- 
-<section class="max-w-7xl mx-auto px-4 md:px-6 py-10">
 
-  <div class="flex lg:grid lg:grid-cols-12 gap-8">
+<!-- ═══════════════════════════════════════════════════
+     DASHBOARD BODY
+════════════════════════════════════════════════════ -->
 
-    <!-- LEFT SIDEBAR / Hamburger Menu -->
-    <div class="lg:col-span-3">
-      <button onclick="toggleSidebar()" class="lg:hidden flex items-center gap-2 text-xl mb-6">
-        <i class="fas fa-bars"></i> Menu
+<!-- Overlay for sidebar drawer (mobile) -->
+<div id="sidebar-overlay"
+     onclick="closeSidebar()"
+     class="fixed inset-0 bg-black/50 z-[100] hidden lg:hidden"></div>
+
+<section class="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+
+    <!-- ─── LEFT SIDEBAR / DRAWER ─── -->
+    <div id="sidebar-drawer"
+         class="fixed top-0 left-0 h-full w-72 bg-white z-[110] shadow-2xl
+                -translate-x-full
+                lg:static lg:translate-x-0 lg:shadow-none lg:col-span-3 lg:z-auto
+                flex flex-col px-6 pt-16 pb-8 lg:pt-0 lg:pb-0 lg:px-0">
+
+      <!-- Close button — mobile only -->
+      <button onclick="closeSidebar()"
+              class="lg:hidden absolute top-5 right-5 w-9 h-9 rounded-full
+                     bg-gray-100 flex items-center justify-center
+                     text-gray-600 hover:bg-gray-200 transition">
+        <i class="fas fa-times"></i>
       </button>
 
-     <div class="flex flex-col items-center">
-  <div onclick="changeProfilePicture()" class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
-    <!-- Updated to use Thymeleaf dynamic source -->
-    <img id="profile-photo" 
-         th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
-         alt="Profile" 
-         class="w-full h-full object-cover">
-  </div>
-  <h2 class="mt-5 text-2xl font-semibold" th:text="'Hi, ' + (${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName.split(' ')[0] : 'User'})">Hi, User</h2>
-</div>
-
-
-        <div class="mt-12 space-y-1">
-          <a href="#" onclick="showTab('deals'); return false;" class="tab-link active flex items-center gap-3 px-5 py-4 rounded-2xl">
-            <i class="fas fa-handshake w-5"></i>
-            <span class="font-medium">My Deals</span>
-          </a>
-          <a href="#" onclick="showTab('orders'); return false;" class="tab-link flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-gray-100 transition">
-            <i class="fas fa-shopping-bag w-5"></i>
-            <span class="font-medium">My Orders</span>
-          </a>
-          <a href="#" onclick="showTab('settings'); return false;" class="tab-link flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-gray-100 transition">
-            <i class="fas fa-user-cog w-5"></i>
-            <span class="font-medium">Profile Settings</span>
-          </a>
+      <!-- Avatar -->
+      <div class="flex flex-col items-center">
+        <div onclick="changeProfilePicture()"
+             class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
+          <img id="profile-photo"
+               th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
+               alt="Profile"
+               class="w-full h-full object-cover">
         </div>
+        <h2 class="mt-5 text-2xl font-semibold"
+            th:text="'Hi, ' + (${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName.split(' ')[0] : 'User'})">
+          Hi, User
+        </h2>
       </div>
-    
 
-    <!-- MAIN CONTENT -->
-    <div class="lg:col-span-9 flex-1">
+      <!-- Nav links -->
+      <div class="mt-12 space-y-1">
+        <a href="#" onclick="showTab('deals'); closeSidebar(); return false;"
+           class="tab-link active flex items-center gap-3 px-5 py-4 rounded-2xl">
+          <i class="fas fa-handshake w-5"></i>
+          <span class="font-medium">My Deals</span>
+        </a>
+        <a href="#" onclick="showTab('orders'); closeSidebar(); return false;"
+           class="tab-link flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-gray-100 transition">
+          <i class="fas fa-shopping-bag w-5"></i>
+          <span class="font-medium">My Orders</span>
+        </a>
+        <a href="#" onclick="showTab('settings'); closeSidebar(); return false;"
+           class="tab-link flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-gray-100 transition">
+          <i class="fas fa-user-cog w-5"></i>
+          <span class="font-medium">Profile Settings</span>
+        </a>
+      </div>
 
-      <!-- MY DEALS TAB -->
+      <!-- Swipe hint — mobile only -->
+      <p class="lg:hidden mt-auto text-xs text-gray-400 text-center pt-6 border-t border-gray-100">
+        ← Swipe left or tap outside to close
+      </p>
+    </div>
+
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <div class="lg:col-span-9 mt-6 lg:mt-0">
+
+      <!-- ══ MY DEALS TAB ══ -->
       <div id="deals-tab" class="tab-content active">
-        <div class="flex flex-wrap gap-3 justify-between items-center mb-8">
+
+        <!-- Top bar: hamburger + filters + actions -->
+        <div class="flex flex-wrap gap-3 items-center justify-between mb-6">
+
+          <!-- Hamburger — mobile only, controls sidebar drawer -->
+          <button onclick="openSidebar()"
+                  class="lg:hidden flex items-center justify-center w-10 h-10
+                         rounded-xl bg-gray-100 text-gray-700 shrink-0">
+            <i class="fas fa-bars"></i>
+          </button>
+
           <div class="flex gap-2 bg-gray-100 p-1 rounded-3xl">
-            <button onclick="filterDeals('all')" class="filter-btn active px-6 py-2.5 rounded-3xl text-sm font-medium">All Deals</button>
-            <button onclick="filterDeals('active')" class="filter-btn px-6 py-2.5 rounded-3xl text-sm font-medium">Active</button>
-            <button onclick="filterDeals('completed')" class="filter-btn px-6 py-2.5 rounded-3xl text-sm font-medium">Completed</button>
+            <button onclick="filterDeals('all')"       class="filter-btn active px-4 py-2 rounded-3xl text-sm font-medium">All Deals</button>
+            <button onclick="filterDeals('active')"    class="filter-btn px-4 py-2 rounded-3xl text-sm font-medium">Active</button>
+            <button onclick="filterDeals('completed')" class="filter-btn px-4 py-2 rounded-3xl text-sm font-medium">Completed</button>
           </div>
 
-          <div class="flex gap-3">
-            <button onclick="openDateFilter()" class="flex items-center gap-2 border border-gray-300 px-5 py-2.5 rounded-2xl text-sm hover:bg-gray-50">
-              <i class="fas fa-calendar-alt"></i> Date Range
+          <div class="flex gap-2 ml-auto">
+            <button onclick="openDateFilter()"
+                    class="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-2xl text-sm hover:bg-gray-50">
+              <i class="fas fa-calendar-alt"></i>
+              <span class="hidden sm:inline">Date Range</span>
             </button>
-            <button id="new-deal-cta" onclick="openNewDealModal()" class="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-2xl text-sm font-medium">
-              <i class="fas fa-plus"></i> New Deal
+            <button id="new-deal-cta" onclick="openNewDealModal()"
+                    class="flex items-center gap-2 bg-gray-900 text-white px-5 py-2 rounded-2xl text-sm font-medium">
+              <i class="fas fa-plus"></i>
+              <span class="hidden sm:inline">New Deal</span>
             </button>
           </div>
         </div>
 
-        <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden">
-          <table class="w-full">
+        <!-- Table — horizontally scrollable on mobile -->
+        <div class="overflow-x-auto rounded-3xl border border-gray-200">
+          <table class="w-full min-w-[600px] bg-white">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">S/N</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Deal ID</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Product Name</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Price</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Status</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Action</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">S/N</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Deal ID</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Product Name</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Price</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Status</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody id="deals-table-body" class="divide-y text-sm">
-  <tr th:if="${deals == null or #lists.isEmpty(deals)}">
-    <td colspan="6" class="p-8 text-center text-gray-500">No deals found.</td>
-  </tr>
-  <tr th:each="d, iter : ${deals}" class="hover:bg-gray-50">
-    <td class="p-5" th:text="${iter.index + 1}">1</td>
-    <td class="p-5 font-medium" th:text="${'DL-' + d.id}">DL-1</td>
-    <td class="p-5" th:text="${d.title != null ? d.title : 'Untitled Deal'}">Untitled Deal</td>
-    <td class="p-5 font-medium">&#8358; <span th:text="${d.value}">0</span></td>
-    <td class="p-5">
-      <span class="px-4 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700" th:text="${d.status != null ? d.status : 'Pending Approval'}">Pending Approval</span>
-    </td>
-    <td class="p-5">
-      <a th:href="@{'/dashboard/deal/' + ${d.id}}" class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
-    </td>
-  </tr>
-</tbody>
+              <tr th:if="${deals == null or #lists.isEmpty(deals)}">
+                <td colspan="6" class="p-8 text-center text-gray-500">No deals found.</td>
+              </tr>
+              <tr th:each="d, iter : ${deals}" class="hover:bg-gray-50">
+                <td class="p-5 whitespace-nowrap"         th:text="${iter.index + 1}">1</td>
+                <td class="p-5 font-medium whitespace-nowrap" th:text="${'DL-' + d.id}">DL-1</td>
+                <td class="p-5 whitespace-nowrap"         th:text="${d.title != null ? d.title : 'Untitled Deal'}">Untitled Deal</td>
+                <td class="p-5 font-medium whitespace-nowrap">&#8358; <span th:text="${d.value}">0</span></td>
+                <td class="p-5 whitespace-nowrap">
+                  <span class="px-4 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700"
+                        th:text="${d.status != null ? d.status : 'Pending Approval'}">Pending Approval</span>
+                </td>
+                <td class="p-5 whitespace-nowrap">
+                  <a th:href="@{'/dashboard/deal/' + ${d.id}}"
+                     class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
+        <!-- Mobile scroll hint -->
+        <p class="lg:hidden text-center text-xs text-gray-400 mt-2">← Scroll sideways to see all columns →</p>
       </div>
 
-      <!-- MY ORDERS TAB -->
+
+      <!-- ══ MY ORDERS TAB ══ -->
       <div id="orders-tab" class="tab-content hidden">
-        <h2 class="text-2xl font-semibold mb-6">My Orders</h2>
-        <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden">
-          <table class="w-full">
+
+        <!-- Top bar -->
+        <div class="flex items-center gap-3 mb-6">
+          <button onclick="openSidebar()"
+                  class="lg:hidden flex items-center justify-center w-10 h-10
+                         rounded-xl bg-gray-100 text-gray-700 shrink-0">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="text-2xl font-semibold">My Orders</h2>
+        </div>
+
+        <div class="overflow-x-auto rounded-3xl border border-gray-200">
+          <table class="w-full min-w-[600px] bg-white">
             <thead class="bg-gray-50">
               <tr>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">S/N</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Order ID</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Product</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Price</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Status</th>
-                <th class="text-left p-5 text-sm font-medium text-gray-500">Action</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">S/N</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Order ID</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Product</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Price</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Status</th>
+                <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody id="orders-table-body" class="divide-y text-sm"></tbody>
           </table>
         </div>
+        <p class="lg:hidden text-center text-xs text-gray-400 mt-2">← Scroll sideways to see all columns →</p>
       </div>
 
+
+      <!-- ══ PROFILE SETTINGS TAB ══ -->
       <div id="settings-tab" class="tab-content hidden">
-  <h2 class="text-2xl font-semibold mb-6">Profile Settings</h2>
-  <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-10">
-    
-    <!-- Profile Picture Section -->
-    <div class="flex flex-col items-center pb-8 border-b border-gray-100">
-      <div class="relative group">
-        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
-          <img id="settings-profile-preview" 
-               th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
-               class="w-full h-full object-cover">
-        </div>
-        <!-- Edit Favicon Overlay -->
-        <button onclick="document.getElementById('profile-upload').click()" 
-                class="absolute bottom-1 right-1 bg-gray-900 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition">
-          <i class="fas fa-camera text-sm"></i>
-        </button>
-        <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="previewImage(this)">
-      </div>
-      <button onclick="uploadNewPicture()" class="mt-4 text-sm font-semibold text-gray-900 border border-gray-900 px-4 py-2 rounded-xl hover:bg-gray-900 hover:text-white transition">
-        Update Profile Picture
-      </button>
-    </div>
 
-    <!-- Basic Info -->
-    <div class="space-y-6">
-      <div>
-        <label class="block text-sm font-medium mb-2 text-gray-700">Full Name</label>
-        <input type="text" id="full-name" th:value="${currentUser.fullName}" class="w-full border border-gray-300 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-gray-200 outline-none">
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-sm font-medium mb-2 text-gray-700">Email Address</label>
-          <input type="email" th:value="${currentUser.email}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+        <!-- Top bar -->
+        <div class="flex items-center gap-3 mb-6">
+          <button onclick="openSidebar()"
+                  class="lg:hidden flex items-center justify-center w-10 h-10
+                         rounded-xl bg-gray-100 text-gray-700 shrink-0">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="text-2xl font-semibold">Profile Settings</h2>
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-2 text-gray-700">Phone Number</label>
-          <input type="tel" th:value="${currentUser.phone}" readonly class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
-        </div>
-      </div>
-    </div>
 
+        <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 space-y-10">
+
+          <!-- Profile picture -->
+          <div class="flex flex-col items-center pb-8 border-b border-gray-100">
+            <div class="relative group">
+              <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+                <img id="settings-profile-preview"
+                     th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
+                     class="w-full h-full object-cover">
+              </div>
+              <button onclick="document.getElementById('profile-upload').click()"
+                      class="absolute bottom-1 right-1 bg-gray-900 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition">
+                <i class="fas fa-camera text-sm"></i>
+              </button>
+              <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="previewImage(this)">
+            </div>
+            <button onclick="uploadNewPicture()"
+                    class="mt-4 text-sm font-semibold text-gray-900 border border-gray-900 px-4 py-2 rounded-xl hover:bg-gray-900 hover:text-white transition">
+              Update Profile Picture
+            </button>
+          </div>
+
+          <!-- Basic info -->
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium mb-2 text-gray-700">Full Name</label>
+              <input type="text" id="full-name" th:value="${currentUser.fullName}"
+                     class="w-full border border-gray-300 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-gray-200 outline-none">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium mb-2 text-gray-700">Email Address</label>
+                <input type="email" th:value="${currentUser.email}" readonly
+                       class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2 text-gray-700">Phone Number</label>
+                <input type="tel" th:value="${currentUser.phone}" readonly
+                       class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /main content -->
   </div>
-</div>
 </section>
 
-<!-- NEW DEAL MODAL WITH AUTO CALCULATION -->
-<div id="new-deal-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-4">
+
+<!-- ═══════════════════════════════════════════════════
+     NEW DEAL MODAL
+════════════════════════════════════════════════════ -->
+<div id="new-deal-modal"
+     class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-4">
   <div class="bg-white w-full max-w-2xl max-h-[92vh] overflow-auto rounded-3xl shadow-2xl">
 
     <div class="p-8 border-b">
@@ -304,43 +373,51 @@
 
     <div class="p-8 space-y-6">
       <div>
-        <input type="text" id="item-name" placeholder="Item Name *" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+        <input type="text" id="item-name" placeholder="Item Name *"
+               class="w-full border border-gray-300 rounded-2xl px-5 py-3">
         <div id="error-item-name" class="error-text"></div>
       </div>
 
-      <input type="text" id="item-link" placeholder="Item Link (Optional)" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+      <input type="text" id="item-link" placeholder="Item Link (Optional)"
+             class="w-full border border-gray-300 rounded-2xl px-5 py-3">
 
-      <div class="grid grid-cols-2 gap-4">
-        <input type="text" id="seller-name" placeholder="Seller's Name" class="border border-gray-300 rounded-2xl px-5 py-3">
-        <input type="text" id="seller-phone" placeholder="Seller's Phone Number" class="border border-gray-300 rounded-2xl px-5 py-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input type="text" id="seller-name"  placeholder="Seller's Name"         class="border border-gray-300 rounded-2xl px-5 py-3">
+        <input type="text" id="seller-phone" placeholder="Seller's Phone Number"  class="border border-gray-300 rounded-2xl px-5 py-3">
       </div>
 
-      <input type="text" id="seller-address" placeholder="Seller's Address" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
-      <input type="text" id="delivery-address" placeholder="Delivery Address" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+      <input type="text" id="seller-address"   placeholder="Seller's Address"  class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+      <input type="text" id="delivery-address" placeholder="Delivery Address"  class="w-full border border-gray-300 rounded-2xl px-5 py-3">
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <select id="item-size" class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
           <option value="small" selected>Small</option>
           <option value="medium">Medium</option>
           <option value="big">Big</option>
         </select>
-        <input type="file" id="item-photo" accept="image/*" multiple class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
+        <input type="file" id="item-photo" accept="image/*" multiple
+               class="border border-gray-300 rounded-2xl px-5 py-3 bg-white">
       </div>
 
       <div>
-        <input type="number" id="expected-value" oninput="calculatePaymentPlan()" placeholder="Expected Value (NGN)" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+        <input type="number" id="expected-value" oninput="calculatePaymentPlan()"
+               placeholder="Expected Value (NGN)"
+               class="w-full border border-gray-300 rounded-2xl px-5 py-3">
         <div id="error-value" class="error-text"></div>
       </div>
 
-      <textarea id="description" placeholder="Description / Details" rows="3" class="w-full border border-gray-300 rounded-2xl px-5 py-3"></textarea>
+      <textarea id="description" placeholder="Description / Details" rows="3"
+                class="w-full border border-gray-300 rounded-2xl px-5 py-3"></textarea>
 
       <div>
         <label class="block text-sm font-medium mb-2">Number of weekly installments</label>
-        <input type="number" id="weeks" oninput="calculatePaymentPlan()" placeholder="e.g. 7" class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+        <input type="number" id="weeks" oninput="calculatePaymentPlan()"
+               placeholder="e.g. 7"
+               class="w-full border border-gray-300 rounded-2xl px-5 py-3">
         <div id="error-weeks" class="error-text"></div>
       </div>
 
-      <!-- Payment Plan -->
+      <!-- Payment plan summary -->
       <div id="payment-plan" class="bg-gray-50 p-6 rounded-2xl hidden">
         <h3 class="font-medium mb-4">Payment Plan</h3>
         <div class="space-y-3 text-sm">
@@ -355,7 +432,7 @@
 
       <div>
         <p class="font-medium mb-3">Should DealLock list this item on our platform?</p>
-        <div class="flex gap-6">
+        <div class="flex flex-wrap gap-6">
           <label><input type="radio" name="listing" value="yes" checked> Yes &mdash; You may list the item</label>
           <label><input type="radio" name="listing" value="no"> No &mdash; Do not list the item</label>
         </div>
@@ -372,102 +449,67 @@
     </div>
 
     <div class="border-t p-6 flex gap-4">
-      <button onclick="closeNewDealModal()" class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Cancel</button>
-      <button onclick="submitNewDeal()" class="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-semibold">Submit Deal</button>
+      <button onclick="closeNewDealModal()"
+              class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Cancel</button>
+      <button onclick="submitNewDeal()"
+              class="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-semibold">Submit Deal</button>
     </div>
   </div>
 </div>
 
 
-<footer class="bg-white border-t border-gray-200 text-gray-600">
+<!-- ═══════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════ -->
+<footer class="bg-white border-t border-gray-200 text-gray-600 mt-16">
   <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Our Objectives</h3>
         <ul class="space-y-3 text-gray-600">
-          <li class="flex items-start">
-            <span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>
-            Making quality products affordable through flexible payments
-          </li>
-          <li class="flex items-start">
-            <span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>
-            Building trust and security in every transaction
-          </li>
-          <li class="flex items-start">
-            <span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>
-            Streamlining the buying process for everyone
-          </li>
+          <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Making quality products affordable through flexible payments</li>
+          <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Building trust and security in every transaction</li>
+          <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Streamlining the buying process for everyone</li>
         </ul>
       </div>
-      
+
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Why Choose DealLock</h3>
         <ul class="space-y-3 text-gray-600">
-          <li class="flex items-start">
-            <span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>
-            Flexible "Pay Small Small" payment plans
-          </li>
-          <li class="flex items-start">
-            <span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>
-            Secure and transparent transactions
-          </li>
-          <li class="flex items-start">
-            <span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>
-            Wide range of quality products
-          </li>
+          <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Flexible "Pay Small Small" payment plans</li>
+          <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Secure and transparent transactions</li>
+          <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Wide range of quality products</li>
         </ul>
       </div>
 
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Contact Us</h3>
         <div class="space-y-4 text-gray-600">
-          <div class="flex items-start">
-            <i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3 text-xl"></i>
-            <span>Abuja, Nigeria</span>
-          </div>
-          <div class="flex items-center">
-            <i class="fas fa-phone text-emerald-600 mr-3 text-xl"></i>
-            <a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a>
-          </div>
-          <div class="flex items-center">
-            <i class="fas fa-envelope text-emerald-600 mr-3 text-xl"></i>
-            <a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a>
-          </div>
+          <div class="flex items-start"><i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3 text-xl"></i><span>Abuja, Nigeria</span></div>
+          <div class="flex items-center"><i class="fas fa-phone text-emerald-600 mr-3 text-xl"></i><a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a></div>
+          <div class="flex items-center"><i class="fas fa-envelope text-emerald-600 mr-3 text-xl"></i><a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a></div>
         </div>
-
         <div class="flex space-x-6 mt-8">
-          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
-            <i class="fab fa-facebook-f text-2xl"></i>
-          </a>
-          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
-            <i class="fab fa-twitter text-2xl"></i>
-          </a>
-          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors">
-            <i class="fab fa-instagram text-2xl"></i>
-          </a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-facebook-f text-2xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-twitter text-2xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-instagram text-2xl"></i></a>
         </div>
       </div>
 
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Stay Updated</h3>
-        <p class="text-gray-600 mb-6 text-sm">
-          Get the latest deals, payment tips, and new products from DealLock.
-        </p>
+        <p class="text-gray-600 mb-6 text-sm">Get the latest deals, payment tips, and new products from DealLock.</p>
         <form id="newsletter-form" class="space-y-3" onsubmit="handleSubscribe(event)">
           <div class="relative">
-            <input 
-              type="email" 
-              id="newsletter-email"
-              placeholder="Enter your email address" 
-              class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all"
-            >
-            <button type="submit" 
+            <input type="email" id="newsletter-email" placeholder="Enter your email address"
+                   class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all">
+            <button type="submit"
                     class="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl transition-colors">
               <i class="fas fa-paper-plane"></i>
             </button>
           </div>
-          
-          <button type="submit" 
+          <button type="submit"
                   class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-2xl transition-colors">
             SUBSCRIBE
           </button>
@@ -476,15 +518,13 @@
     </div>
 
     <div class="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-      <p>
-        &copy; <span id="year"></span> DealLock Nigeria. All rights reserved. | 
+      <p>&copy; <span id="year"></span> DealLock Nigeria. All rights reserved. |
         <a href="https://deallock.ng" class="hover:text-emerald-600">deallock.ng</a>
       </p>
     </div>
   </div>
 
-
-  <button onclick="scrollToTop()" 
+  <button onclick="scrollToTop()"
           id="scroll-top-btn"
           class="fixed bottom-8 right-8 p-4 rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 hover:scale-110 transition-all duration-300 focus:outline-none z-50 opacity-0 pointer-events-none">
     <i class="fas fa-arrow-up text-xl"></i>
@@ -492,29 +532,12 @@
 </footer>
 
 
-  <script src="/frontend/js/home.js" defer></script>
-  <script th:inline="javascript">
-  /*<![CDATA[*/
-    window.__DEALLOCK_DEALS__ = [[${dealsVm}]];
-    window.__DEALLOCK_CURRENT_EMAIL__ = [[${currentUser != null ? currentUser.email : null}]];
-    window.__DEALLOCK_CURRENT_NAME__ = [[${currentUser != null ? currentUser.fullName : null}]];
-  /*]]>*/
-  </script>
-  <script>
-    function previewImage(input) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => document.getElementById('settings-profile-preview').src = e.target.result;
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-  </script>
+<!-- ═══════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════ -->
+<script src="/frontend/js/home.js" defer></script>
 
-  <script src="/frontend/js/userdashboard.js" defer></script>
+
+<script src="/frontend/js/userdashboard.js" defer></script>
 </body>
 </html>
-
-
-
-
-
