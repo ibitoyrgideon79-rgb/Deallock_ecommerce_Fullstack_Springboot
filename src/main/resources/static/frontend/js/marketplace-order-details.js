@@ -56,9 +56,13 @@ async function loadOrder() {
     credentials: 'same-origin'
   });
   const ct = (res.headers.get('content-type') || '').toLowerCase();
-  if (res.redirected || !ct.includes('application/json')) {
+  if (res.status === 401 || res.status === 403) {
     showToast('Session expired. Please log in again.', 'error');
     setTimeout(() => { window.location.href = '/login'; }, 700);
+    return;
+  }
+  if (!ct.includes('application/json')) {
+    showToast('Could not load order details. Please refresh this page.', 'error');
     return;
   }
   if (!res.ok) {
@@ -122,9 +126,17 @@ async function submitProof(event) {
       credentials: 'same-origin',
       body: fd
     });
-    const ct = (res.headers.get('content-type') || '').toLowerCase();
-    if (res.redirected || !ct.includes('application/json')) {
+
+    if (res.status === 401 || res.status === 403) {
       throw new Error('Session expired. Please log in again.');
+    }
+    if (res.status === 413) {
+      throw new Error('File is too large. Upload an image or PDF not more than 2MB.');
+    }
+
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (!ct.includes('application/json')) {
+      throw new Error(`Upload failed (${res.status}). Please try again.`);
     }
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
