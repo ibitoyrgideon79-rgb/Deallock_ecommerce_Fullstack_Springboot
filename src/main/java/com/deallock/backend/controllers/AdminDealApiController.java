@@ -50,13 +50,14 @@ public class AdminDealApiController {
     @Value("${app.deals.payment-timeout:24h}")
     private Duration paymentTimeout;
 
+    // ✅ Fixed constructor: added UserRepository parameter
     public AdminDealApiController(DealRepository dealRepository,
                                   MarketplaceItemRepository marketplaceItemRepository,
                                   NotificationDispatchService notifier,
                                   DealReadService dealReadService,
                                   DealCacheService dealCacheService,
-                                  FileStorageService fileStorageService) {
-        
+                                  FileStorageService fileStorageService,
+                                  UserRepository userRepository) {
         this.dealRepository = dealRepository;
         this.marketplaceItemRepository = marketplaceItemRepository;
         this.notifier = notifier;
@@ -75,112 +76,110 @@ public class AdminDealApiController {
     }
 
     @PostMapping("/{id}/approve")
-@Transactional
-public ResponseEntity<?> approve(@PathVariable("id") Long id, Authentication authentication) {
-    if (!isAdmin(authentication)) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    @Transactional
+    public ResponseEntity<?> approve(@PathVariable("id") Long id, Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Optional<Object[]> light = dealRepository.findLightweightById(id);
+        if (light.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Object[] data = light.get();
+        String title = (String) data[1];
+        Long userId = (Long) data[2];
+
+        int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
+        if (updated == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        dealCacheService.evictAdminDeals();
+        if (userId != null) {
+            // ✅ Convert Long to Integer for evictUserDealsById
+            dealCacheService.evictUserDealsById(userId.intValue());
+            userRepository.findById(userId).ifPresent(user -> {
+                if (user.getEmail() != null) {
+                    dealCacheService.evictUserDeals(user.getEmail());
+                }
+            });
+        }
+
+        User user = userId == null ? null : userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            notifier.notifyUser(user,
+                    "Your deal was approved. Please proceed to payment.",
+                    "Your Deal Was Approved",
+                    "Your deal was approved: " + title,
+                    "Your deal was approved: " + title);
+        }
+        notifier.notifyAdmins(
+                "Deal approved: " + title,
+                "Deal Approved",
+                "Deal approved: " + title,
+                "Deal approved: " + title);
+
+        return ResponseEntity.ok(Map.of("message", "approved"));
     }
 
-    // 1. Get minimal info (title + userId) without loading BLOBs
-    Optional<Object[]> light = dealRepository.findLightweightById(id);
-    if (light.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    Object[] data = light.get();
-    String title = (String) data[1];
-    Long userId = (Long) data[2];
-
-    // 2. Perform partial update (only status and rejectionReason)
-    int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
-    if (updated == 0) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-
-    // 3. Evict caches (using userId if available)
-    dealCacheService.evictAdminDeals();
-    if (userId != null) {
-        dealCacheService.evictUserDealsById(userId);
-        // Also evict by email (need user object – optional, but safe)
-        userRepository.findById(userId).ifPresent(user -> {
-            if (user.getEmail() != null) {
-                dealCacheService.evictUserDeals(user.getEmail());
-            }
-        });
-    }
-
-    // 4. Send notifications (fetch user fresh, but that's fine – no BLOBs)
-    User user = userId == null ? null : userRepository.findById(userId).orElse(null);
-    if (user != null) {
-        notifier.notifyUser(user,
-                "Your deal was approved. Please proceed to payment.",
-                "Your Deal Was Approved",
-                "Your deal was approved: " + title,
-                "Your deal was approved: " + title);
-    }
-    notifier.notifyAdmins(
-            "Deal approved: " + title,
-            "Deal Approved",
-            "Deal approved: " + title,
-            "Deal approved: " + title);
-
-    return ResponseEntity.ok(Map.of("message", "approved"));
-}
     @PostMapping("/{id}/reject")
-@Transactional
-public ResponseEntity<?> reject(@PathVariable("id") Long id,
-                                @RequestBody(required = false) Map<String, Object> body,
-                                Authentication authentication) {
-    if (!isAdmin(authentication)) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    }
+    @Transactional
+    public ResponseEntity<?> reject(@PathVariable("id") Long id,
+                                    @RequestBody(required = false) Map<String, Object> body,
+                                    Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
-    Optional<Object[]> light = dealRepository.findLightweightById(id);
-    if (light.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    Object[] data = light.get();
-    String title = (String) data[1];
-    Long userId = (Long) data[2];
+        Optional<Object[]> light = dealRepository.findLightweightById(id);
+        if (light.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Object[] data = light.get();
+        String title = (String) data[1];
+        Long userId = (Long) data[2];
 
-    String reason = null;
-    if (body != null && body.get("reason") != null) {
-        reason = String.valueOf(body.get("reason")).trim();
-    }
-    if (reason != null && reason.length() > 2000) {
-        reason = reason.substring(0, 2000);
-    }
+        String reason = null;
+        if (body != null && body.get("reason") != null) {
+            reason = String.valueOf(body.get("reason")).trim();
+        }
+        if (reason != null && reason.length() > 2000) {
+            reason = reason.substring(0, 2000);
+        }
 
-    int updated = dealRepository.updateStatusAndReason(id, "Rejected", reason);
-    if (updated == 0) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
+        int updated = dealRepository.updateStatusAndReason(id, "Rejected", reason);
+        if (updated == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
-    dealCacheService.evictAdminDeals();
-    if (userId != null) {
-        dealCacheService.evictUserDealsById(userId);
-        userRepository.findById(userId).ifPresent(user -> {
-            if (user.getEmail() != null) {
-                dealCacheService.evictUserDeals(user.getEmail());
-            }
-        });
-    }
+        dealCacheService.evictAdminDeals();
+        if (userId != null) {
+            // ✅ Convert Long to Integer
+            dealCacheService.evictUserDealsById(userId.intValue());
+            userRepository.findById(userId).ifPresent(user -> {
+                if (user.getEmail() != null) {
+                    dealCacheService.evictUserDeals(user.getEmail());
+                }
+            });
+        }
 
-    User user = userId == null ? null : userRepository.findById(userId).orElse(null);
-    if (user != null) {
-        notifier.notifyUser(user,
-                "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
-                "Your Deal Was Rejected",
-                "Your deal was rejected: " + title + (reason == null || reason.isBlank() ? "" : ("\nReason: " + reason)),
-                "Your deal was rejected: " + title);
-    }
-    notifier.notifyAdmins(
-            "Deal rejected: " + title,
-            "Deal Rejected",
-            "Deal rejected: " + title,
-            "Deal rejected: " + title);
+        User user = userId == null ? null : userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            notifier.notifyUser(user,
+                    "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
+                    "Your Deal Was Rejected",
+                    "Your deal was rejected: " + title + (reason == null || reason.isBlank() ? "" : ("\nReason: " + reason)),
+                    "Your deal was rejected: " + title);
+        }
+        notifier.notifyAdmins(
+                "Deal rejected: " + title,
+                "Deal Rejected",
+                "Deal rejected: " + title,
+                "Deal rejected: " + title);
 
-    return ResponseEntity.ok(Map.of("message", "rejected"));
-}
+        return ResponseEntity.ok(Map.of("message", "rejected"));
+    }
 
     @PostMapping("/{id}/payment-confirmed")
     public ResponseEntity<?> paymentConfirmed(@PathVariable("id") Long id, Authentication authentication) {
@@ -197,10 +196,17 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
         }
 
         deal.setPaymentStatus("PAID_CONFIRMED");
+        // ✅ Clear BLOBs before saving
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
+            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -234,10 +240,17 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
         }
 
         deal.setPaymentStatus("NOT_PAID");
+        // ✅ Clear BLOBs
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
+            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -281,10 +294,16 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
                 deal.setSecuredItemPhotoKey(null);
             }
         }
+        // ✅ Clear BLOBs
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
+            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -318,10 +337,17 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
         }
 
         deal.setBalancePaymentStatus("PAID_CONFIRMED");
+        // ✅ Clear BLOBs
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
+            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -355,10 +381,17 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
         }
 
         deal.setDeliveryInitiatedAt(Instant.now());
+        // ✅ Clear BLOBs
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
+            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -392,6 +425,13 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
         }
 
         deal.setDeliveryConfirmedAt(Instant.now());
+        // ✅ Clear BLOBs
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
@@ -448,7 +488,6 @@ public ResponseEntity<?> reject(@PathVariable("id") Long id,
             return ResponseEntity.badRequest().body(Map.of("message", "User did not allow marketplace listing for this item"));
         }
 
-        // "Expired unpaid" policy: approved + NOT_PAID + older than configured timeout.
         String paymentStatus = deal.getPaymentStatus() == null ? "NOT_PAID" : deal.getPaymentStatus();
         if (deal.getCreatedAt() == null
                 || deal.getStatus() == null
