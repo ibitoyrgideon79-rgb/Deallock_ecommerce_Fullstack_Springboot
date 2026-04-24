@@ -87,7 +87,7 @@ public class AdminDealApiController {
         }
         Object[] data = light.get();
         String title = (String) data[1];
-        Long userId = (Long) data[2];
+        Integer userId = (Integer) data[2];
 
         int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
         if (updated == 0) {
@@ -96,8 +96,7 @@ public class AdminDealApiController {
 
         dealCacheService.evictAdminDeals();
         if (userId != null) {
-            // userId is Long -> convert to int
-            dealCacheService.evictUserDealsById(userId.intValue());
+            dealCacheService.evictUserDealsById(userId);
             userRepository.findById(userId).ifPresent(user -> {
                 if (user.getEmail() != null) {
                     dealCacheService.evictUserDeals(user.getEmail());
@@ -137,7 +136,7 @@ public class AdminDealApiController {
         }
         Object[] data = light.get();
         String title = (String) data[1];
-        Long userId = (Long) data[2];
+        Integer userId = (Integer) data[2];
 
         String reason = null;
         if (body != null && body.get("reason") != null) {
@@ -154,7 +153,7 @@ public class AdminDealApiController {
 
         dealCacheService.evictAdminDeals();
         if (userId != null) {
-            dealCacheService.evictUserDealsById(userId.intValue());
+            dealCacheService.evictUserDealsById(userId);
             userRepository.findById(userId).ifPresent(user -> {
                 if (user.getEmail() != null) {
                     dealCacheService.evictUserDeals(user.getEmail());
