@@ -37,7 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/deals")
 public class DealApiController {
 
-    private static final long MAX_UPLOAD_BYTES = 10L * 1024L * 1024L;
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
 
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
@@ -181,7 +181,7 @@ public class DealApiController {
             for (MultipartFile file : incoming) {
                 if (file == null || file.isEmpty()) continue;
                 if (file.getSize() > MAX_UPLOAD_BYTES) {
-                    return ResponseEntity.badRequest().body(Map.of("message", "Each item photo must be at most 10MB."));
+                    return ResponseEntity.badRequest().body(Map.of("message", "Each item photo must be at most 2MB."));
                 }
 
                 saved++;
@@ -552,7 +552,7 @@ public class DealApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment proof is required"));
         }
         if (paymentProof.getSize() > MAX_UPLOAD_BYTES) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 10MB."));
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 2MB."));
         }
 
         var dealOpt = dealRepository.findById(id);
@@ -616,7 +616,7 @@ public class DealApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment proof is required"));
         }
         if (paymentProof.getSize() > MAX_UPLOAD_BYTES) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 10MB."));
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 2MB."));
         }
 
         var dealOpt = dealRepository.findById(id);

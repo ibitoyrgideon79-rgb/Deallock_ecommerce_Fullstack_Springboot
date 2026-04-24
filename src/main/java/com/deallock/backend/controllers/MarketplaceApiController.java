@@ -33,7 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class MarketplaceApiController {
 
     private static final BigDecimal DOOR_DELIVERY_FEE = BigDecimal.valueOf(2500);
-    private static final long MAX_UPLOAD_BYTES = 10L * 1024L * 1024L;
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
     private final UserRepository userRepository;
@@ -223,7 +223,7 @@ public class MarketplaceApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment proof file is required"));
         }
         if (paymentProof.getSize() > MAX_UPLOAD_BYTES) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 10MB"));
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 2MB"));
         }
 
         order.setPaymentProof(paymentProof.getBytes());

@@ -11,8 +11,8 @@ spring:
       ddl-auto: create-drop
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 11MB
+      max-file-size: 2MB
+      max-request-size: 3MB
 
 server:
   port: 8080

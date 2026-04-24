@@ -30,7 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/admin/marketplace/items")
 public class AdminMarketplaceApiController {
 
-    private static final long MAX_UPLOAD_BYTES = 10L * 1024L * 1024L;
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
 
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
@@ -188,7 +188,7 @@ public class AdminMarketplaceApiController {
                 if (file == null || file.isEmpty()) continue;
                 if (file.getSize() > MAX_UPLOAD_BYTES) {
                     return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                            .body(Map.of("message", "Each photo must be at most 10MB."));
+                            .body(Map.of("message", "Each photo must be at most 2MB."));
                 }
 
                 saved++;

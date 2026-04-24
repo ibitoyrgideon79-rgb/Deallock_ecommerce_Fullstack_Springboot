@@ -28,7 +28,7 @@ const closedDealsMessage = document.getElementById('closed-deals-message');
 const form = document.getElementById('new-deal-form');
 const modal = document.getElementById('create-deal-modal');
 const API_DEALS = '/api/deals';
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024; // 2MB
 const REQUEST_TIMEOUT_MS = 60000;
 
 let allDeals = [];
@@ -258,7 +258,7 @@ form?.addEventListener('submit', async e => {
     return;
   }
   if (photo && photo.size && photo.size > MAX_PHOTO_BYTES) {
-    if (dealsMessage) dealsMessage.textContent = 'Image is too large. Max 10MB.';
+    if (dealsMessage) dealsMessage.textContent = 'Image is too large. Max 2MB.';
     return;
   }
 

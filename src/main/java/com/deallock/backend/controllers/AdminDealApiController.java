@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,11 +21,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/admin/deals")
 public class AdminDealApiController {
+
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
 
     private final DealRepository dealRepository;
     private final MarketplaceItemRepository marketplaceItemRepository;
@@ -193,8 +198,10 @@ public class AdminDealApiController {
         return ResponseEntity.ok(Map.of("message", "payment-not-received"));
     }
 
-    @PostMapping("/{id}/secured")
-    public ResponseEntity<?> secured(@PathVariable("id") Long id, Authentication authentication) {
+    @PostMapping(path = "/{id}/secured", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> secured(@PathVariable("id") Long id,
+                                     @RequestParam("securedPhoto") MultipartFile securedPhoto,
+                                     Authentication authentication) throws Exception {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -209,9 +216,18 @@ public class AdminDealApiController {
         if (!"PAID_CONFIRMED".equalsIgnoreCase(deal.getPaymentStatus())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment must be confirmed first"));
         }
+        if (securedPhoto == null || securedPhoto.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Secured photo is required"));
+        }
+        if (securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(Map.of("message", "Secured photo must be at most 2MB."));
+        }
 
         deal.setSecured(true);
         deal.setSecuredAt(Instant.now());
+        deal.setSecuredItemPhoto(securedPhoto.getBytes());
+        deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {

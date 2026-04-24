@@ -170,6 +170,16 @@ public class PageController {
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
         model.addAttribute("deal", deal);
+
+        // deal-pay.html expects `halfPayment` (historical naming).
+        // In our domain model, this is the upfront payment: 50% of value + logistics.
+        java.math.BigDecimal upfront = deal.getUpfrontPaymentAmount();
+        if (upfront == null) {
+            java.math.BigDecimal value = deal.getValue() == null ? java.math.BigDecimal.ZERO : deal.getValue();
+            java.math.BigDecimal logistics = deal.getLogisticsFeeAmount() == null ? java.math.BigDecimal.ZERO : deal.getLogisticsFeeAmount();
+            upfront = value.multiply(java.math.BigDecimal.valueOf(0.5)).add(logistics);
+        }
+        model.addAttribute("halfPayment", upfront);
         return "deal-pay";
     }
 

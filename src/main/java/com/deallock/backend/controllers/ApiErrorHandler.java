@@ -16,7 +16,7 @@ public class ApiErrorHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> handleMaxUpload(MaxUploadSizeExceededException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(Map.of("message", "Upload file is too large. Maximum allowed is 10MB."));
+                .body(Map.of("message", "Upload file is too large. Maximum allowed is 2MB."));
     }
 
     @ExceptionHandler(MultipartException.class)
@@ -29,7 +29,7 @@ public class ApiErrorHandler {
         String message = ex == null ? "" : String.valueOf(ex.getMessage());
         if (message.toLowerCase().contains("maximum upload size")) {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                    .body(Map.of("message", "Upload file is too large. Maximum allowed is 10MB."));
+                    .body(Map.of("message", "Upload file is too large. Maximum allowed is 2MB."));
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", "Invalid upload request. Please re-select the file and try again."));
