@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/css/tailwind.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <title>Marketplace Order Details</title>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="bg-white border-b border-gray-100 shadow-sm">
+    <nav class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+      <a href="/dashboard?tab=orders" class="text-sm font-medium text-gray-700 hover:text-black">&larr; Back to My Orders</a>
+      <div class="text-sm text-gray-600">Order <span class="font-semibold" th:text="${order['orderCode']}">MO-0</span></div>
+    </nav>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-5 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="text-2xl font-semibold">Order Details</h1>
+        <span id="status-badge" class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700" th:text="${order['status']}">PENDING_PAYMENT</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
+        <div><span class="text-gray-500">Order Code:</span> <span class="font-medium" th:text="${order['orderCode']}">MO-0</span></div>
+        <div><span class="text-gray-500">Payment Method:</span> <span class="font-medium" th:text="${order['paymentMethod']}">BANK_TRANSFER</span></div>
+        <div><span class="text-gray-500">Delivery Method:</span> <span class="font-medium" th:text="${order['deliveryMethod']}">door</span></div>
+        <div><span class="text-gray-500">Delivery Address:</span> <span class="font-medium" th:text="${order['deliveryAddress']}">Address</span></div>
+      </div>
+
+      <h2 class="text-lg font-semibold mb-3">Items</h2>
+      <div id="order-items" class="space-y-3 mb-6">
+        <div th:each="item : ${order['items']}" class="border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+          <img th:if="${item['imageUrl'] != null}" th:src="${item['imageUrl']}" alt="Item" class="w-14 h-14 rounded-lg object-cover border border-gray-200">
+          <div class="flex-1">
+            <div class="font-medium" th:text="${item['name']}">Item</div>
+            <div class="text-xs text-gray-500">Qty: <span th:text="${item['quantity']}">1</span></div>
+          </div>
+          <div class="font-semibold">&#8358; <span th:text="${item['lineTotal']}">0</span></div>
+        </div>
+      </div>
+
+      <h2 class="text-lg font-semibold mb-3">Tracking Timeline</h2>
+      <div id="tracking-timeline" class="space-y-2 text-sm text-gray-700"></div>
+    </section>
+
+    <aside class="bg-white border border-gray-200 rounded-2xl p-6">
+      <h2 class="text-lg font-semibold mb-3">Payment</h2>
+      <div class="space-y-2 text-sm mb-4">
+        <div class="flex justify-between"><span>Subtotal</span><span>&#8358; <span th:text="${order['subtotalAmount']}">0</span></span></div>
+        <div class="flex justify-between"><span>Delivery</span><span>&#8358; <span th:text="${order['deliveryFeeAmount']}">0</span></span></div>
+        <div class="flex justify-between font-semibold border-t pt-2"><span>Total</span><span>&#8358; <span th:text="${order['totalAmount']}">0</span></span></div>
+      </div>
+
+      <div class="mb-5 text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-200">
+        Transfer to <strong>Deallock</strong>, <strong>Fidelity Bank</strong>, Account <strong>5601682913</strong>, then upload your proof below.
+      </div>
+
+      <form id="payment-proof-form" class="space-y-3">
+        <input type="file" id="payment-proof-file" accept="image/*,.pdf" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm" required>
+        <textarea id="payment-proof-note" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm" rows="3" placeholder="Optional note for admin"></textarea>
+        <button type="submit" id="upload-proof-btn" class="w-full bg-black text-white py-2.5 rounded-xl text-sm font-medium">I Have Paid - Upload Proof</button>
+      </form>
+
+      <a id="view-proof-link" href="#" target="_blank" rel="noopener" class="hidden mt-3 text-sm text-blue-600 hover:underline">View Uploaded Payment Proof</a>
+      <div id="order-admin-note" class="hidden mt-4 p-3 rounded-xl bg-yellow-50 border border-yellow-200 text-sm text-yellow-900"></div>
+    </aside>
+  </main>
+
+  <script th:inline="javascript">
+    window.__ORDER_ID__ = /*[[${order['id']}]]*/ 0;
+  </script>
+  <script src="/frontend/js/marketplace-order-details.js" defer></script>
+</body>
+</html>
+

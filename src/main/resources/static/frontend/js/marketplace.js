@@ -223,6 +223,7 @@ function proceedToCheckout() {
   const checked = document.querySelector('input[name="delivery"]:checked');
   const method = checked ? checked.value : 'pickup';
   const address = (document.getElementById('address-input')?.value || '').trim();
+  const paymentMethod = (document.getElementById('payment-method')?.value || 'BANK_TRANSFER').trim();
 
   if (cart.length === 0) {
     showToast('Your cart is empty.', 'error');
@@ -233,8 +234,55 @@ function proceedToCheckout() {
     return;
   }
 
-  // Marketplace checkout is not wired to backend yet.
-  showToast('Checkout captured (demo). Backend integration next.', 'success');
+  const payload = {
+    deliveryMethod: method,
+    deliveryAddress: method === 'door' ? address : '',
+    paymentMethod,
+    items: cart.map(i => ({ id: i.id, quantity: i.quantity }))
+  };
+
+  fetch('/api/marketplace/checkout', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(payload)
+  })
+    .then(async res => {
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      if (res.redirected || !contentType.includes('application/json')) {
+        throw new Error('Please log in to continue checkout.');
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.message || `Checkout failed (${res.status})`);
+      }
+      return data;
+    })
+    .then(data => {
+      const orderId = Number(data?.order?.id || 0);
+      cart = [];
+      localStorage.setItem('bw_cart', JSON.stringify(cart));
+      saveAndUpdate();
+      const addrInput = document.getElementById('address-input');
+      if (addrInput) addrInput.value = '';
+      if (window.location.pathname.includes('/marketplace') && orderId > 0) {
+        window.location.href = `/dashboard/order/${orderId}?created=1`;
+      } else if (window.location.pathname.includes('/marketplace')) {
+        window.location.href = '/dashboard?tab=orders';
+      }
+    })
+    .catch(e => {
+      const msg = e?.message || 'Checkout failed.';
+      showToast(msg, 'error');
+      if (msg.toLowerCase().includes('login')) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 700);
+      }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

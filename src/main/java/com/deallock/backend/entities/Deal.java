@@ -56,10 +56,14 @@ public class Deal {
     private BigDecimal remainingBalanceAmount;
     private BigDecimal weeklyPaymentAmount;
     private BigDecimal totalAmount;
+    private BigDecimal extensionServiceFeeAmount;
     @Column(length = 2000)
     private String description;
     private String status;
     private Instant createdAt;
+    private Instant paymentDueAt;
+    private Integer extensionWeeksUsed;
+    private Instant lastPaymentReminderAt;
     private String paymentStatus;
     @Column(name = "rejection_reason", length = 2000)
     private String rejectionReason;

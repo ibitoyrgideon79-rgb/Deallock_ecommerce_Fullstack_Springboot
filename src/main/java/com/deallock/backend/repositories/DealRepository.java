@@ -12,4 +12,5 @@ public interface DealRepository extends JpaRepository<Deal, Long> {
     List<Deal> findByCreatedAtBetweenOrderByCreatedAtDesc(Instant start, Instant end);
     List<Deal> findByPaymentProofIsNotNullOrderByPaymentProofUploadedAtDesc();
     List<Deal> findBySecuredTrueAndDeliveryInitiatedAtIsNullAndDeliveryConfirmedAtIsNullOrderBySecuredAtDesc();
+    List<Deal> findByStatusIgnoreCaseAndPaymentStatusIgnoreCase(String status, String paymentStatus);
 }

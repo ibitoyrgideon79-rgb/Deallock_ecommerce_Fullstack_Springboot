@@ -21,10 +21,10 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    private void send(String to, String subject, String text) {
+    private boolean send(String to, String subject, String text) {
         if (mailSender == null) {
             System.out.println("[WARN] JavaMailSender bean not configured; skipping email send.");
-            return;
+            return false;
         }
         try {
             var message = mailSender.createMimeMessage();
@@ -34,8 +34,10 @@ public class EmailService {
             helper.setText(text, false);
             helper.setFrom(new InternetAddress(smtpFromEmail, smtpFromName).toString());
             mailSender.send(message);
+            return true;
         } catch (Exception ex) {
             System.out.println("[WARN] SMTP send failed: " + ex.getMessage());
+            return false;
         }
     }
 
@@ -44,6 +46,13 @@ public class EmailService {
             return;
         }
         send(email, subject, body);
+    }
+
+    public boolean sendGenericWithStatus(String email, String subject, String body) {
+        if (isBlank(email) || isBlank(subject) || isBlank(body)) {
+            return false;
+        }
+        return send(email, subject, body);
     }
 
     private boolean isBlank(String value) {

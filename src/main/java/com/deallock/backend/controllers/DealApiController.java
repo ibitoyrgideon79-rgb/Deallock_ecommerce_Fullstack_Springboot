@@ -11,6 +11,7 @@ import com.deallock.backend.services.SmsService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +49,10 @@ public class DealApiController {
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
+    @Value("${app.deals.payment-timeout:24h}")
+    private Duration paymentTimeout;
+    @Value("${app.deals.extension-weekly-service-rate:0.02}")
+    private BigDecimal extensionWeeklyServiceRate;
 
     public DealApiController(DealRepository dealRepository,
                              UserRepository userRepository,
@@ -138,6 +143,10 @@ public class DealApiController {
         deal.setDescription(description);
         deal.setStatus("Pending Approval");
         deal.setCreatedAt(Instant.now());
+        deal.setPaymentDueAt(deal.getCreatedAt().plus(paymentTimeout == null ? Duration.ofHours(24) : paymentTimeout));
+        deal.setExtensionWeeksUsed(0);
+        deal.setExtensionServiceFeeAmount(BigDecimal.ZERO);
+        deal.setLastPaymentReminderAt(null);
         deal.setPaymentStatus("NOT_PAID");
         deal.setBalancePaymentStatus("NOT_PAID");
         deal.setSecured(false);
@@ -234,7 +243,8 @@ public class DealApiController {
                 "id", deal.getId(),
                 "upfrontPaymentAmount", deal.getUpfrontPaymentAmount(),
                 "logisticsFeeAmount", deal.getLogisticsFeeAmount(),
-                "totalAmount", deal.getTotalAmount()
+                "totalAmount", deal.getTotalAmount(),
+                "paymentDueAt", deal.getPaymentDueAt()
         ));
     }
 
@@ -401,6 +411,96 @@ public class DealApiController {
                                         Principal principal,
                                         Authentication authentication) {
         return deleteDeal(id, principal, authentication);
+    }
+
+    @PostMapping("/{id}/request-extension")
+    public ResponseEntity<?> requestPaymentExtension(@PathVariable("id") Long id,
+                                                     @RequestParam(value = "weeks", required = false) Integer weeks,
+                                                     Principal principal,
+                                                     Authentication authentication) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        var dealOpt = dealRepository.findById(id);
+        if (dealOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        var deal = dealOpt.get();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (deal.getStatus() == null || !"Approved".equalsIgnoreCase(deal.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Deal must be approved first"));
+        }
+        if (deal.getPaymentStatus() != null && !"NOT_PAID".equalsIgnoreCase(deal.getPaymentStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment already submitted or confirmed"));
+        }
+        Instant now = Instant.now();
+        if (deal.getPaymentDueAt() == null || !deal.getPaymentDueAt().isBefore(now)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Extension is available only after due date"));
+        }
+
+        int addWeeks = (weeks == null || weeks < 1) ? 1 : weeks;
+        if (addWeeks > 2) addWeeks = 2;
+        int used = deal.getExtensionWeeksUsed() == null ? 0 : deal.getExtensionWeeksUsed();
+        if (used >= 2) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Maximum extension reached (2 weeks)"));
+        }
+        if (used + addWeeks > 2) {
+            addWeeks = 2 - used;
+        }
+        if (addWeeks <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Maximum extension reached (2 weeks)"));
+        }
+
+        deal.setExtensionWeeksUsed(used + addWeeks);
+        Instant baseDue = deal.getPaymentDueAt() == null ? now : deal.getPaymentDueAt();
+        deal.setPaymentDueAt(baseDue.plus(Duration.ofDays(7L * addWeeks)));
+
+        BigDecimal value = deal.getValue() == null ? BigDecimal.ZERO : deal.getValue();
+        BigDecimal rate = extensionWeeklyServiceRate == null ? BigDecimal.valueOf(0.02) : extensionWeeklyServiceRate;
+        BigDecimal extraFee = roundMoney(value.multiply(rate).multiply(BigDecimal.valueOf(addWeeks)));
+        BigDecimal existingExtFee = deal.getExtensionServiceFeeAmount() == null ? BigDecimal.ZERO : deal.getExtensionServiceFeeAmount();
+        deal.setExtensionServiceFeeAmount(roundMoney(existingExtFee.add(extraFee)));
+        deal.setTotalAmount(roundMoney((deal.getTotalAmount() == null ? BigDecimal.ZERO : deal.getTotalAmount()).add(extraFee)));
+        deal.setRemainingBalanceAmount(roundMoney((deal.getRemainingBalanceAmount() == null ? BigDecimal.ZERO : deal.getRemainingBalanceAmount()).add(extraFee)));
+
+        int installmentWeeks = deal.getInstallmentWeeks() == null || deal.getInstallmentWeeks() <= 0 ? 1 : deal.getInstallmentWeeks();
+        deal.setWeeklyPaymentAmount(roundMoney(deal.getRemainingBalanceAmount().divide(BigDecimal.valueOf(installmentWeeks), 2, RoundingMode.HALF_UP)));
+
+        dealRepository.save(deal);
+        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictAdminDeals();
+
+        notifier.notifyUser(deal.getUser(),
+                "Payment period extended by " + addWeeks + " week(s). Extra service fee applied.",
+                "Payment Extension Approved",
+                "Your payment period was extended by " + addWeeks + " week(s).\nExtra service fee: NGN " + extraFee + "\nNew due date: " + deal.getPaymentDueAt(),
+                "Payment extension: +" + addWeeks + " week(s). Extra fee NGN " + extraFee);
+        notifier.notifyAdmins(
+                "User requested extension for deal " + safe(deal.getTitle()) + " (+" + addWeeks + " week(s)).",
+                "Deal Payment Extension",
+                "Extension applied for deal: " + safe(deal.getTitle()) + "\nWeeks: " + addWeeks + "\nFee: NGN " + extraFee,
+                "Extension applied: " + safe(deal.getTitle()));
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Payment period extended",
+                "addedWeeks", addWeeks,
+                "extensionWeeksUsed", deal.getExtensionWeeksUsed(),
+                "extensionFeeAdded", extraFee,
+                "paymentDueAt", deal.getPaymentDueAt(),
+                "remainingBalanceAmount", deal.getRemainingBalanceAmount(),
+                "totalAmount", deal.getTotalAmount()
+        ));
     }
 
     @PostMapping("/{id}/pay")

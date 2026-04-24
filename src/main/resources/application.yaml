@@ -44,6 +44,8 @@ app:
     # If a deal is approved but the user doesn't pay within this time, it becomes "expired unpaid"
     # and can optionally be listed on the marketplace by admins (if the user allowed listing).
     payment-timeout: 24h
+    # Additional service fee rate applied per approved payment-extension week.
+    extension-weekly-service-rate: 0.02
 
 ai:
   agent:

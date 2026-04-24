@@ -1,4 +1,4 @@
-// User dashboard UI logic.
+﻿// User dashboard UI logic.
 // Key point: always treat non-JSON responses as "not logged in" (Spring redirects to /login).
 
 function showToast(message, type) {
@@ -31,6 +31,26 @@ function escapeHtml(value) {
 function naira(amount) {
   const n = typeof amount === 'number' ? amount : Number(amount || 0);
   return `\u20A6 ${n.toLocaleString()}`;
+}
+
+function resolveWeeksInput() {
+  const weeksSelect = document.getElementById('weeks');
+  const mode = weeksSelect?.value || '';
+  if (mode === 'custom') {
+    const custom = parseInt(document.getElementById('custom-weeks')?.value || '0', 10);
+    return { weeks: custom, mode: 'custom' };
+  }
+  const weeks = parseInt(mode || '0', 10);
+  return { weeks, mode: mode || '' };
+}
+
+function toggleCustomWeeks() {
+  const weeksSelect = document.getElementById('weeks');
+  const customWrap = document.getElementById('custom-weeks');
+  if (!weeksSelect || !customWrap) return;
+  const show = weeksSelect.value === 'custom';
+  customWrap.classList.toggle('hidden', !show);
+  if (!show) customWrap.value = '';
 }
 
 async function apiJson(url, options) {
@@ -66,17 +86,26 @@ function toggleSidebar() {
 
 // Tab Switching
 function showTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.getElementById(tab + '-tab')?.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.remove('active');
+    el.classList.add('hidden');
+  });
+  const tabEl = document.getElementById(tab + '-tab');
+  tabEl?.classList.add('active');
+  tabEl?.classList.remove('hidden');
 
   document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active', 'bg-gray-100'));
   if (typeof event !== 'undefined' && event?.currentTarget) {
     event.currentTarget.classList.add('active', 'bg-gray-100');
   }
+  if (tab === 'orders') {
+    loadOrders();
+  }
 }
 
 let dealsCache = Array.isArray(window.__DEALLOCK_DEALS__) ? window.__DEALLOCK_DEALS__ : [];
 let dealFilter = 'all'; // all | active | completed
+let ordersCache = [];
 
 function dealUiStage(deal) {
   const status = (deal?.status || '').toString().toLowerCase();
@@ -156,6 +185,7 @@ function renderDealsTable() {
     const price = naira(deal?.value || 0);
     const statusLabel = dealStatusLabel(deal);
     const detailsHref = dealId != null ? `/dashboard/deal/${dealId}` : '#';
+    const canExtend = !!deal?.canRequestExtension;
 
     return `
       <tr class="hover:bg-gray-50">
@@ -168,16 +198,89 @@ function renderDealsTable() {
         </td>
         <td class="p-5">
           <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
+          ${canExtend && dealId != null ? `<button onclick="requestPaymentExtension(${dealId})" class="ml-3 text-[11px] border border-black px-2 py-1 hover:bg-black hover:text-white">Extend Payment Period</button>` : ''}
         </td>
       </tr>
     `;
   }).join('');
 }
 
+function orderStatusClass(status) {
+  switch ((status || '').toUpperCase()) {
+    case 'PENDING_PAYMENT':
+      return 'bg-yellow-100 text-yellow-700';
+    case 'PAYMENT_SUBMITTED':
+      return 'bg-blue-100 text-blue-700';
+    case 'PAYMENT_NOT_RECEIVED':
+      return 'bg-red-100 text-red-700';
+    case 'PAYMENT_RECEIVED':
+      return 'bg-indigo-100 text-indigo-700';
+    case 'PROCESSING':
+      return 'bg-purple-100 text-purple-700';
+    case 'SHIPPED':
+      return 'bg-cyan-100 text-cyan-700';
+    case 'DELIVERED':
+      return 'bg-emerald-100 text-emerald-700';
+    case 'REVIEW':
+      return 'bg-gray-200 text-gray-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+}
+
+function readableOrderStatus(status) {
+  return (status || 'PENDING_PAYMENT').toString().toUpperCase().replaceAll('_', ' ');
+}
+
 function renderOrdersTable() {
   const tbody = document.getElementById('orders-table-body');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">No orders yet.</td></tr>`;
+  if (!Array.isArray(ordersCache) || ordersCache.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">No orders yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ordersCache.map((order, idx) => {
+    const code = order?.orderCode || `MO-${order?.id || idx + 1}`;
+    const summaryName = order?.summaryName || 'Marketplace Order';
+    const status = (order?.status || 'PENDING_PAYMENT').toString().toUpperCase();
+    const badgeClass = orderStatusClass(status);
+    const track = `Pay via ${order?.paymentMethod || 'BANK_TRANSFER'} · ${order?.deliveryMethod === 'pickup' ? 'Store pickup' : 'Door delivery'}`;
+    const detailsHref = order?.id ? `/dashboard/order/${order.id}` : '#';
+    return `
+      <tr class="hover:bg-gray-50">
+        <td class="p-5">${idx + 1}</td>
+        <td class="p-5 font-medium">${escapeHtml(code)}</td>
+        <td class="p-5">${escapeHtml(summaryName)}</td>
+        <td class="p-5 font-medium">${escapeHtml(naira(order?.totalAmount || 0))}</td>
+        <td class="p-5">
+          <span class="px-4 py-1 text-xs font-medium rounded-full ${badgeClass}">${escapeHtml(readableOrderStatus(status))}</span>
+        </td>
+        <td class="p-5">
+          <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">Order Details / Track</a>
+          <div class="text-xs text-gray-600 mt-1">${escapeHtml(track)}</div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function loadOrders() {
+  const tbody = document.getElementById('orders-table-body');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">Loading...</td></tr>`;
+  }
+  try {
+    ordersCache = await apiJson('/api/marketplace/orders');
+    renderOrdersTable();
+  } catch (e) {
+    if (e && e.redirectToLogin) {
+      window.location.href = '/login';
+      return;
+    }
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-600">${escapeHtml(e?.message || 'Failed to load orders.')}</td></tr>`;
+    }
+  }
 }
 
 // New Deal Modal Functions
@@ -194,7 +297,8 @@ function closeNewDealModal() {
 
 function calculatePaymentPlan() {
   const value = parseFloat(document.getElementById('expected-value')?.value) || 0;
-  const weeks = parseInt(document.getElementById('weeks')?.value) || 0;
+  const resolved = resolveWeeksInput();
+  const weeks = resolved.weeks || 0;
   const planBox = document.getElementById('payment-plan');
 
   // Hide the entire breakdown until we have enough inputs to calculate something meaningful.
@@ -225,6 +329,19 @@ function calculatePaymentPlan() {
 }
 
 async function submitNewDeal() {
+  const submitButtons = Array.from(document.querySelectorAll('button[onclick="submitNewDeal()"]'));
+  submitButtons.forEach(btn => {
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent || 'Submit Deal';
+    btn.textContent = 'Submitting...';
+  });
+  const releaseSubmit = () => {
+    submitButtons.forEach(btn => {
+      btn.disabled = false;
+      if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+    });
+  };
+
   const itemName = document.getElementById('item-name')?.value?.trim() || '';
   const link = document.getElementById('item-link')?.value?.trim() || '';
   const sellerName = document.getElementById('seller-name')?.value?.trim() || '';
@@ -234,7 +351,8 @@ async function submitNewDeal() {
   const itemSize = document.getElementById('item-size')?.value?.trim() || '';
   const itemPhotos = Array.from(document.getElementById('item-photo')?.files || []).slice(0, 3);
   const value = document.getElementById('expected-value')?.value;
-  const weeks = document.getElementById('weeks')?.value;
+  const resolvedWeeks = resolveWeeksInput();
+  const weeks = resolvedWeeks.weeks;
   const description = document.getElementById('description')?.value?.trim() || '';
   const listingChoice = document.querySelector('input[name=\"listing\"]:checked')?.value || 'yes';
   const subscribeUpdates = !!document.getElementById('subscribe-updates')?.checked;
@@ -251,14 +369,18 @@ async function submitNewDeal() {
     hasError = true;
   }
   if (!weeks || Number(weeks) <= 0) {
-    document.getElementById('error-weeks').textContent = 'Number of weeks is required';
+    document.getElementById('error-weeks').textContent = 'Select weeks (or enter custom weeks).';
     hasError = true;
   }
-  if (hasError) return;
+  if (hasError) {
+    releaseSubmit();
+    return;
+  }
 
   const agree = document.getElementById('agree-terms');
   if (agree && !agree.checked) {
     showToast('Please agree to the Terms and Conditions.', 'error');
+    releaseSubmit();
     return;
   }
 
@@ -271,7 +393,8 @@ async function submitNewDeal() {
   fd.append('delivery-address', deliveryAddress || 'N/A');
   fd.append('item-size', itemSize || 'small');
   fd.append('listing', listingChoice);
-  fd.append('weeks', String(weeks));
+  fd.append('weeks', resolvedWeeks.mode === 'custom' ? 'custom' : String(weeks));
+  if (resolvedWeeks.mode === 'custom') fd.append('customWeeks', String(weeks));
   fd.append('deal-value', String(value));
   fd.append('subscribeUpdates', subscribeUpdates ? 'true' : 'false');
   if (description) fd.append('description', description);
@@ -284,9 +407,11 @@ async function submitNewDeal() {
   } catch (e) {
     if (e && e.redirectToLogin) {
       window.location.href = '/login';
+      releaseSubmit();
       return;
     }
     showToast(e?.message || 'Failed to submit deal.', 'error');
+    releaseSubmit();
     return;
   }
 
@@ -303,6 +428,29 @@ async function submitNewDeal() {
   closeNewDealModal();
   dealFilter = 'all';
   await loadDeals();
+  releaseSubmit();
+}
+
+async function requestPaymentExtension(dealId) {
+  const raw = window.prompt('Extend by how many weeks? (1 or 2)');
+  if (raw == null) return;
+  const weeks = Math.max(1, Math.min(2, parseInt(String(raw).trim(), 10) || 0));
+  if (!weeks) {
+    showToast('Enter 1 or 2 weeks.', 'error');
+    return;
+  }
+
+  try {
+    const payload = await apiJson(`/api/deals/${dealId}/request-extension?weeks=${weeks}`, { method: 'POST' });
+    showToast(`Extension added (+${payload?.addedWeeks || weeks} week). Extra fee: ${naira(payload?.extensionFeeAdded || 0)}`, 'success');
+    await loadDeals();
+  } catch (e) {
+    if (e && e.redirectToLogin) {
+      window.location.href = '/login';
+      return;
+    }
+    showToast(e?.message || 'Could not extend payment period.', 'error');
+  }
 }
 
 async function subscribeCurrentUser(source = 'dashboard-deal-popup') {
@@ -384,8 +532,16 @@ function showNewDealIndicatorIfRequested() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search || '');
+  const requestedTab = (params.get('tab') || '').toLowerCase();
+  if (requestedTab === 'orders') {
+    showTab('orders');
+    loadOrders();
+  } else {
+    showTab('deals');
+  }
   renderOrdersTable();
-  showTab('deals');
+  toggleCustomWeeks();
   showNewDealIndicatorIfRequested();
   loadDeals();
 });
@@ -606,3 +762,5 @@ document.addEventListener('DOMContentLoaded', () => {
   window.__DEALLOCK_CURRENT_EMAIL__ = [[${currentUser != null ? currentUser.email : null}]];
   window.__DEALLOCK_CURRENT_NAME__  = [[${currentUser != null ? currentUser.fullName : null}]];
   /*]]>*/
+=======
+>>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31

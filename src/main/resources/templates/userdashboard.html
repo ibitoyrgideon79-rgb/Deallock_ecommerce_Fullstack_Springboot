@@ -410,10 +410,20 @@
                 class="w-full border border-gray-300 rounded-2xl px-5 py-3"></textarea>
 
       <div>
+<<<<<<< HEAD
         <label class="block text-sm font-medium mb-2">Number of weekly installments</label>
         <input type="number" id="weeks" oninput="calculatePaymentPlan()"
                placeholder="e.g. 7"
                class="w-full border border-gray-300 rounded-2xl px-5 py-3">
+=======
+        <label class="block text-sm font-medium mb-2">How many weeks will you use to pay the balance?</label>
+        <select id="weeks" onchange="toggleCustomWeeks(); calculatePaymentPlan()" class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-white">
+          <option value="1">1 week</option>
+          <option value="2">2 weeks</option>
+          <option value="custom">Custom</option>
+        </select>
+        <input type="number" id="custom-weeks" oninput="calculatePaymentPlan()" placeholder="Custom weeks (max 12)" class="w-full border border-gray-300 rounded-2xl px-5 py-3 mt-3 hidden" min="1" max="12">
+>>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31
         <div id="error-weeks" class="error-text"></div>
       </div>
 
@@ -432,9 +442,15 @@
 
       <div>
         <p class="font-medium mb-3">Should DealLock list this item on our platform?</p>
+<<<<<<< HEAD
         <div class="flex flex-wrap gap-6">
           <label><input type="radio" name="listing" value="yes" checked> Yes &mdash; You may list the item</label>
           <label><input type="radio" name="listing" value="no"> No &mdash; Do not list the item</label>
+=======
+        <div class="flex gap-6">
+          <label><input type="radio" name="listing" value="yes" checked> Yes &mdash; your deposit will be refunded minus service charge.</label>
+          <label><input type="radio" name="listing" value="no"> No &mdash; you must request payment date extension.</label>
+>>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31
         </div>
       </div>
 

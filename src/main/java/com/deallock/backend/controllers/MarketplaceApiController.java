@@ -1,33 +1,294 @@
 package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.MarketplaceItem;
+import com.deallock.backend.entities.MarketplaceOrder;
+import com.deallock.backend.entities.MarketplaceOrderItem;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
+import com.deallock.backend.repositories.MarketplaceOrderRepository;
+import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.services.MarketplaceOrderFlowService;
+import com.deallock.backend.services.NotificationDispatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.security.Principal;
+import java.time.Instant;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/marketplace")
 public class MarketplaceApiController {
 
+    private static final BigDecimal DOOR_DELIVERY_FEE = BigDecimal.valueOf(2500);
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
     private final MarketplaceItemRepository marketplaceItemRepository;
+    private final MarketplaceOrderRepository marketplaceOrderRepository;
+    private final UserRepository userRepository;
+    private final NotificationDispatchService notifier;
+    private final MarketplaceOrderFlowService orderFlowService;
 
-    public MarketplaceApiController(MarketplaceItemRepository marketplaceItemRepository) {
+    public MarketplaceApiController(MarketplaceItemRepository marketplaceItemRepository,
+                                    MarketplaceOrderRepository marketplaceOrderRepository,
+                                    UserRepository userRepository,
+                                    NotificationDispatchService notifier,
+                                    MarketplaceOrderFlowService orderFlowService) {
         this.marketplaceItemRepository = marketplaceItemRepository;
+        this.marketplaceOrderRepository = marketplaceOrderRepository;
+        this.userRepository = userRepository;
+        this.notifier = notifier;
+        this.orderFlowService = orderFlowService;
     }
 
     @GetMapping("/items")
     public ResponseEntity<?> listListedItems() {
         List<MarketplaceItem> items = marketplaceItemRepository.findByListedTrueOrderByCreatedAtDesc();
         return ResponseEntity.ok(items.stream().map(this::toVm).toList());
+    }
+
+    @GetMapping("/payment-details")
+    public ResponseEntity<?> paymentDetails() {
+        return ResponseEntity.ok(Map.of(
+                "accountName", "Deallock",
+                "bankName", "Fidelity Bank",
+                "accountNumber", "5601682913",
+                "supportPhone", "+234 703 103 1944",
+                "supportEmail", "info@deallock.ng"
+        ));
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout(@RequestBody Map<String, Object> body, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login required"));
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login required"));
+        }
+
+        List<Map<String, Object>> items = extractItems(body);
+        if (items.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Cart is empty"));
+        }
+
+        String deliveryMethod = orderFlowService.normalizeDeliveryMethod(asString(body.get("deliveryMethod")));
+        String paymentMethod = orderFlowService.normalizePaymentMethod(asString(body.get("paymentMethod")));
+        String deliveryAddress = asString(body.get("deliveryAddress"));
+        if ("door".equals(deliveryMethod) && (deliveryAddress == null || deliveryAddress.isBlank())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Delivery address is required for door delivery"));
+        }
+
+        MarketplaceOrder order = new MarketplaceOrder();
+        order.setUser(userOpt.get());
+        order.setStatus(MarketplaceOrderFlowService.STATUS_PENDING_PAYMENT);
+        order.setPaymentMethod(paymentMethod);
+        order.setDeliveryMethod(deliveryMethod);
+        order.setDeliveryAddress("pickup".equals(deliveryMethod) ? "IN-STORE PICKUP" : deliveryAddress.trim());
+        order.setCreatedAt(Instant.now());
+        order.setUpdatedAt(Instant.now());
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+        List<MarketplaceOrderItem> orderItems = new ArrayList<>();
+        for (Map<String, Object> itemRow : items) {
+            Long itemId = asLong(itemRow.get("id"));
+            int quantity = Math.max(1, asInt(itemRow.get("quantity"), 1));
+            if (itemId == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid cart item"));
+            }
+
+            var itemOpt = marketplaceItemRepository.findById(itemId);
+            if (itemOpt.isEmpty() || !itemOpt.get().isListed()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Some items are no longer available"));
+            }
+            MarketplaceItem item = itemOpt.get();
+            BigDecimal unitPrice = item.getPrice() == null ? BigDecimal.ZERO : item.getPrice();
+            BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP);
+            subtotal = subtotal.add(lineTotal);
+
+            MarketplaceOrderItem orderItem = new MarketplaceOrderItem();
+            orderItem.setOrder(order);
+            orderItem.setMarketplaceItem(item);
+            orderItem.setQuantity(quantity);
+            orderItem.setUnitPrice(unitPrice);
+            orderItem.setLineTotal(lineTotal);
+            orderItems.add(orderItem);
+        }
+        if (orderItems.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Cart is empty"));
+        }
+
+        BigDecimal deliveryFee = "door".equals(deliveryMethod) ? DOOR_DELIVERY_FEE : BigDecimal.ZERO;
+        BigDecimal total = subtotal.add(deliveryFee).setScale(2, RoundingMode.HALF_UP);
+        order.setSubtotalAmount(subtotal.setScale(2, RoundingMode.HALF_UP));
+        order.setDeliveryFeeAmount(deliveryFee.setScale(2, RoundingMode.HALF_UP));
+        order.setTotalAmount(total);
+        order.setItems(orderItems);
+        marketplaceOrderRepository.save(order);
+
+        String statusText = "New marketplace order " + order.getId() + " from " + (userOpt.get().getEmail() == null ? "user" : userOpt.get().getEmail());
+        notifier.notifyAdmins(
+                statusText,
+                "New Marketplace Order",
+                statusText,
+                statusText
+        );
+        notifier.notifyUser(
+                userOpt.get(),
+                "Order received. Please make payment and wait for admin confirmation.",
+                "Marketplace Order Received",
+                "Order MO-" + order.getId() + " received. We will confirm your payment and update your shipment status.",
+                "Order MO-" + order.getId() + " received. Awaiting payment."
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Checkout successful",
+                "order", orderFlowService.toVm(order),
+                "paymentDetails", Map.of(
+                        "accountName", "Deallock",
+                        "bankName", "Fidelity Bank",
+                        "accountNumber", "5601682913"
+                )
+        ));
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<?> myOrders(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var rows = marketplaceOrderRepository.findByUserOrderByCreatedAtDesc(userOpt.get()).stream()
+                .map(orderFlowService::toVm)
+                .toList();
+        return ResponseEntity.ok(rows);
+    }
+
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<?> orderDetails(@PathVariable("id") Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var order = orderOpt.get();
+        if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(orderFlowService.toVm(order));
+    }
+
+    @PostMapping(value = "/orders/{id}/payment-proof", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadPaymentProof(@PathVariable("id") Long id,
+                                                @RequestParam("paymentProof") MultipartFile paymentProof,
+                                                @RequestParam(value = "note", required = false) String note,
+                                                Principal principal) throws Exception {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var order = orderOpt.get();
+        if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (paymentProof == null || paymentProof.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof file is required"));
+        }
+        if (paymentProof.getSize() > MAX_UPLOAD_BYTES) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 2MB"));
+        }
+
+        order.setPaymentProof(paymentProof.getBytes());
+        order.setPaymentProofContentType(paymentProof.getContentType());
+        order.setPaymentProofNote(note == null ? null : note.trim());
+        order.setPaymentSubmittedAt(Instant.now());
+
+        String current = orderFlowService.normalizeStatus(order.getStatus());
+        if (orderFlowService.canTransition(current, MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED)) {
+            orderFlowService.applyTransition(order, MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED);
+        } else {
+            order.setUpdatedAt(Instant.now());
+        }
+
+        marketplaceOrderRepository.save(order);
+
+        String code = "MO-" + order.getId();
+        String userLabel = (userOpt.get().getFullName() != null && !userOpt.get().getFullName().isBlank())
+                ? userOpt.get().getFullName()
+                : userOpt.get().getEmail();
+        notifier.notifyAdmins(
+                "Payment proof uploaded for " + code + " by " + userLabel,
+                "Marketplace Payment Proof Uploaded",
+                "Payment proof uploaded for " + code + " by " + userLabel + ". Please review in admin dashboard.",
+                "Payment proof uploaded for " + code + ". Please review."
+        );
+        notifier.notifyUser(
+                userOpt.get(),
+                "Payment proof received for " + code + ". Awaiting admin review.",
+                "Payment Proof Received",
+                "We have received your payment proof for " + code + ". We will review and confirm shortly.",
+                "Payment proof received for " + code + ". Awaiting review."
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Payment proof uploaded",
+                "order", orderFlowService.toVm(order)
+        ));
+    }
+
+    @GetMapping("/orders/{id}/payment-proof")
+    public ResponseEntity<byte[]> myPaymentProof(@PathVariable("id") Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var order = orderOpt.get();
+        if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM;
+        if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
+            type = MediaType.parseMediaType(order.getPaymentProofContentType());
+        }
+        return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
     }
 
     @GetMapping("/items/{id}/photo")
@@ -90,5 +351,44 @@ public class MarketplaceApiController {
         if (img3 != null && !img3.isBlank()) imageUrls.add(img3);
         row.put("imageUrls", imageUrls);
         return row;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> extractItems(Map<String, Object> body) {
+        if (body == null) return List.of();
+        Object raw = body.get("items");
+        if (!(raw instanceof List<?> rawList)) return List.of();
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (Object row : rawList) {
+            if (row instanceof Map<?, ?> m) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("id", m.get("id"));
+                item.put("quantity", m.get("quantity"));
+                items.add(item);
+            }
+        }
+        return items;
+    }
+
+    private Long asLong(Object value) {
+        if (value == null) return null;
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private int asInt(Object value, int fallback) {
+        if (value == null) return fallback;
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception ignored) {
+            return fallback;
+        }
+    }
+
+    private String asString(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 }
