@@ -62,6 +62,14 @@ public class DealReadService {
                     row.put("deliveryConfirmedAt", d.getDeliveryConfirmedAt());
                     row.put("feedback", d.getFeedback());
                     row.put("createdAt", d.getCreatedAt());
+                    row.put("paymentDueAt", d.getPaymentDueAt());
+                    row.put("extensionWeeksUsed", d.getExtensionWeeksUsed() == null ? 0 : d.getExtensionWeeksUsed());
+                    boolean approved = d.getStatus() != null && "Approved".equalsIgnoreCase(d.getStatus());
+                    boolean notPaid = d.getPaymentStatus() == null || "NOT_PAID".equalsIgnoreCase(d.getPaymentStatus());
+                    boolean overdue = approved && notPaid && d.getPaymentDueAt() != null && d.getPaymentDueAt().isBefore(now);
+                    int used = d.getExtensionWeeksUsed() == null ? 0 : d.getExtensionWeeksUsed();
+                    row.put("overdueForPayment", overdue);
+                    row.put("canRequestExtension", overdue && used < 2);
                     return row;
                 })
                 .collect(Collectors.toList());
@@ -97,6 +105,8 @@ public class DealReadService {
                     row.put("createdAt", d.getCreatedAt());
                     row.put("userEmail", d.getUser() == null ? null : d.getUser().getEmail());
                     row.put("rejectionReason", d.getRejectionReason());
+                    row.put("paymentDueAt", d.getPaymentDueAt());
+                    row.put("extensionWeeksUsed", d.getExtensionWeeksUsed() == null ? 0 : d.getExtensionWeeksUsed());
 
                     boolean allowListing = d.getAllowMarketplaceListing() == null || d.getAllowMarketplaceListing();
                     row.put("allowMarketplaceListing", allowListing);

@@ -1,7 +1,11 @@
 package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.MarketplaceItem;
+import com.deallock.backend.entities.MarketplaceOrder;
+import com.deallock.backend.repositories.MarketplaceOrderRepository;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
+import com.deallock.backend.services.MarketplaceOrderFlowService;
+import com.deallock.backend.services.NotificationDispatchService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,9 +33,18 @@ public class AdminMarketplaceApiController {
     private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
 
     private final MarketplaceItemRepository marketplaceItemRepository;
+    private final MarketplaceOrderRepository marketplaceOrderRepository;
+    private final MarketplaceOrderFlowService orderFlowService;
+    private final NotificationDispatchService notifier;
 
-    public AdminMarketplaceApiController(MarketplaceItemRepository marketplaceItemRepository) {
+    public AdminMarketplaceApiController(MarketplaceItemRepository marketplaceItemRepository,
+                                         MarketplaceOrderRepository marketplaceOrderRepository,
+                                         MarketplaceOrderFlowService orderFlowService,
+                                         NotificationDispatchService notifier) {
         this.marketplaceItemRepository = marketplaceItemRepository;
+        this.marketplaceOrderRepository = marketplaceOrderRepository;
+        this.orderFlowService = orderFlowService;
+        this.notifier = notifier;
     }
 
     @GetMapping
@@ -40,6 +54,72 @@ public class AdminMarketplaceApiController {
         }
         List<MarketplaceItem> items = marketplaceItemRepository.findAllByOrderByCreatedAtDesc();
         return ResponseEntity.ok(items.stream().map(this::toVm).toList());
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<?> listOrders(Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        var rows = marketplaceOrderRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    Instant ai = a.getCreatedAt() == null ? Instant.EPOCH : a.getCreatedAt();
+                    Instant bi = b.getCreatedAt() == null ? Instant.EPOCH : b.getCreatedAt();
+                    return bi.compareTo(ai);
+                })
+                .map(orderFlowService::toVm)
+                .toList();
+        return ResponseEntity.ok(rows);
+    }
+
+    @PostMapping("/orders/{id}/status")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable("id") Long id,
+                                               @RequestBody(required = false) Map<String, Object> body,
+                                               Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        MarketplaceOrder order = marketplaceOrderRepository.findById(id).orElse(null);
+        if (order == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        String nextStatus = body == null || body.get("status") == null ? "" : String.valueOf(body.get("status"));
+        String normalizedNext = orderFlowService.normalizeStatus(nextStatus);
+        String current = orderFlowService.normalizeStatus(order.getStatus());
+        if (!orderFlowService.canTransition(current, normalizedNext)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", "Invalid status transition",
+                    "currentStatus", current,
+                    "requestedStatus", normalizedNext
+            ));
+        }
+
+        String note = body == null || body.get("note") == null ? null : String.valueOf(body.get("note")).trim();
+        if (note != null && note.length() > 2000) {
+            note = note.substring(0, 2000);
+        }
+        if (note != null && !note.isBlank()) {
+            order.setAdminNote(note);
+        }
+
+        orderFlowService.applyTransition(order, normalizedNext);
+        marketplaceOrderRepository.save(order);
+
+        String orderCode = "MO-" + order.getId();
+        String statusText = humanStatus(normalizedNext);
+        String noteText = order.getAdminNote() == null || order.getAdminNote().isBlank() ? "" : ("\nNote: " + order.getAdminNote());
+        notifier.notifyUser(
+                order.getUser(),
+                "Order " + orderCode + " updated: " + statusText,
+                "Marketplace Order Update",
+                "Your order " + orderCode + " status is now " + statusText + "." + noteText,
+                "Order " + orderCode + ": " + statusText
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Order status updated",
+                "order", orderFlowService.toVm(order)
+        ));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -173,5 +253,16 @@ public class AdminMarketplaceApiController {
         if (img3 != null && !img3.isBlank()) imageUrls.add(img3);
         row.put("imageUrls", imageUrls);
         return row;
+    }
+
+    private String humanStatus(String status) {
+        return switch (status) {
+            case MarketplaceOrderFlowService.STATUS_PENDING_PAYMENT -> "Pending Payment";
+            case MarketplaceOrderFlowService.STATUS_PAYMENT_RECEIVED -> "Payment Received";
+            case MarketplaceOrderFlowService.STATUS_PROCESSING -> "Processing";
+            case MarketplaceOrderFlowService.STATUS_SHIPPED -> "Shipped";
+            case MarketplaceOrderFlowService.STATUS_DELIVERED -> "Delivered";
+            default -> status;
+        };
     }
 }

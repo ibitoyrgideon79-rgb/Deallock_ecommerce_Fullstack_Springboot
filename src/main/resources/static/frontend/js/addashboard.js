@@ -27,6 +27,7 @@ function showToast(message, type) {
 let currentPage = 'Pending Approval';
 let dealsCache = [];
 let marketItemsCache = [];
+let ordersCache = [];
 let statusFilter = 'all'; // all | active | completed
 
 function naira(amount) {
@@ -111,7 +112,14 @@ function filterDealsForPage() {
   }
 
   if (currentPage === 'Orders') {
-    return [];
+    let rows = Array.isArray(ordersCache) ? ordersCache : [];
+    if (statusFilter === 'active') {
+      rows = rows.filter(o => (o?.status || '').toUpperCase() !== 'DELIVERED');
+    }
+    if (statusFilter === 'completed') {
+      rows = rows.filter(o => (o?.status || '').toUpperCase() === 'DELIVERED');
+    }
+    return rows;
   }
 
   let rows = Array.isArray(dealsCache) ? dealsCache : [];
@@ -195,6 +203,14 @@ async function deleteProduct(id) {
   await loadMarketItems();
 }
 
+async function updateOrderStatus(orderId, status) {
+  if (!confirm(`Update order to ${status.replaceAll('_', ' ')}?`)) return;
+  const payload = await apiPost(`/api/admin/marketplace/items/orders/${orderId}/status`, { status });
+  const updatedCode = payload?.order?.orderCode || `MO-${orderId}`;
+  showToast(`Updated ${updatedCode} to ${status.replaceAll('_', ' ')}`, 'success');
+  await loadOrders();
+}
+
 async function rejectDeal(id) {
   const reason = prompt('Reason for rejection (optional):') || '';
   if (!confirm('Reject this deal?')) return;
@@ -248,6 +264,23 @@ async function deleteDeal(id) {
 function actionCell(deal) {
   const id = deal?.id;
   if (!id) return '';
+
+  if (currentPage === 'Orders') {
+    const status = (deal?.status || '').toUpperCase();
+    if (status === 'PENDING_PAYMENT') {
+      return `<button onclick="updateOrderStatus(${id}, 'PAYMENT_RECEIVED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">PAYMENT RECEIVED</button>`;
+    }
+    if (status === 'PAYMENT_RECEIVED') {
+      return `<button onclick="updateOrderStatus(${id}, 'PROCESSING')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MOVE TO PROCESSING</button>`;
+    }
+    if (status === 'PROCESSING') {
+      return `<button onclick="updateOrderStatus(${id}, 'SHIPPED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MARK SHIPPED</button>`;
+    }
+    if (status === 'SHIPPED') {
+      return `<button onclick="updateOrderStatus(${id}, 'DELIVERED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MARK DELIVERED</button>`;
+    }
+    return `<span class="text-[9px] font-black text-emerald-700">COMPLETED</span>`;
+  }
 
   if (currentPage === 'Products') {
     const listed = !!deal?.listed;
@@ -340,11 +373,14 @@ function renderTable(data) {
   }
 
   tbody.innerHTML = data.map((item, idx) => {
+    const isOrder = currentPage === 'Orders';
     const isProduct = currentPage === 'Products';
-    const id = item?.id != null ? `${isProduct ? 'MP' : 'DL'}-${item.id}` : `${isProduct ? 'MP' : 'DL'}-${idx + 1}`;
-    const name = isProduct ? (item?.name || 'Untitled Item') : (item?.title || 'Untitled Deal');
-    const price = naira(isProduct ? (item?.price || 0) : (item?.value || 0));
-    const status = isProduct ? (item?.listed ? 'LISTED' : 'UNLISTED') : ((item?.status || 'PENDING').toString().toUpperCase());
+    const id = item?.id != null ? `${isOrder ? 'MO' : (isProduct ? 'MP' : 'DL')}-${item.id}` : `${isOrder ? 'MO' : (isProduct ? 'MP' : 'DL')}-${idx + 1}`;
+    const name = isOrder ? (item?.summaryName || item?.buyerName || 'Marketplace Order') : (isProduct ? (item?.name || 'Untitled Item') : (item?.title || 'Untitled Deal'));
+    const price = naira(isOrder ? (item?.totalAmount || 0) : (isProduct ? (item?.price || 0) : (item?.value || 0)));
+    const status = isOrder
+      ? ((item?.status || 'PENDING_PAYMENT').toString().toUpperCase().replaceAll('_', ' '))
+      : (isProduct ? (item?.listed ? 'LISTED' : 'UNLISTED') : ((item?.status || 'PENDING').toString().toUpperCase()));
 
     return `
       <tr class="border-b border-black hover:bg-gray-50 transition">
@@ -393,11 +429,32 @@ async function loadCurrentPageData() {
     return;
   }
   if (currentPage === 'Orders') {
-    marketItemsCache = [];
-    render();
+    await loadOrders();
     return;
   }
   await loadDeals();
+}
+
+async function loadOrders() {
+  const tbody = document.getElementById('table-body');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
+  }
+
+  const res = await fetch('/api/admin/marketplace/items/orders', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
+  if (res.status === 401) {
+    window.location.href = '/login';
+    return;
+  }
+  if (!res.ok) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+    }
+    return;
+  }
+
+  ordersCache = await res.json();
+  render();
 }
 
 async function loadDeals() {
