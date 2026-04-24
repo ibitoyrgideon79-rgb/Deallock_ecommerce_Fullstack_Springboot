@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -25,16 +25,15 @@ import org.springframework.stereotype.Service;
 public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private static final String FALLBACK_ADMIN_EMAIL = "info@deallock.ng";
+    private static final BCryptPasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Value("${app.admin-emails:}")
     private String configuredAdminEmails;
 
-    public GoogleOauth2UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public GoogleOauth2UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -57,7 +56,7 @@ public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequ
             User created = new User();
             created.setEmail(normalizedEmail);
             created.setUsername(generateUniqueUsername(normalizedEmail));
-            created.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            created.setPassword(PASSWORD_ENCODER.encode(UUID.randomUUID().toString()));
             created.setRole(admin ? "ROLE_ADMIN" : "ROLE_USER");
             created.setEnabled(true);
             created.setCreation(Instant.now());
@@ -68,7 +67,7 @@ public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequ
             user.setCreation(Instant.now());
         }
         if (user.getPassword() == null || user.getPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            user.setPassword(PASSWORD_ENCODER.encode(UUID.randomUUID().toString()));
         }
         if (user.getUsername() == null || user.getUsername().isBlank()) {
             user.setUsername(generateUniqueUsername(normalizedEmail));
