@@ -359,7 +359,7 @@
             <span th:if="${message == 'balance-confirmed'}">Balance payment confirmed.</span>
             <span th:if="${message == 'delivery-initiated'}">Delivery initiated.</span>
             <span th:if="${message == 'delivery-confirmed'}">Delivery confirmed.</span>
-            <span th:if="${message == 'secured-too-large'}">Secured photo must be at most 2MB.</span>
+            <span th:if="${message == 'secured-too-large'}">Secured photo must be at most 10MB.</span>
             <span th:if="${message == 'secured-not-confirmed'}">Confirm payment before securing a deal.</span>
           </div>
           <div th:if="${#lists.isEmpty(pendingDeals)}">

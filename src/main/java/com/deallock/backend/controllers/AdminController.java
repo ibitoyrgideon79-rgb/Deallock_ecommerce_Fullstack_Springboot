@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AdminController {
 
-    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final long MAX_UPLOAD_BYTES = 10L * 1024L * 1024L;
 
     private final DealRepository dealRepository;
     private final UserRepository userRepository;

@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 public class ProfileController {
 
-    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final long MAX_UPLOAD_BYTES = 10L * 1024L * 1024L;
 
     private final UserRepository userRepository;
 
