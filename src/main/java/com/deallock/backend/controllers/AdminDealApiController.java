@@ -50,7 +50,6 @@ public class AdminDealApiController {
     @Value("${app.deals.payment-timeout:24h}")
     private Duration paymentTimeout;
 
-    // ✅ Fixed constructor: added UserRepository parameter
     public AdminDealApiController(DealRepository dealRepository,
                                   MarketplaceItemRepository marketplaceItemRepository,
                                   NotificationDispatchService notifier,
@@ -97,7 +96,7 @@ public class AdminDealApiController {
 
         dealCacheService.evictAdminDeals();
         if (userId != null) {
-            // ✅ Convert Long to Integer for evictUserDealsById
+            // userId is Long -> convert to int
             dealCacheService.evictUserDealsById(userId.intValue());
             userRepository.findById(userId).ifPresent(user -> {
                 if (user.getEmail() != null) {
@@ -155,7 +154,6 @@ public class AdminDealApiController {
 
         dealCacheService.evictAdminDeals();
         if (userId != null) {
-            // ✅ Convert Long to Integer
             dealCacheService.evictUserDealsById(userId.intValue());
             userRepository.findById(userId).ifPresent(user -> {
                 if (user.getEmail() != null) {
@@ -196,7 +194,7 @@ public class AdminDealApiController {
         }
 
         deal.setPaymentStatus("PAID_CONFIRMED");
-        // ✅ Clear BLOBs before saving
+        // Clear old BLOBs
         deal.setPaymentProof(null);
         deal.setItemPhoto(null);
         deal.setItemPhoto2(null);
@@ -206,7 +204,8 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
+            // getUser().getId() returns int (primitive) -> no .intValue()
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -240,7 +239,6 @@ public class AdminDealApiController {
         }
 
         deal.setPaymentStatus("NOT_PAID");
-        // ✅ Clear BLOBs
         deal.setPaymentProof(null);
         deal.setItemPhoto(null);
         deal.setItemPhoto2(null);
@@ -250,7 +248,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -294,7 +292,6 @@ public class AdminDealApiController {
                 deal.setSecuredItemPhotoKey(null);
             }
         }
-        // ✅ Clear BLOBs
         deal.setPaymentProof(null);
         deal.setItemPhoto(null);
         deal.setItemPhoto2(null);
@@ -303,7 +300,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -337,7 +334,6 @@ public class AdminDealApiController {
         }
 
         deal.setBalancePaymentStatus("PAID_CONFIRMED");
-        // ✅ Clear BLOBs
         deal.setPaymentProof(null);
         deal.setItemPhoto(null);
         deal.setItemPhoto2(null);
@@ -347,7 +343,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -381,7 +377,6 @@ public class AdminDealApiController {
         }
 
         deal.setDeliveryInitiatedAt(Instant.now());
-        // ✅ Clear BLOBs
         deal.setPaymentProof(null);
         deal.setItemPhoto(null);
         deal.setItemPhoto2(null);
@@ -391,7 +386,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId().intValue());
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -425,7 +420,6 @@ public class AdminDealApiController {
         }
 
         deal.setDeliveryConfirmedAt(Instant.now());
-        // ✅ Clear BLOBs
         deal.setPaymentProof(null);
         deal.setItemPhoto(null);
         deal.setItemPhoto2(null);
