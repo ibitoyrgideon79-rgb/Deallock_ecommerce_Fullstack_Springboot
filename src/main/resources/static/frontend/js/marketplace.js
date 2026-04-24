@@ -262,19 +262,16 @@ function proceedToCheckout() {
       return data;
     })
     .then(data => {
-      const orderCode = data?.order?.orderCode || 'your order';
-      const payment = data?.paymentDetails || {};
-      const message = `Checkout successful (${orderCode}). Transfer to ${payment.accountName || 'Deallock'}, ${payment.bankName || 'Fidelity Bank'}, A/C ${payment.accountNumber || '5601682913'}.`;
-      showToast(message, 'success');
+      const orderId = Number(data?.order?.id || 0);
       cart = [];
       localStorage.setItem('bw_cart', JSON.stringify(cart));
       saveAndUpdate();
       const addrInput = document.getElementById('address-input');
       if (addrInput) addrInput.value = '';
-      if (window.location.pathname.includes('/marketplace')) {
-        setTimeout(() => {
-          window.location.href = '/dashboard?tab=orders';
-        }, 800);
+      if (window.location.pathname.includes('/marketplace') && orderId > 0) {
+        window.location.href = `/dashboard/order/${orderId}?created=1`;
+      } else if (window.location.pathname.includes('/marketplace')) {
+        window.location.href = '/dashboard?tab=orders';
       }
     })
     .catch(e => {

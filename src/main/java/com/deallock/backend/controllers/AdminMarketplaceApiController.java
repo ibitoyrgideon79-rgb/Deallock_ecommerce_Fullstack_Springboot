@@ -122,6 +122,27 @@ public class AdminMarketplaceApiController {
         ));
     }
 
+    @GetMapping("/orders/{id}/payment-proof")
+    public ResponseEntity<byte[]> paymentProof(@PathVariable("id") Long id, Authentication authentication) {
+        if (!isAdmin(authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        MarketplaceOrder order = marketplaceOrderRepository.findById(id).orElse(null);
+        if (order == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM;
+        if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
+            type = MediaType.parseMediaType(order.getPaymentProofContentType());
+        }
+        return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> create(@RequestParam("name") String name,
                                     @RequestParam("price") BigDecimal price,
@@ -258,10 +279,13 @@ public class AdminMarketplaceApiController {
     private String humanStatus(String status) {
         return switch (status) {
             case MarketplaceOrderFlowService.STATUS_PENDING_PAYMENT -> "Pending Payment";
+            case MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED -> "Payment Submitted";
+            case MarketplaceOrderFlowService.STATUS_PAYMENT_NOT_RECEIVED -> "Payment Not Received";
             case MarketplaceOrderFlowService.STATUS_PAYMENT_RECEIVED -> "Payment Received";
             case MarketplaceOrderFlowService.STATUS_PROCESSING -> "Processing";
             case MarketplaceOrderFlowService.STATUS_SHIPPED -> "Shipped";
             case MarketplaceOrderFlowService.STATUS_DELIVERED -> "Delivered";
+            case MarketplaceOrderFlowService.STATUS_REVIEW -> "Review";
             default -> status;
         };
     }

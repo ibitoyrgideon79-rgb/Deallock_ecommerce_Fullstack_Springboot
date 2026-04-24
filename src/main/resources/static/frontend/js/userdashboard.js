@@ -1,4 +1,4 @@
-// User dashboard UI logic.
+﻿// User dashboard UI logic.
 // Key point: always treat non-JSON responses as "not logged in" (Spring redirects to /login).
 
 function showToast(message, type) {
@@ -86,8 +86,13 @@ function toggleSidebar() {
 
 // Tab Switching
 function showTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.getElementById(tab + '-tab')?.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.remove('active');
+    el.classList.add('hidden');
+  });
+  const tabEl = document.getElementById(tab + '-tab');
+  tabEl?.classList.add('active');
+  tabEl?.classList.remove('hidden');
 
   document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active', 'bg-gray-100'));
   if (typeof event !== 'undefined' && event?.currentTarget) {
@@ -204,21 +209,27 @@ function orderStatusClass(status) {
   switch ((status || '').toUpperCase()) {
     case 'PENDING_PAYMENT':
       return 'bg-yellow-100 text-yellow-700';
-    case 'PAYMENT_RECEIVED':
+    case 'PAYMENT_SUBMITTED':
       return 'bg-blue-100 text-blue-700';
-    case 'PROCESSING':
+    case 'PAYMENT_NOT_RECEIVED':
+      return 'bg-red-100 text-red-700';
+    case 'PAYMENT_RECEIVED':
       return 'bg-indigo-100 text-indigo-700';
-    case 'SHIPPED':
+    case 'PROCESSING':
       return 'bg-purple-100 text-purple-700';
+    case 'SHIPPED':
+      return 'bg-cyan-100 text-cyan-700';
     case 'DELIVERED':
       return 'bg-emerald-100 text-emerald-700';
+    case 'REVIEW':
+      return 'bg-gray-200 text-gray-700';
     default:
       return 'bg-gray-100 text-gray-700';
   }
 }
 
 function readableOrderStatus(status) {
-  return (status || 'PENDING_PAYMENT').toString().replaceAll('_', ' ');
+  return (status || 'PENDING_PAYMENT').toString().toUpperCase().replaceAll('_', ' ');
 }
 
 function renderOrdersTable() {
@@ -234,6 +245,7 @@ function renderOrdersTable() {
     const status = (order?.status || 'PENDING_PAYMENT').toString().toUpperCase();
     const badgeClass = orderStatusClass(status);
     const track = `Pay via ${order?.paymentMethod || 'BANK_TRANSFER'} · ${order?.deliveryMethod === 'pickup' ? 'Store pickup' : 'Door delivery'}`;
+    const detailsHref = order?.id ? `/dashboard/order/${order.id}` : '#';
     return `
       <tr class="hover:bg-gray-50">
         <td class="p-5">${idx + 1}</td>
@@ -244,7 +256,8 @@ function renderOrdersTable() {
           <span class="px-4 py-1 text-xs font-medium rounded-full ${badgeClass}">${escapeHtml(readableOrderStatus(status))}</span>
         </td>
         <td class="p-5">
-          <span class="text-xs text-gray-600">${escapeHtml(track)}</span>
+          <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">Order Details / Track</a>
+          <div class="text-xs text-gray-600 mt-1">${escapeHtml(track)}</div>
         </td>
       </tr>
     `;
@@ -523,6 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const requestedTab = (params.get('tab') || '').toLowerCase();
   if (requestedTab === 'orders') {
     showTab('orders');
+    loadOrders();
   } else {
     showTab('deals');
   }
@@ -531,3 +545,4 @@ document.addEventListener('DOMContentLoaded', () => {
   showNewDealIndicatorIfRequested();
   loadDeals();
 });
+

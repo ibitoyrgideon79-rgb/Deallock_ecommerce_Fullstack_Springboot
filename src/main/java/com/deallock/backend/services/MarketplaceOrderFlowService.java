@@ -13,10 +13,13 @@ import org.springframework.stereotype.Service;
 public class MarketplaceOrderFlowService {
 
     public static final String STATUS_PENDING_PAYMENT = "PENDING_PAYMENT";
+    public static final String STATUS_PAYMENT_SUBMITTED = "PAYMENT_SUBMITTED";
+    public static final String STATUS_PAYMENT_NOT_RECEIVED = "PAYMENT_NOT_RECEIVED";
     public static final String STATUS_PAYMENT_RECEIVED = "PAYMENT_RECEIVED";
     public static final String STATUS_PROCESSING = "PROCESSING";
     public static final String STATUS_SHIPPED = "SHIPPED";
     public static final String STATUS_DELIVERED = "DELIVERED";
+    public static final String STATUS_REVIEW = "REVIEW";
 
     public boolean canTransition(String currentStatus, String nextStatus) {
         String current = normalizeStatus(currentStatus);
@@ -25,10 +28,13 @@ public class MarketplaceOrderFlowService {
             return true;
         }
         return switch (current) {
-            case STATUS_PENDING_PAYMENT -> STATUS_PAYMENT_RECEIVED.equals(next);
-            case STATUS_PAYMENT_RECEIVED -> STATUS_PROCESSING.equals(next);
+            case STATUS_PENDING_PAYMENT -> STATUS_PAYMENT_SUBMITTED.equals(next);
+            case STATUS_PAYMENT_SUBMITTED -> STATUS_PAYMENT_RECEIVED.equals(next) || STATUS_PAYMENT_NOT_RECEIVED.equals(next);
+            case STATUS_PAYMENT_NOT_RECEIVED -> STATUS_PAYMENT_SUBMITTED.equals(next) || STATUS_PAYMENT_RECEIVED.equals(next);
+            case STATUS_PAYMENT_RECEIVED -> STATUS_PROCESSING.equals(next) || STATUS_PAYMENT_NOT_RECEIVED.equals(next);
             case STATUS_PROCESSING -> STATUS_SHIPPED.equals(next);
             case STATUS_SHIPPED -> STATUS_DELIVERED.equals(next);
+            case STATUS_DELIVERED -> STATUS_REVIEW.equals(next);
             default -> false;
         };
     }
@@ -84,8 +90,11 @@ public class MarketplaceOrderFlowService {
         row.put("totalAmount", order.getTotalAmount());
         row.put("adminNote", order.getAdminNote());
         row.put("paymentReceivedAt", order.getPaymentReceivedAt());
+        row.put("paymentSubmittedAt", order.getPaymentSubmittedAt());
         row.put("shippedAt", order.getShippedAt());
         row.put("deliveredAt", order.getDeliveredAt());
+        row.put("paymentProofUploaded", order.getPaymentProof() != null && order.getPaymentProof().length > 0);
+        row.put("paymentProofNote", order.getPaymentProofNote());
         row.put("createdAt", order.getCreatedAt());
         row.put("updatedAt", order.getUpdatedAt());
 
@@ -101,6 +110,7 @@ public class MarketplaceOrderFlowService {
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("Order");
         row.put("summaryName", itemNames);
+        row.put("paymentProofUrl", "/api/marketplace/orders/" + order.getId() + "/payment-proof");
         return row;
     }
 

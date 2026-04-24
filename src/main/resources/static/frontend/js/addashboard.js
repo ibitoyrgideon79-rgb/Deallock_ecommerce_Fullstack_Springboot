@@ -267,8 +267,26 @@ function actionCell(deal) {
 
   if (currentPage === 'Orders') {
     const status = (deal?.status || '').toUpperCase();
+    const proofLink = deal?.paymentProofUploaded ? `<a href="/api/admin/marketplace/items/orders/${id}/payment-proof" target="_blank" rel="noopener" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-gray-100">VIEW PROOF</a>` : '';
     if (status === 'PENDING_PAYMENT') {
-      return `<button onclick="updateOrderStatus(${id}, 'PAYMENT_RECEIVED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">PAYMENT RECEIVED</button>`;
+      return `<span class="text-[9px] font-black text-yellow-700">AWAITING BUYER PAYMENT</span>`;
+    }
+    if (status === 'PAYMENT_SUBMITTED') {
+      return `
+        <div class="flex gap-2 justify-center">
+          ${proofLink}
+          <button onclick="updateOrderStatus(${id}, 'PAYMENT_RECEIVED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">PAYMENT RECEIVED</button>
+          <button onclick="updateOrderStatus(${id}, 'PAYMENT_NOT_RECEIVED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-gray-100">NOT RECEIVED</button>
+        </div>
+      `;
+    }
+    if (status === 'PAYMENT_NOT_RECEIVED') {
+      return `
+        <div class="flex gap-2 justify-center">
+          ${proofLink}
+          <button onclick="updateOrderStatus(${id}, 'PAYMENT_RECEIVED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MARK RECEIVED</button>
+        </div>
+      `;
     }
     if (status === 'PAYMENT_RECEIVED') {
       return `<button onclick="updateOrderStatus(${id}, 'PROCESSING')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MOVE TO PROCESSING</button>`;
@@ -278,6 +296,9 @@ function actionCell(deal) {
     }
     if (status === 'SHIPPED') {
       return `<button onclick="updateOrderStatus(${id}, 'DELIVERED')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MARK DELIVERED</button>`;
+    }
+    if (status === 'DELIVERED') {
+      return `<button onclick="updateOrderStatus(${id}, 'REVIEW')" class="px-3 py-1 text-[9px] font-black border border-black hover:bg-black hover:text-white">MOVE TO REVIEW</button>`;
     }
     return `<span class="text-[9px] font-black text-emerald-700">COMPLETED</span>`;
   }

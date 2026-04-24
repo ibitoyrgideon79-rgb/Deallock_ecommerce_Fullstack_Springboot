@@ -1,10 +1,12 @@
 package com.deallock.backend.controllers;
 
 import com.deallock.backend.repositories.DealRepository;
+import com.deallock.backend.repositories.MarketplaceOrderRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.services.NotificationService;
 import com.deallock.backend.services.MarketplaceLockPolicy;
+import com.deallock.backend.services.MarketplaceOrderFlowService;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -21,15 +23,21 @@ public class PageController {
     private final DealRepository dealRepository;
     private final NotificationService notificationService;
     private final MarketplaceLockPolicy lockPolicy;
+    private final MarketplaceOrderRepository marketplaceOrderRepository;
+    private final MarketplaceOrderFlowService marketplaceOrderFlowService;
 
     public PageController(UserRepository userRepository,
                           DealRepository dealRepository,
                           NotificationService notificationService,
-                          MarketplaceLockPolicy lockPolicy) {
+                          MarketplaceLockPolicy lockPolicy,
+                          MarketplaceOrderRepository marketplaceOrderRepository,
+                          MarketplaceOrderFlowService marketplaceOrderFlowService) {
         this.userRepository = userRepository;
         this.dealRepository = dealRepository;
         this.notificationService = notificationService;
         this.lockPolicy = lockPolicy;
+        this.marketplaceOrderRepository = marketplaceOrderRepository;
+        this.marketplaceOrderFlowService = marketplaceOrderFlowService;
     }
 
     @GetMapping("/login")
@@ -198,6 +206,29 @@ public class PageController {
         model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
         model.addAttribute("deal", deal);
         return "deal-balance-pay";
+    }
+
+    @GetMapping("/dashboard/order/{id}")
+    public String marketplaceOrderDetails(@PathVariable("id") Long id, Model model, Principal principal) {
+        var ctx = requireUser(principal);
+        if (ctx == null) return "redirect:/login";
+
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) return "redirect:/dashboard?tab=orders&order=not-found";
+
+        var order = orderOpt.get();
+        boolean isAdmin = ctx.isAdmin();
+        if (!isAdmin) {
+            if (order.getUser() == null || order.getUser().getId() != ctx.user().getId()) {
+                return "redirect:/dashboard?tab=orders&order=not-found";
+            }
+        }
+
+        model.addAttribute("currentUser", ctx.user());
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
+        model.addAttribute("order", marketplaceOrderFlowService.toVm(order));
+        return "marketplace-order-details";
     }
 
     

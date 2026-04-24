@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
 import java.time.Instant;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/marketplace")
 public class MarketplaceApiController {
 
     private static final BigDecimal DOOR_DELIVERY_FEE = BigDecimal.valueOf(2500);
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
     private final UserRepository userRepository;
@@ -174,6 +177,118 @@ public class MarketplaceApiController {
                 .map(orderFlowService::toVm)
                 .toList();
         return ResponseEntity.ok(rows);
+    }
+
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<?> orderDetails(@PathVariable("id") Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var order = orderOpt.get();
+        if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(orderFlowService.toVm(order));
+    }
+
+    @PostMapping(value = "/orders/{id}/payment-proof", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadPaymentProof(@PathVariable("id") Long id,
+                                                @RequestParam("paymentProof") MultipartFile paymentProof,
+                                                @RequestParam(value = "note", required = false) String note,
+                                                Principal principal) throws Exception {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var order = orderOpt.get();
+        if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (paymentProof == null || paymentProof.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof file is required"));
+        }
+        if (paymentProof.getSize() > MAX_UPLOAD_BYTES) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 2MB"));
+        }
+
+        order.setPaymentProof(paymentProof.getBytes());
+        order.setPaymentProofContentType(paymentProof.getContentType());
+        order.setPaymentProofNote(note == null ? null : note.trim());
+        order.setPaymentSubmittedAt(Instant.now());
+
+        String current = orderFlowService.normalizeStatus(order.getStatus());
+        if (orderFlowService.canTransition(current, MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED)) {
+            orderFlowService.applyTransition(order, MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED);
+        } else {
+            order.setUpdatedAt(Instant.now());
+        }
+
+        marketplaceOrderRepository.save(order);
+
+        String code = "MO-" + order.getId();
+        String userLabel = (userOpt.get().getFullName() != null && !userOpt.get().getFullName().isBlank())
+                ? userOpt.get().getFullName()
+                : userOpt.get().getEmail();
+        notifier.notifyAdmins(
+                "Payment proof uploaded for " + code + " by " + userLabel,
+                "Marketplace Payment Proof Uploaded",
+                "Payment proof uploaded for " + code + " by " + userLabel + ". Please review in admin dashboard.",
+                "Payment proof uploaded for " + code + ". Please review."
+        );
+        notifier.notifyUser(
+                userOpt.get(),
+                "Payment proof received for " + code + ". Awaiting admin review.",
+                "Payment Proof Received",
+                "We have received your payment proof for " + code + ". We will review and confirm shortly.",
+                "Payment proof received for " + code + ". Awaiting review."
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Payment proof uploaded",
+                "order", orderFlowService.toVm(order)
+        ));
+    }
+
+    @GetMapping("/orders/{id}/payment-proof")
+    public ResponseEntity<byte[]> myPaymentProof(@PathVariable("id") Long id, Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var userOpt = userRepository.findByEmail(principal.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var order = orderOpt.get();
+        if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        MediaType type = MediaType.APPLICATION_OCTET_STREAM;
+        if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
+            type = MediaType.parseMediaType(order.getPaymentProofContentType());
+        }
+        return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
     }
 
     @GetMapping("/items/{id}/photo")
