@@ -241,22 +241,28 @@ public class MarketplaceApiController {
         String userLabel = (userOpt.get().getFullName() != null && !userOpt.get().getFullName().isBlank())
                 ? userOpt.get().getFullName()
                 : userOpt.get().getEmail();
-        notifier.notifyAdmins(
-                "Payment proof uploaded for " + code + " by " + userLabel,
-                "Marketplace Payment Proof Uploaded",
-                "Payment proof uploaded for " + code + " by " + userLabel + ". Please review in admin dashboard.",
-                "Payment proof uploaded for " + code + ". Please review."
-        );
-        notifier.notifyUser(
-                userOpt.get(),
-                "Payment proof received for " + code + ". Awaiting admin review.",
-                "Payment Proof Received",
-                "We have received your payment proof for " + code + ". We will review and confirm shortly.",
-                "Payment proof received for " + code + ". Awaiting review."
-        );
+        try {
+            notifier.notifyAdmins(
+                    "Payment proof uploaded for " + code + " by " + userLabel,
+                    "Marketplace Payment Proof Uploaded",
+                    "Payment proof uploaded for " + code + " by " + userLabel + ". Please review in admin dashboard.",
+                    "Payment proof uploaded for " + code + ". Please review."
+            );
+        } catch (Exception ignored) {
+        }
+        try {
+            notifier.notifyUser(
+                    userOpt.get(),
+                    "Payment proof received for " + code + ". Awaiting admin review.",
+                    "Payment Proof Received",
+                    "We have received your payment proof for " + code + ". Payment will be confirmed within 60 seconds to 24 hours.",
+                    "Payment proof received for " + code + ". Awaiting review."
+            );
+        } catch (Exception ignored) {
+        }
 
         return ResponseEntity.ok(Map.of(
-                "message", "Payment proof uploaded",
+                "message", "Payment proof uploaded. Payment will be confirmed within 60 seconds to 24 hours.",
                 "order", orderFlowService.toVm(order)
         ));
     }

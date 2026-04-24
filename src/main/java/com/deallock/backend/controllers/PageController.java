@@ -231,6 +231,52 @@ public class PageController {
         return "marketplace-order-details";
     }
 
+    @GetMapping("/dashboard/order/{id}/track")
+    public String marketplaceOrderTrack(@PathVariable("id") Long id, Model model, Principal principal) {
+        var ctx = requireUser(principal);
+        if (ctx == null) return "redirect:/login";
+
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) return "redirect:/dashboard?tab=orders&order=not-found";
+
+        var order = orderOpt.get();
+        boolean isAdmin = ctx.isAdmin();
+        if (!isAdmin) {
+            if (order.getUser() == null || order.getUser().getId() != ctx.user().getId()) {
+                return "redirect:/dashboard?tab=orders&order=not-found";
+            }
+        }
+
+        model.addAttribute("currentUser", ctx.user());
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
+        model.addAttribute("order", marketplaceOrderFlowService.toVm(order));
+        return "marketplace-order-track";
+    }
+
+    @GetMapping("/dashboard/order/{id}/pay")
+    public String marketplaceOrderPay(@PathVariable("id") Long id, Model model, Principal principal) {
+        var ctx = requireUser(principal);
+        if (ctx == null) return "redirect:/login";
+
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) return "redirect:/dashboard?tab=orders&order=not-found";
+
+        var order = orderOpt.get();
+        boolean isAdmin = ctx.isAdmin();
+        if (!isAdmin) {
+            if (order.getUser() == null || order.getUser().getId() != ctx.user().getId()) {
+                return "redirect:/dashboard?tab=orders&order=not-found";
+            }
+        }
+
+        model.addAttribute("currentUser", ctx.user());
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
+        model.addAttribute("order", marketplaceOrderFlowService.toVm(order));
+        return "marketplace-order-pay";
+    }
+
     
     private List<Map<String, Object>> toDealsVm(List<Deal> deals) {
         return deals.stream()

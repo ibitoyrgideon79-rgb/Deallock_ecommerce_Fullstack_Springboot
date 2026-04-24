@@ -97,6 +97,13 @@ function showTab(tab) {
   document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active', 'bg-gray-100'));
   if (typeof event !== 'undefined' && event?.currentTarget) {
     event.currentTarget.classList.add('active', 'bg-gray-100');
+  } else {
+    document.querySelectorAll('.tab-link').forEach(link => {
+      const onClick = (link.getAttribute('onclick') || '').toLowerCase();
+      if (onClick.includes(`showtab('${tab.toLowerCase()}')`) || onClick.includes(`showtab("${tab.toLowerCase()}")`)) {
+        link.classList.add('active', 'bg-gray-100');
+      }
+    });
   }
   if (tab === 'orders') {
     loadOrders();
@@ -246,6 +253,9 @@ function renderOrdersTable() {
     const badgeClass = orderStatusClass(status);
     const track = `Pay via ${order?.paymentMethod || 'BANK_TRANSFER'} · ${order?.deliveryMethod === 'pickup' ? 'Store pickup' : 'Door delivery'}`;
     const detailsHref = order?.id ? `/dashboard/order/${order.id}` : '#';
+    const trackHref = order?.id ? `/dashboard/order/${order.id}/track` : '#';
+    const payHref = order?.id ? `/dashboard/order/${order.id}/pay` : '#';
+    const showPay = status === 'PENDING_PAYMENT' || status === 'PAYMENT_NOT_RECEIVED';
     return `
       <tr class="hover:bg-gray-50">
         <td class="p-5">${idx + 1}</td>
@@ -256,7 +266,10 @@ function renderOrdersTable() {
           <span class="px-4 py-1 text-xs font-medium rounded-full ${badgeClass}">${escapeHtml(readableOrderStatus(status))}</span>
         </td>
         <td class="p-5">
-          <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">Order Details / Track</a>
+          ${showPay ? `<a href="${payHref}" class="text-blue-600 hover:underline font-medium">Pay Now</a><span class="mx-1 text-gray-400">|</span>` : ''}
+          <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">Order Details</a>
+          <span class="mx-1 text-gray-400">|</span>
+          <a href="${trackHref}" class="text-blue-600 hover:underline font-medium">Track Order</a>
           <div class="text-xs text-gray-600 mt-1">${escapeHtml(track)}</div>
         </td>
       </tr>

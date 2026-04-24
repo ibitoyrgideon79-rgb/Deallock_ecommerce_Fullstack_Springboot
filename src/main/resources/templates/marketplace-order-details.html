@@ -9,9 +9,13 @@
 </head>
 <body class="bg-gray-50 min-h-screen" th:attr="data-order-id=${order['id']}">
   <header class="bg-white border-b border-gray-100 shadow-sm">
-    <nav class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+    <nav class="max-w-6xl mx-auto px-5 py-4 flex flex-wrap gap-2 items-center justify-between">
       <a href="/dashboard?tab=orders" class="text-sm font-medium text-gray-700 hover:text-black">&larr; Back to My Orders</a>
-      <div class="text-sm text-gray-600">Order <span class="font-semibold" th:text="${order['orderCode']}">MO-0</span></div>
+      <div class="flex items-center gap-2 flex-wrap justify-end">
+        <a th:href="@{'/dashboard/order/' + ${order['id']} + '/pay'}" class="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50">Make Payment</a>
+        <a th:href="@{'/dashboard/order/' + ${order['id']} + '/track'}" class="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50">Track Order</a>
+        <div class="text-sm text-gray-600">Order <span class="font-semibold" th:text="${order['orderCode']}">MO-0</span></div>
+      </div>
     </nav>
   </header>
 
@@ -41,8 +45,9 @@
         </div>
       </div>
 
-      <h2 class="text-lg font-semibold mb-3">Tracking Timeline</h2>
-      <div id="tracking-timeline" class="space-y-2 text-sm text-gray-700"></div>
+      <div class="text-sm text-gray-600">
+        Use <span class="font-semibold">Track Order</span> to see payment confirmation, shipment and delivery progress.
+      </div>
     </section>
 
     <aside class="bg-white border border-gray-200 rounded-2xl p-6">
@@ -57,11 +62,7 @@
         Transfer to <strong>Deallock</strong>, <strong>Fidelity Bank</strong>, Account <strong>5601682913</strong>, then upload your proof below.
       </div>
 
-      <form id="payment-proof-form" class="space-y-3">
-        <input type="file" id="payment-proof-file" accept="image/*,.pdf" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm" required>
-        <textarea id="payment-proof-note" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm" rows="3" placeholder="Optional note for admin"></textarea>
-        <button type="submit" id="upload-proof-btn" class="w-full bg-black text-white py-2.5 rounded-xl text-sm font-medium">I Have Paid - Upload Proof</button>
-      </form>
+      <a th:href="@{'/dashboard/order/' + ${order['id']} + '/pay'}" class="w-full inline-flex justify-center bg-black text-white py-2.5 rounded-xl text-sm font-medium">Go To Payment Page</a>
 
       <a id="view-proof-link" href="#" target="_blank" rel="noopener" class="hidden mt-3 text-sm text-blue-600 hover:underline">View Uploaded Payment Proof</a>
       <div id="order-admin-note" class="hidden mt-4 p-3 rounded-xl bg-yellow-50 border border-yellow-200 text-sm text-yellow-900"></div>

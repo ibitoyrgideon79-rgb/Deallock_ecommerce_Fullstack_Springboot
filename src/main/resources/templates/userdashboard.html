@@ -226,7 +226,9 @@
         </div>
 
         <!-- Table — horizontally scrollable on mobile -->
-        <div class="overflow-x-auto rounded-3xl border border-gray-200">
+        <div id="orders-cards-body" class="lg:hidden space-y-3"></div>
+
+        <div class="hidden lg:block overflow-x-auto rounded-3xl border border-gray-200">
           <table class="w-full min-w-[600px] bg-white">
             <thead class="bg-gray-50">
               <tr>
@@ -292,7 +294,6 @@
             <tbody id="orders-table-body" class="divide-y text-sm"></tbody>
           </table>
         </div>
-        <p class="lg:hidden text-center text-xs text-gray-400 mt-2">← Scroll sideways to see all columns →</p>
       </div>
 
 

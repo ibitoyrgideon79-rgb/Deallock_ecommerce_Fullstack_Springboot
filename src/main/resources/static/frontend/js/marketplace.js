@@ -243,7 +243,7 @@ function proceedToCheckout() {
       const addrInput = document.getElementById('address-input');
       if (addrInput) addrInput.value = '';
       if (orderId > 0) {
-        window.location.href = `/dashboard/order/${orderId}?created=1`;
+        window.location.href = `/dashboard/order/${orderId}/pay?created=1`;
       } else {
         window.location.href = '/dashboard?tab=orders';
       }
