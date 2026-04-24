@@ -161,11 +161,40 @@ async function apiPost(path, body) {
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'same-origin'
   });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Session expired. Please log in again.');
+    e.redirectToLogin = true;
+    throw e;
+  }
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      const e = new Error('Session expired. Please log in again.');
+      e.redirectToLogin = true;
+      throw e;
+    }
     throw new Error(payload?.message || `Request failed (${res.status})`);
   }
   return payload;
+}
+
+async function fetchJsonList(url) {
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin'
+  });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.status === 401 || res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Session expired. Please log in again.');
+    e.redirectToLogin = true;
+    throw e;
+  }
+  if (!res.ok) {
+    throw new Error(`Failed to load (${res.status})`);
+  }
+  const payload = await res.json().catch(() => ([]));
+  return Array.isArray(payload) ? payload : [];
 }
 
 async function approveDeal(id) {
@@ -427,21 +456,18 @@ async function loadMarketItems() {
   if (tbody) {
     tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
   }
-
-  const res = await fetch('/api/admin/marketplace/items', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-  if (res.status === 401) {
-    window.location.href = '/login';
-    return;
-  }
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+  try {
+    marketItemsCache = await fetchJsonList('/api/admin/marketplace/items');
+    render();
+  } catch (e) {
+    if (e?.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">${e?.message || 'Failed to load items.'}</td></tr>`;
+    }
   }
-
-  marketItemsCache = await res.json();
-  render();
 }
 
 async function loadCurrentPageData() {
@@ -462,20 +488,18 @@ async function loadOrders() {
     tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
   }
 
-  const res = await fetch('/api/admin/marketplace/items/orders', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-  if (res.status === 401) {
-    window.location.href = '/login';
-    return;
-  }
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+  try {
+    ordersCache = await fetchJsonList('/api/admin/marketplace/items/orders');
+    render();
+  } catch (e) {
+    if (e?.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">${e?.message || 'Failed to load orders.'}</td></tr>`;
+    }
   }
-
-  ordersCache = await res.json();
-  render();
 }
 
 async function loadDeals() {
@@ -484,20 +508,18 @@ async function loadDeals() {
     tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
   }
 
-  const res = await fetch('/api/admin/deals', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-  if (res.status === 401) {
-    window.location.href = '/login';
-    return;
-  }
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+  try {
+    dealsCache = await fetchJsonList('/api/admin/deals');
+    render();
+  } catch (e) {
+    if (e?.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">${e?.message || 'Failed to load deals.'}</td></tr>`;
+    }
   }
-
-  dealsCache = await res.json();
-  render();
 }
 
 function toggleNav(id) {
@@ -547,6 +569,12 @@ async function submitNewProduct() {
     headers: { Accept: 'application/json' },
     credentials: 'same-origin'
   });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !contentType.includes('application/json')) {
+    showToast('Session expired. Please log in again.', 'error');
+    setTimeout(() => { window.location.href = '/login'; }, 700);
+    return;
+  }
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
     showToast(payload?.message || `Request failed (${res.status})`, 'error');

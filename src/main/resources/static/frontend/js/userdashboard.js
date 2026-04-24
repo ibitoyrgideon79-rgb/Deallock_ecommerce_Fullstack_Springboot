@@ -320,10 +320,12 @@ function calculatePaymentPlan() {
 
   const planItem = document.getElementById('plan-item-value');
   const planHolding = document.getElementById('plan-holding');
+  const planLogistics = document.getElementById('plan-logistics');
   const planTotal = document.getElementById('plan-total');
   const planUpfront = document.getElementById('plan-upfront');
   if (planItem) planItem.textContent = naira(value);
   if (planHolding) planHolding.textContent = naira(holdingFee + vat);
+  if (planLogistics) planLogistics.textContent = naira(logisticsEstimate);
   if (planTotal) planTotal.textContent = naira(totalEstimate);
   if (planUpfront) planUpfront.textContent = naira(upfrontEstimate);
 }
