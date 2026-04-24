@@ -45,14 +45,26 @@ function timelineRows(order) {
 }
 
 async function loadOrder() {
-  const orderId = Number(window.__ORDER_ID__ || 0);
-  if (!orderId) return;
+  const orderId = Number(window.__ORDER_ID__ || document.body?.dataset?.orderId || 0);
+  if (!orderId) {
+    showToast('Order ID missing. Please reopen this page from your dashboard orders.', 'error');
+    return;
+  }
 
   const res = await fetch(`/api/marketplace/orders/${orderId}`, {
     headers: { Accept: 'application/json' },
     credentials: 'same-origin'
   });
-  if (!res.ok) return;
+  const ct = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !ct.includes('application/json')) {
+    showToast('Session expired. Please log in again.', 'error');
+    setTimeout(() => { window.location.href = '/login'; }, 700);
+    return;
+  }
+  if (!res.ok) {
+    showToast('Failed to load order details.', 'error');
+    return;
+  }
   const order = await res.json();
 
   const badge = document.getElementById('status-badge');
@@ -81,8 +93,11 @@ async function loadOrder() {
 
 async function submitProof(event) {
   event.preventDefault();
-  const orderId = Number(window.__ORDER_ID__ || 0);
-  if (!orderId) return;
+  const orderId = Number(window.__ORDER_ID__ || document.body?.dataset?.orderId || 0);
+  if (!orderId) {
+    showToast('Order ID missing. Cannot upload proof.', 'error');
+    return;
+  }
 
   const file = document.getElementById('payment-proof-file')?.files?.[0];
   const note = (document.getElementById('payment-proof-note')?.value || '').trim();
@@ -107,14 +122,25 @@ async function submitProof(event) {
       credentials: 'same-origin',
       body: fd
     });
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (res.redirected || !ct.includes('application/json')) {
+      throw new Error('Session expired. Please log in again.');
+    }
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(payload?.message || `Upload failed (${res.status})`);
     }
-    showToast('Payment proof uploaded. Admin has been notified.', 'success');
+    showToast('Payment proof uploaded. Payment will be confirmed within 60 seconds to 24 hours.', 'success');
+    const fileInput = document.getElementById('payment-proof-file');
+    const noteInput = document.getElementById('payment-proof-note');
+    if (fileInput) fileInput.value = '';
+    if (noteInput) noteInput.value = '';
     await loadOrder();
   } catch (e) {
     showToast(e?.message || 'Upload failed.', 'error');
+    if ((e?.message || '').toLowerCase().includes('session expired')) {
+      setTimeout(() => { window.location.href = '/login'; }, 700);
+    }
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -127,4 +153,3 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('payment-proof-form')?.addEventListener('submit', submitProof);
   loadOrder();
 });
-

@@ -230,13 +230,10 @@ public class MarketplaceApiController {
         order.setPaymentProofContentType(paymentProof.getContentType());
         order.setPaymentProofNote(note == null ? null : note.trim());
         order.setPaymentSubmittedAt(Instant.now());
-
-        String current = orderFlowService.normalizeStatus(order.getStatus());
-        if (orderFlowService.canTransition(current, MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED)) {
-            orderFlowService.applyTransition(order, MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED);
-        } else {
-            order.setUpdatedAt(Instant.now());
-        }
+        // Force "payment submitted" as the source of truth when proof is uploaded.
+        // This guarantees admins can immediately see and act on submitted payments.
+        order.setStatus(MarketplaceOrderFlowService.STATUS_PAYMENT_SUBMITTED);
+        order.setUpdatedAt(Instant.now());
 
         marketplaceOrderRepository.save(order);
 

@@ -534,9 +534,10 @@ function showNewDealIndicatorIfRequested() {
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search || '');
   const requestedTab = (params.get('tab') || '').toLowerCase();
+  // Preload orders in the background so My Orders is ready immediately.
+  loadOrders();
   if (requestedTab === 'orders') {
     showTab('orders');
-    loadOrders();
   } else {
     showTab('deals');
   }
@@ -546,221 +547,63 @@ document.addEventListener('DOMContentLoaded', () => {
   loadDeals();
 });
 
-  /* ── Profile image preview ── */
-  function previewImage(input) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = e => document.getElementById('settings-profile-preview').src = e.target.result;
-      reader.readAsDataURL(input.files[0]);
-    }
+// Browser back/forward cache can restore stale DOM. Refresh orders and deals when page is shown again.
+window.addEventListener('pageshow', () => {
+  loadOrders();
+  loadDeals();
+});
+
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('settings-profile-preview');
+      if (preview) preview.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
   }
+}
 
-  /* ── Header mobile menu (top nav only) ── */
-  document.getElementById('menu-toggle').addEventListener('click', () => {
-    document.getElementById('mobile-menu').classList.toggle('hidden');
-  });
+function openSidebar() {
+  document.getElementById('sidebar-drawer')?.classList.remove('-translate-x-full');
+  document.getElementById('sidebar-overlay')?.classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
+}
 
-  /* ── Sidebar drawer ── */
-  function openSidebar() {
-    document.getElementById('sidebar-drawer').classList.remove('-translate-x-full');
-    document.getElementById('sidebar-overlay').classList.remove('hidden');
-    document.body.classList.add('overflow-hidden');
+function closeSidebar() {
+  document.getElementById('sidebar-drawer')?.classList.add('-translate-x-full');
+  document.getElementById('sidebar-overlay')?.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+}
+
+function openDateFilter() {
+  showToast('Date range filter is coming soon.', 'success');
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function changeProfilePicture() {
+  document.getElementById('profile-upload')?.click();
+}
+
+function uploadNewPicture() {
+  const input = document.getElementById('profile-upload');
+  if (!input || !input.files || !input.files[0]) {
+    showToast('Select a photo first.', 'error');
+    return;
   }
-
-  function closeSidebar() {
-    document.getElementById('sidebar-drawer').classList.add('-translate-x-full');
-    document.getElementById('sidebar-overlay').classList.add('hidden');
-    document.body.classList.remove('overflow-hidden');
-  }
-
-  /* ── Swipe gesture ── */
-  (function () {
-    let startX = 0;
-    let startY = 0;
-
-    document.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    }, { passive: true });
-
-    document.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = Math.abs(e.changedTouches[0].clientY - startY);
-
-      // Only trigger if horizontal swipe is dominant (not a vertical scroll)
-      if (dy > 40) return;
-
-      if (dx > 60 && startX < 30) openSidebar();  // right swipe from left edge
-      if (dx < -60) closeSidebar();                // left swipe anywhere closes
-    }, { passive: true });
-  })();
-
-  /* ── Tab switching ── */
-  function showTab(name) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-    document.getElementById(name + '-tab').classList.add('active');
-    const link = document.querySelector(`[onclick*="showTab('${name}')"]`);
-    if (link) link.classList.add('active');
-  }
-
-  /* ── Deal filter buttons ── */
-  function filterDeals(type) {
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    // Wire to your actual filter logic in userdashboard.js
-  }
-
-  /* ── New Deal modal ── */
-  function openNewDealModal()  { document.getElementById('new-deal-modal').classList.remove('hidden'); }
-  function closeNewDealModal() { document.getElementById('new-deal-modal').classList.add('hidden'); }
-
-  /* ── Payment plan calculator ── */
-  function calculatePaymentPlan() {
-    const value   = parseFloat(document.getElementById('expected-value').value) || 0;
-    const weeks   = parseInt(document.getElementById('weeks').value) || 0;
-    const plan    = document.getElementById('payment-plan');
-
-    if (value <= 0 || weeks <= 0) { plan.classList.add('hidden'); return; }
-
-    const holdingRate = 0.05;
-    const vatRate     = 0.075;
-    const logistics   = 1950;
-
-    const holding  = value * holdingRate;
-    const vat      = holding * vatRate;
-    const totalFee = holding + vat;
-    const total    = value + totalFee + logistics;
-    const upfront  = (value * 0.5) + logistics;
-
-    const fmt = n => '₦ ' + n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    document.getElementById('plan-item-value').textContent = fmt(value);
-    document.getElementById('plan-holding').textContent    = fmt(totalFee);
-    document.getElementById('plan-total').textContent      = fmt(total);
-    document.getElementById('plan-upfront').textContent    = fmt(upfront);
-
-    plan.classList.remove('hidden');
-  }
-
-  /* ── Date filter placeholder ── */
-  function openDateFilter() {
-    alert('Date range filter coming soon!');
-  }
-
-  /* ── Newsletter ── */
-  function handleSubscribe(e) {
-    e.preventDefault();
-    const email = document.getElementById('newsletter-email').value.trim();
-    if (!email) return;
-    alert('Subscribed! Thank you, ' + email);
-    document.getElementById('newsletter-email').value = '';
-  }
-
-  /* ── Scroll to top ── */
-  function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-  const scrollBtn = document.getElementById('scroll-top-btn');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 300) {
-      scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
-    } else {
-      scrollBtn.classList.add('opacity-0', 'pointer-events-none');
-    }
-  });
-
-  /* ── Footer year ── */
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  /* ── Profile picture click (sidebar avatar) ── */
-  function changeProfilePicture() {
-    document.getElementById('profile-upload') && document.getElementById('profile-upload').click();
-  }
-
-  /* ── Upload new picture ── */
-  function uploadNewPicture() {
-    const input = document.getElementById('profile-upload');
-    if (!input || !input.files || !input.files[0]) {
-      alert('Please select a photo first using the camera icon.');
-      return;
-    }
-    const formData = new FormData();
-    formData.append('file', input.files[0]);
-    fetch('/profile/upload', { method: 'POST', body: formData })
-      .then(r => r.ok ? alert('Profile picture updated!') : alert('Upload failed, please try again.'))
-      .catch(() => alert('Network error. Please try again.'));
-  }
-
-  /* ── Submit new deal ── */
-  function submitNewDeal() {
-    let valid = true;
-
-    const itemName = document.getElementById('item-name').value.trim();
-    document.getElementById('error-item-name').textContent = '';
-    if (!itemName) {
-      document.getElementById('error-item-name').textContent = 'Item name is required.';
-      valid = false;
-    }
-
-    const value = parseFloat(document.getElementById('expected-value').value);
-    document.getElementById('error-value').textContent = '';
-    if (!value || value <= 0) {
-      document.getElementById('error-value').textContent = 'Please enter a valid expected value.';
-      valid = false;
-    }
-
-    const weeks = parseInt(document.getElementById('weeks').value);
-    document.getElementById('error-weeks').textContent = '';
-    if (!weeks || weeks <= 0) {
-      document.getElementById('error-weeks').textContent = 'Please enter the number of installments.';
-      valid = false;
-    }
-
-    if (!document.getElementById('agree-terms').checked) {
-      alert('Please agree to the Terms and Conditions.');
-      valid = false;
-    }
-
-    if (!valid) return;
-
-    const listing    = document.querySelector('input[name="listing"]:checked')?.value || 'no';
-    const photoInput = document.getElementById('item-photo');
-    const formData   = new FormData();
-
-    formData.append('title',           itemName);
-    formData.append('itemLink',        document.getElementById('item-link').value.trim());
-    formData.append('sellerName',      document.getElementById('seller-name').value.trim());
-    formData.append('sellerPhone',     document.getElementById('seller-phone').value.trim());
-    formData.append('sellerAddress',   document.getElementById('seller-address').value.trim());
-    formData.append('deliveryAddress', document.getElementById('delivery-address').value.trim());
-    formData.append('itemSize',        document.getElementById('item-size').value);
-    formData.append('value',           value);
-    formData.append('description',     document.getElementById('description').value.trim());
-    formData.append('weeks',           weeks);
-    formData.append('listing',         listing);
-    formData.append('subscribeUpdates',document.getElementById('subscribe-updates').checked);
-
-    if (photoInput.files.length > 0) {
-      for (const file of photoInput.files) formData.append('photos', file);
-    }
-
-    fetch('/dashboard/deals/new', { method: 'POST', body: formData })
-      .then(r => {
-        if (r.ok) {
-          alert('Deal submitted successfully!');
-          closeNewDealModal();
-          window.location.reload();
-        } else {
-          alert('Failed to submit deal. Please try again.');
-        }
-      })
-      .catch(() => alert('Network error. Please try again.'));
-  }
-
-  /*<![CDATA[*/
-  window.__DEALLOCK_DEALS__         = [[${dealsVm}]];
-  window.__DEALLOCK_CURRENT_EMAIL__ = [[${currentUser != null ? currentUser.email : null}]];
-  window.__DEALLOCK_CURRENT_NAME__  = [[${currentUser != null ? currentUser.fullName : null}]];
-  /*]]>*/
-=======
->>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31
+  const formData = new FormData();
+  formData.append('profileImage', input.files[0]);
+  fetch('/profile/upload', {
+    method: 'POST',
+    body: formData,
+    credentials: 'same-origin'
+  })
+    .then(r => {
+      if (!r.ok) throw new Error('Upload failed');
+      showToast('Profile picture updated.', 'success');
+    })
+    .catch(() => showToast('Upload failed, please try again.', 'error'));
+}

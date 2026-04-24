@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <title>Marketplace Order Details</title>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen" th:attr="data-order-id=${order['id']}">
   <header class="bg-white border-b border-gray-100 shadow-sm">
     <nav class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
       <a href="/dashboard?tab=orders" class="text-sm font-medium text-gray-700 hover:text-black">&larr; Back to My Orders</a>
@@ -74,4 +74,3 @@
   <script src="/frontend/js/marketplace-order-details.js" defer></script>
 </body>
 </html>
-
