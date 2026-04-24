@@ -50,7 +50,7 @@ public class ApiErrorHandler {
                 ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
-                        "message", "Server error while saving your upload. Please try again.",
+                        "message", "Server error while saving your changes. Please try again.",
                         "errorId", errorId
                 ));
     }
