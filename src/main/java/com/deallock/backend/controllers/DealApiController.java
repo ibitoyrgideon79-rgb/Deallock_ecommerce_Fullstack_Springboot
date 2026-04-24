@@ -583,6 +583,13 @@ public class DealApiController {
             }
         }
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
+        // Clear old BLOB fields to avoid save errors
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
@@ -639,6 +646,13 @@ public class DealApiController {
             deal.setBalancePaymentAmount(deal.getRemainingBalanceAmount());
         }
         deal.setBalancePaymentStatus("PAID_PENDING_CONFIRMATION");
+        // Clear old BLOB fields to avoid save errors
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();

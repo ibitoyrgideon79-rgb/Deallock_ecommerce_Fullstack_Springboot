@@ -2,8 +2,10 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.entities.MarketplaceItem;
+import com.deallock.backend.entities.User;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
+import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.DealCacheService;
 import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NotificationDispatchService;
@@ -13,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/admin/deals")
@@ -41,6 +45,7 @@ public class AdminDealApiController {
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
     private final FileStorageService fileStorageService;
+    private final UserRepository userRepository;
 
     @Value("${app.deals.payment-timeout:24h}")
     private Duration paymentTimeout;
@@ -51,12 +56,14 @@ public class AdminDealApiController {
                                   DealReadService dealReadService,
                                   DealCacheService dealCacheService,
                                   FileStorageService fileStorageService) {
+        
         this.dealRepository = dealRepository;
         this.marketplaceItemRepository = marketplaceItemRepository;
         this.notifier = notifier;
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
         this.fileStorageService = fileStorageService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -68,84 +75,112 @@ public class AdminDealApiController {
     }
 
     @PostMapping("/{id}/approve")
-    public ResponseEntity<?> approve(@PathVariable("id") Long id, Authentication authentication) {
-        if (!isAdmin(authentication)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+@Transactional
+public ResponseEntity<?> approve(@PathVariable("id") Long id, Authentication authentication) {
+    if (!isAdmin(authentication)) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
 
-        Deal deal = dealRepository.findById(id).orElse(null);
-        if (deal == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    // 1. Get minimal info (title + userId) without loading BLOBs
+    Optional<Object[]> light = dealRepository.findLightweightById(id);
+    if (light.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    Object[] data = light.get();
+    String title = (String) data[1];
+    Long userId = (Long) data[2];
 
-        deal.setStatus("Approved");
-        deal.setRejectionReason(null);
-        dealRepository.save(deal);
-        dealCacheService.evictAdminDeals();
-        if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
-            dealCacheService.evictUserDeals(deal.getUser().getEmail());
-        }
+    // 2. Perform partial update (only status and rejectionReason)
+    int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
+    if (updated == 0) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 
-        notifier.notifyUser(deal.getUser(),
+    // 3. Evict caches (using userId if available)
+    dealCacheService.evictAdminDeals();
+    if (userId != null) {
+        dealCacheService.evictUserDealsById(userId);
+        // Also evict by email (need user object – optional, but safe)
+        userRepository.findById(userId).ifPresent(user -> {
+            if (user.getEmail() != null) {
+                dealCacheService.evictUserDeals(user.getEmail());
+            }
+        });
+    }
+
+    // 4. Send notifications (fetch user fresh, but that's fine – no BLOBs)
+    User user = userId == null ? null : userRepository.findById(userId).orElse(null);
+    if (user != null) {
+        notifier.notifyUser(user,
                 "Your deal was approved. Please proceed to payment.",
                 "Your Deal Was Approved",
-                "Your deal was approved: " + safe(deal.getTitle()),
-                "Your deal was approved: " + safe(deal.getTitle()));
+                "Your deal was approved: " + title,
+                "Your deal was approved: " + title);
+    }
+    notifier.notifyAdmins(
+            "Deal approved: " + title,
+            "Deal Approved",
+            "Deal approved: " + title,
+            "Deal approved: " + title);
 
-        notifier.notifyAdmins(
-                "Deal approved: " + safe(deal.getTitle()),
-                "Deal Approved",
-                "Deal approved: " + safe(deal.getTitle()),
-                "Deal approved: " + safe(deal.getTitle()));
-
-        return ResponseEntity.ok(Map.of("message", "approved"));
+    return ResponseEntity.ok(Map.of("message", "approved"));
+}
+    @PostMapping("/{id}/reject")
+@Transactional
+public ResponseEntity<?> reject(@PathVariable("id") Long id,
+                                @RequestBody(required = false) Map<String, Object> body,
+                                Authentication authentication) {
+    if (!isAdmin(authentication)) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @PostMapping("/{id}/reject")
-    public ResponseEntity<?> reject(@PathVariable("id") Long id,
-                                    @RequestBody(required = false) Map<String, Object> body,
-                                    Authentication authentication) {
-        if (!isAdmin(authentication)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    Optional<Object[]> light = dealRepository.findLightweightById(id);
+    if (light.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    Object[] data = light.get();
+    String title = (String) data[1];
+    Long userId = (Long) data[2];
 
-        Deal deal = dealRepository.findById(id).orElse(null);
-        if (deal == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    String reason = null;
+    if (body != null && body.get("reason") != null) {
+        reason = String.valueOf(body.get("reason")).trim();
+    }
+    if (reason != null && reason.length() > 2000) {
+        reason = reason.substring(0, 2000);
+    }
 
-        String reason = null;
-        if (body != null && body.get("reason") != null) {
-            reason = String.valueOf(body.get("reason")).trim();
-        }
-        if (reason != null && reason.length() > 2000) {
-            reason = reason.substring(0, 2000);
-        }
+    int updated = dealRepository.updateStatusAndReason(id, "Rejected", reason);
+    if (updated == 0) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 
-        deal.setStatus("Rejected");
-        deal.setRejectionReason(reason);
-        dealRepository.save(deal);
-        dealCacheService.evictAdminDeals();
-        if (deal.getUser() != null) {
-            dealCacheService.evictUserDealsById(deal.getUser().getId());
-            dealCacheService.evictUserDeals(deal.getUser().getEmail());
-        }
+    dealCacheService.evictAdminDeals();
+    if (userId != null) {
+        dealCacheService.evictUserDealsById(userId);
+        userRepository.findById(userId).ifPresent(user -> {
+            if (user.getEmail() != null) {
+                dealCacheService.evictUserDeals(user.getEmail());
+            }
+        });
+    }
 
-        notifier.notifyUser(deal.getUser(),
+    User user = userId == null ? null : userRepository.findById(userId).orElse(null);
+    if (user != null) {
+        notifier.notifyUser(user,
                 "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
                 "Your Deal Was Rejected",
-                "Your deal was rejected: " + safe(deal.getTitle()) + (reason == null || reason.isBlank() ? "" : ("\nReason: " + reason)),
-                "Your deal was rejected: " + safe(deal.getTitle()));
-
-        notifier.notifyAdmins(
-                "Deal rejected: " + safe(deal.getTitle()),
-                "Deal Rejected",
-                "Deal rejected: " + safe(deal.getTitle()),
-                "Deal rejected: " + safe(deal.getTitle()));
-
-        return ResponseEntity.ok(Map.of("message", "rejected"));
+                "Your deal was rejected: " + title + (reason == null || reason.isBlank() ? "" : ("\nReason: " + reason)),
+                "Your deal was rejected: " + title);
     }
+    notifier.notifyAdmins(
+            "Deal rejected: " + title,
+            "Deal Rejected",
+            "Deal rejected: " + title,
+            "Deal rejected: " + title);
+
+    return ResponseEntity.ok(Map.of("message", "rejected"));
+}
 
     @PostMapping("/{id}/payment-confirmed")
     public ResponseEntity<?> paymentConfirmed(@PathVariable("id") Long id, Authentication authentication) {
