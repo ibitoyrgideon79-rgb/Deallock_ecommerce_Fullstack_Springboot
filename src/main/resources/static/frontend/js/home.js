@@ -195,6 +195,12 @@ window.handleSubscribe = async function handleSubscribe(e) {
     const numberEl = document.getElementById('phone-step-number');
     const titleEl = document.getElementById('phone-step-title');
     const descEl = document.getElementById('phone-step-desc');
+    const activeCard = document.getElementById(`step-${stepNum}`);
+
+    // This script is shared across pages; skip when step widgets are absent.
+    if (!content || !pen || !numberEl || !titleEl || !descEl || !activeCard) {
+      return;
+    }
 
     const step = steps[stepNum];
 
@@ -218,8 +224,12 @@ window.handleSubscribe = async function handleSubscribe(e) {
     document.querySelectorAll('.step-card').forEach(card => {
       card.classList.remove('ring-2', 'ring-emerald-600', 'bg-emerald-50');
     });
-    document.getElementById(`step-${stepNum}`).classList.add('ring-2', 'ring-emerald-600', 'bg-emerald-50');
+    activeCard.classList.add('ring-2', 'ring-emerald-600', 'bg-emerald-50');
   }
 
  
-  window.onload = () => showStep(1);
+  window.onload = () => {
+    if (document.getElementById('step-1')) {
+      showStep(1);
+    }
+  };
