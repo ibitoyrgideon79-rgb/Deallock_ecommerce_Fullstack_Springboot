@@ -254,8 +254,22 @@
                         th:text="${d.status != null ? d.status : 'Pending Approval'}">Pending Approval</span>
                 </td>
                 <td class="p-5 whitespace-nowrap">
-                  <a th:href="@{'/dashboard/deal/' + ${d.id}}"
-                     class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
+                  <div class="flex items-center gap-3">
+                    <a th:href="@{'/dashboard/deal/' + ${d.id}}"
+                       class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
+
+                    <a th:if="${d.status != null and #strings.equalsIgnoreCase(d.status, 'Approved') and (d.paymentStatus == null or #strings.equalsIgnoreCase(d.paymentStatus, 'NOT_PAID'))}"
+                       th:href="@{'/dashboard/deal/' + ${d.id} + '/pay'}"
+                       class="px-3 py-1.5 text-xs font-semibold rounded-full bg-black text-white hover:bg-gray-800">
+                      Pay
+                    </a>
+
+                    <a th:if="${d.status != null and #strings.equalsIgnoreCase(d.status, 'Approved') and d.paymentStatus != null and !#strings.equalsIgnoreCase(d.paymentStatus, 'NOT_PAID')}"
+                       th:href="@{'/dashboard/deal/' + ${d.id} + '/track'}"
+                       class="px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 hover:bg-gray-50">
+                      Track
+                    </a>
+                  </div>
                 </td>
               </tr>
             </tbody>

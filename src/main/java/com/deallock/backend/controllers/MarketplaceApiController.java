@@ -284,12 +284,12 @@ public class MarketplaceApiController {
         if (order.getUser() == null || order.getUser().getId() != userOpt.get().getId()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
         MediaType type = MediaType.APPLICATION_OCTET_STREAM;
         if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
             type = MediaType.parseMediaType(order.getPaymentProofContentType());
+        }
+        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
     }

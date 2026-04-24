@@ -192,7 +192,13 @@ function renderDealsTable() {
     const price = naira(deal?.value || 0);
     const statusLabel = dealStatusLabel(deal);
     const detailsHref = dealId != null ? `/dashboard/deal/${dealId}` : '#';
+    const payHref = dealId != null ? `/dashboard/deal/${dealId}/pay` : '#';
+    const trackHref = dealId != null ? `/dashboard/deal/${dealId}/track` : '#';
     const canExtend = !!deal?.canRequestExtension;
+    const paymentStatus = (deal?.paymentStatus || 'NOT_PAID').toString().trim().toUpperCase();
+    const isApproved = statusLabel === 'APPROVED';
+    const showPay = isApproved && paymentStatus === 'NOT_PAID';
+    const showTrack = isApproved && paymentStatus !== 'NOT_PAID';
 
     return `
       <tr class="hover:bg-gray-50">
@@ -205,6 +211,8 @@ function renderDealsTable() {
         </td>
         <td class="p-5">
           <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
+          ${showPay ? `<a href="${payHref}" class="ml-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-black text-white hover:bg-gray-800">Pay</a>` : ''}
+          ${showTrack ? `<a href="${trackHref}" class="ml-3 inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-300 hover:bg-gray-50">Track</a>` : ''}
           ${canExtend && dealId != null ? `<button onclick="requestPaymentExtension(${dealId})" class="ml-3 text-[11px] border border-black px-2 py-1 hover:bg-black hover:text-white">Extend Payment Period</button>` : ''}
         </td>
       </tr>

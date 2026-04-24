@@ -140,6 +140,7 @@ public class AdminMarketplaceApiController {
         if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
             type = MediaType.parseMediaType(order.getPaymentProofContentType());
         }
+
         return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
     }
 

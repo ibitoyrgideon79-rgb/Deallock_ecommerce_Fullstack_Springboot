@@ -158,6 +158,13 @@ public class PageController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != ctx.user().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
+        if (deal.getStatus() == null || !"Approved".equalsIgnoreCase(deal.getStatus())) {
+            return "redirect:/dashboard/deal/" + id;
+        }
+        String paymentStatus = deal.getPaymentStatus() == null ? "NOT_PAID" : deal.getPaymentStatus();
+        if (!"NOT_PAID".equalsIgnoreCase(paymentStatus)) {
+            return "redirect:/dashboard/deal/" + id + "/track";
+        }
 
         model.addAttribute("currentUser", ctx.user());
         model.addAttribute("isAdmin", isAdmin);
