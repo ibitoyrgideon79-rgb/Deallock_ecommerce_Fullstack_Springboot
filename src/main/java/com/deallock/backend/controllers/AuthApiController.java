@@ -372,8 +372,17 @@ public class AuthApiController {
         }
 
         String role = isAdmin ? "ROLE_ADMIN" : (user.getRole() == null || user.getRole().isBlank() ? "ROLE_USER" : user.getRole());
+        String principalName = (user.getEmail() != null && !user.getEmail().isBlank())
+                ? user.getEmail()
+                : ((user.getUsername() != null && !user.getUsername().isBlank())
+                ? user.getUsername()
+                : user.getPhone());
+        if (principalName == null || principalName.isBlank()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "missing_principal");
+            return ResponseEntity.status(500).body(Map.of("message", "Account record is incomplete. Please contact support."));
+        }
         var auth = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
+                principalName,
                 null,
                 java.util.List.of(new SimpleGrantedAuthority(role))
         );

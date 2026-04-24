@@ -2,6 +2,9 @@ package com.deallock.backend.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,8 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice(annotations = org.springframework.web.bind.annotation.RestController.class)
 public class ApiErrorHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiErrorHandler.class);
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> handleMaxUpload(MaxUploadSizeExceededException ex, HttpServletRequest request) {
@@ -37,13 +42,31 @@ public class ApiErrorHandler {
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<?> handleDataAccess(DataAccessException ex, HttpServletRequest request) {
+        String errorId = UUID.randomUUID().toString();
+        log.error("[{}] Data access error on {} {}: {}", errorId,
+                request == null ? "" : request.getMethod(),
+                request == null ? "" : request.getRequestURI(),
+                ex == null ? "" : ex.getMessage(),
+                ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Server error while saving your upload. Please try again."));
+                .body(Map.of(
+                        "message", "Server error while saving your upload. Please try again.",
+                        "errorId", errorId
+                ));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex, HttpServletRequest request) {
+        String errorId = UUID.randomUUID().toString();
+        log.error("[{}] Unhandled error on {} {}: {}", errorId,
+                request == null ? "" : request.getMethod(),
+                request == null ? "" : request.getRequestURI(),
+                ex == null ? "" : ex.getMessage(),
+                ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Server error. Please try again."));
+                .body(Map.of(
+                        "message", "Server error. Please try again.",
+                        "errorId", errorId
+                ));
     }
 }

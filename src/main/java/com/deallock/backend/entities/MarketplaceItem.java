@@ -58,15 +58,24 @@ public class MarketplaceItem {
 
     private String photoContentType;
 
+    @Column(length = 500)
+    private String photoKey;
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] photo2;
 
     private String photo2ContentType;
 
+    @Column(length = 500)
+    private String photo2Key;
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] photo3;
 
     private String photo3ContentType;
+
+    @Column(length = 500)
+    private String photo3Key;
 }

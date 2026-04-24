@@ -16,13 +16,25 @@ public class DealCacheService {
         this.cacheManager = cacheManager;
     }
 
-    public void evictUserDeals(String email) {
+    public void evictUserDeals(String key) {
         Cache cache = cacheManager.getCache("userDeals");
-        if (cache != null && email != null && !email.isBlank()) {
+        if (cache != null && key != null && !key.isBlank()) {
             try {
-                cache.evict(email);
+                cache.evict(key);
             } catch (RuntimeException ex) {
-                log.warn("Cache evict failed (cache=userDeals, key={}). Continuing.", email, ex);
+                log.warn("Cache evict failed (cache=userDeals, key={}). Continuing.", key, ex);
+            }
+        }
+    }
+
+    public void evictUserDealsById(Integer userId) {
+        if (userId == null) return;
+        Cache cache = cacheManager.getCache("userDeals");
+        if (cache != null) {
+            try {
+                cache.evict(userId);
+            } catch (RuntimeException ex) {
+                log.warn("Cache evict failed (cache=userDeals, key={}). Continuing.", userId, ex);
             }
         }
     }

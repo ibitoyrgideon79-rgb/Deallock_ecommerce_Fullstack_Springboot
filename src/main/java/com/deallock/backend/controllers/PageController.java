@@ -4,6 +4,7 @@ import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.MarketplaceOrderRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.entities.Deal;
+import com.deallock.backend.services.CurrentUserService;
 import com.deallock.backend.services.NotificationService;
 import com.deallock.backend.services.MarketplaceLockPolicy;
 import com.deallock.backend.services.MarketplaceOrderFlowService;
@@ -25,19 +26,22 @@ public class PageController {
     private final MarketplaceLockPolicy lockPolicy;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
     private final MarketplaceOrderFlowService marketplaceOrderFlowService;
+    private final CurrentUserService currentUserService;
 
     public PageController(UserRepository userRepository,
                           DealRepository dealRepository,
                           NotificationService notificationService,
                           MarketplaceLockPolicy lockPolicy,
                           MarketplaceOrderRepository marketplaceOrderRepository,
-                          MarketplaceOrderFlowService marketplaceOrderFlowService) {
+                          MarketplaceOrderFlowService marketplaceOrderFlowService,
+                          CurrentUserService currentUserService) {
         this.userRepository = userRepository;
         this.dealRepository = dealRepository;
         this.notificationService = notificationService;
         this.lockPolicy = lockPolicy;
         this.marketplaceOrderRepository = marketplaceOrderRepository;
         this.marketplaceOrderFlowService = marketplaceOrderFlowService;
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping("/login")
@@ -95,7 +99,7 @@ public class PageController {
     @GetMapping("/ai-agent")
     public String aiAgent(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) return "redirect:/login";
         var user = userOpt.get();
         model.addAttribute("currentUser", user);
@@ -110,7 +114,7 @@ public class PageController {
     @GetMapping("/dashboard")
     public String dashboard(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) return "redirect:/login";
         var user = userOpt.get();
         model.addAttribute("currentUser", user);
@@ -313,7 +317,7 @@ public class PageController {
     }
 private UserCtx requireUser(Principal principal) {
         if (principal == null) return null;
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) return null;
         var user = userOpt.get();
         return new UserCtx(user, "ROLE_ADMIN".equals(user.getRole()));

@@ -142,7 +142,7 @@
         <div>
           <div class="track-title">Deal locked</div>
           <div class="track-sub" th:text="${deal.secured} ? 'Your deal has been secured' : 'Pending security confirmation'">Pending security confirmation</div>
-          <div class="track-sub" th:if="${deal.securedItemPhoto != null}">Secured item photo is available in Deal Details.</div>
+          <div class="track-sub" th:if="${deal.securedItemPhoto != null || deal.securedItemPhotoKey != null}">Secured item photo is available in Deal Details.</div>
         </div>
       </div>
 

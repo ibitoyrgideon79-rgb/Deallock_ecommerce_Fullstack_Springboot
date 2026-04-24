@@ -7,10 +7,13 @@ import com.deallock.backend.repositories.MarketplaceItemRepository;
 import com.deallock.backend.services.DealCacheService;
 import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NotificationDispatchService;
+import com.deallock.backend.services.FileStorageService;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,12 +33,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminDealApiController {
 
     private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/*");
 
     private final DealRepository dealRepository;
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final NotificationDispatchService notifier;
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
+    private final FileStorageService fileStorageService;
 
     @Value("${app.deals.payment-timeout:24h}")
     private Duration paymentTimeout;
@@ -44,12 +49,14 @@ public class AdminDealApiController {
                                   MarketplaceItemRepository marketplaceItemRepository,
                                   NotificationDispatchService notifier,
                                   DealReadService dealReadService,
-                                  DealCacheService dealCacheService) {
+                                  DealCacheService dealCacheService,
+                                  FileStorageService fileStorageService) {
         this.dealRepository = dealRepository;
         this.marketplaceItemRepository = marketplaceItemRepository;
         this.notifier = notifier;
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping
@@ -76,6 +83,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -120,6 +128,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -156,6 +165,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -192,6 +202,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -200,7 +211,7 @@ public class AdminDealApiController {
 
     @PostMapping(path = "/{id}/secured", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> secured(@PathVariable("id") Long id,
-                                     @RequestParam("securedPhoto") MultipartFile securedPhoto,
+                                     @RequestParam(value = "securedPhoto", required = false) MultipartFile securedPhoto,
                                      Authentication authentication) throws Exception {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -216,21 +227,29 @@ public class AdminDealApiController {
         if (!"PAID_CONFIRMED".equalsIgnoreCase(deal.getPaymentStatus())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment must be confirmed first"));
         }
-        if (securedPhoto == null || securedPhoto.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Secured photo is required"));
-        }
-        if (securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
+        if (securedPhoto != null && !securedPhoto.isEmpty() && securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                     .body(Map.of("message", "Secured photo must be at most 2MB."));
         }
 
         deal.setSecured(true);
         deal.setSecuredAt(Instant.now());
-        deal.setSecuredItemPhoto(securedPhoto.getBytes());
-        deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
+        if (securedPhoto != null && !securedPhoto.isEmpty()) {
+            try {
+                FileStorageService.StoredFile stored = fileStorageService.save("deals/secured-items", securedPhoto, MAX_UPLOAD_BYTES, IMAGE_TYPES);
+                deal.setSecuredItemPhoto(null);
+                deal.setSecuredItemPhotoContentType(stored.contentType());
+                deal.setSecuredItemPhotoKey(stored.key());
+            } catch (IOException ex) {
+                deal.setSecuredItemPhoto(securedPhoto.getBytes());
+                deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
+                deal.setSecuredItemPhotoKey(null);
+            }
+        }
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -267,6 +286,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -303,6 +323,7 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 

@@ -93,7 +93,8 @@ public class MarketplaceOrderFlowService {
         row.put("paymentSubmittedAt", order.getPaymentSubmittedAt());
         row.put("shippedAt", order.getShippedAt());
         row.put("deliveredAt", order.getDeliveredAt());
-        row.put("paymentProofUploaded", order.getPaymentProof() != null && order.getPaymentProof().length > 0);
+        row.put("paymentProofUploaded", (order.getPaymentProof() != null && order.getPaymentProof().length > 0)
+                || (order.getPaymentProofKey() != null && !order.getPaymentProofKey().isBlank()));
         row.put("paymentProofNote", order.getPaymentProofNote());
         row.put("createdAt", order.getCreatedAt());
         row.put("updatedAt", order.getUpdatedAt());
@@ -122,7 +123,10 @@ public class MarketplaceOrderFlowService {
         row.put("quantity", item.getQuantity());
         row.put("unitPrice", item.getUnitPrice());
         row.put("lineTotal", item.getLineTotal());
-        row.put("imageUrl", item.getMarketplaceItem() != null && item.getMarketplaceItem().getPhoto() != null && item.getMarketplaceItem().getPhoto().length > 0
+        boolean hasPhoto = item.getMarketplaceItem() != null
+                && ((item.getMarketplaceItem().getPhoto() != null && item.getMarketplaceItem().getPhoto().length > 0)
+                || (item.getMarketplaceItem().getPhotoKey() != null && !item.getMarketplaceItem().getPhotoKey().isBlank()));
+        row.put("imageUrl", hasPhoto
                 ? "/api/marketplace/items/" + item.getMarketplaceItem().getId() + "/photo"
                 : null);
         return row;

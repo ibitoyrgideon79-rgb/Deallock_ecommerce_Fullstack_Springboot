@@ -6,8 +6,11 @@ import com.deallock.backend.entities.MarketplaceOrderItem;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
 import com.deallock.backend.repositories.MarketplaceOrderRepository;
 import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.services.CurrentUserService;
+import com.deallock.backend.services.FileStorageService;
 import com.deallock.backend.services.MarketplaceOrderFlowService;
 import com.deallock.backend.services.NotificationDispatchService;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
 import java.time.Instant;
+import java.util.Set;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,22 +38,30 @@ public class MarketplaceApiController {
 
     private static final BigDecimal DOOR_DELIVERY_FEE = BigDecimal.valueOf(2500);
     private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/*");
+    private static final Set<String> PROOF_TYPES = Set.of("image/*", "application/pdf");
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
     private final UserRepository userRepository;
     private final NotificationDispatchService notifier;
     private final MarketplaceOrderFlowService orderFlowService;
+    private final CurrentUserService currentUserService;
+    private final FileStorageService fileStorageService;
 
     public MarketplaceApiController(MarketplaceItemRepository marketplaceItemRepository,
                                     MarketplaceOrderRepository marketplaceOrderRepository,
                                     UserRepository userRepository,
                                     NotificationDispatchService notifier,
-                                    MarketplaceOrderFlowService orderFlowService) {
+                                    MarketplaceOrderFlowService orderFlowService,
+                                    CurrentUserService currentUserService,
+                                    FileStorageService fileStorageService) {
         this.marketplaceItemRepository = marketplaceItemRepository;
         this.marketplaceOrderRepository = marketplaceOrderRepository;
         this.userRepository = userRepository;
         this.notifier = notifier;
         this.orderFlowService = orderFlowService;
+        this.currentUserService = currentUserService;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping("/items")
@@ -74,7 +86,7 @@ public class MarketplaceApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login required"));
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login required"));
         }
@@ -169,7 +181,7 @@ public class MarketplaceApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -184,7 +196,7 @@ public class MarketplaceApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -207,7 +219,7 @@ public class MarketplaceApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -226,8 +238,22 @@ public class MarketplaceApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment proof must be at most 2MB"));
         }
 
-        order.setPaymentProof(paymentProof.getBytes());
-        order.setPaymentProofContentType(paymentProof.getContentType());
+        try {
+            FileStorageService.StoredFile stored = fileStorageService.save(
+                    "marketplace/order-proofs",
+                    paymentProof,
+                    MAX_UPLOAD_BYTES,
+                    PROOF_TYPES
+            );
+            order.setPaymentProof(null);
+            order.setPaymentProofContentType(stored.contentType());
+            order.setPaymentProofKey(stored.key());
+        } catch (IOException ex) {
+            // Fallback to DB blob if filesystem storage isn't available.
+            order.setPaymentProof(paymentProof.getBytes());
+            order.setPaymentProofContentType(paymentProof.getContentType());
+            order.setPaymentProofKey(null);
+        }
         order.setPaymentProofNote(note == null ? null : note.trim());
         order.setPaymentSubmittedAt(Instant.now());
         // Force "payment submitted" as the source of truth when proof is uploaded.
@@ -272,7 +298,7 @@ public class MarketplaceApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -288,10 +314,11 @@ public class MarketplaceApiController {
         if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
             type = MediaType.parseMediaType(order.getPaymentProofContentType());
         }
-        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
+        byte[] bytes = resolveBytes(order.getPaymentProof(), order.getPaymentProofKey());
+        if (bytes == null || bytes.length == 0) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
+        return ResponseEntity.ok().contentType(type).body(bytes);
     }
 
     @GetMapping("/items/{id}/photo")
@@ -311,17 +338,22 @@ public class MarketplaceApiController {
 
         byte[] bytes;
         String contentType;
+        String key;
         if (slot == 2) {
             bytes = item.getPhoto2();
             contentType = item.getPhoto2ContentType();
+            key = item.getPhoto2Key();
         } else if (slot == 3) {
             bytes = item.getPhoto3();
             contentType = item.getPhoto3ContentType();
+            key = item.getPhoto3Key();
         } else {
             bytes = item.getPhoto();
             contentType = item.getPhotoContentType();
+            key = item.getPhotoKey();
         }
 
+        bytes = resolveBytes(bytes, key);
         if (bytes == null || bytes.length == 0) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -344,9 +376,9 @@ public class MarketplaceApiController {
         row.put("listed", item.isListed());
         row.put("createdAt", item.getCreatedAt());
         String base = "/api/marketplace/items/" + item.getId() + "/photo";
-        String img1 = (item.getPhoto() == null || item.getPhoto().length == 0) ? null : base;
-        String img2 = (item.getPhoto2() == null || item.getPhoto2().length == 0) ? null : (base + "/2");
-        String img3 = (item.getPhoto3() == null || item.getPhoto3().length == 0) ? null : (base + "/3");
+        String img1 = hasMedia(item.getPhoto(), item.getPhotoKey()) ? base : null;
+        String img2 = hasMedia(item.getPhoto2(), item.getPhoto2Key()) ? (base + "/2") : null;
+        String img3 = hasMedia(item.getPhoto3(), item.getPhoto3Key()) ? (base + "/3") : null;
         row.put("imageUrl", img1);
         List<String> imageUrls = new ArrayList<>();
         if (img1 != null && !img1.isBlank()) imageUrls.add(img1);
@@ -354,6 +386,24 @@ public class MarketplaceApiController {
         if (img3 != null && !img3.isBlank()) imageUrls.add(img3);
         row.put("imageUrls", imageUrls);
         return row;
+    }
+
+    private boolean hasMedia(byte[] blob, String key) {
+        return (blob != null && blob.length > 0) || (key != null && !key.isBlank());
+    }
+
+    private byte[] resolveBytes(byte[] blob, String key) {
+        if (blob != null && blob.length > 0) {
+            return blob;
+        }
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        try {
+            return fileStorageService.read(key);
+        } catch (IOException ignored) {
+            return null;
+        }
     }
 
     @SuppressWarnings("unchecked")

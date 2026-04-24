@@ -6,12 +6,15 @@ import com.deallock.backend.repositories.MarketplaceOrderRepository;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
 import com.deallock.backend.services.MarketplaceOrderFlowService;
 import com.deallock.backend.services.NotificationDispatchService;
+import com.deallock.backend.services.FileStorageService;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,20 +34,25 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminMarketplaceApiController {
 
     private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/*");
+    private static final Set<String> PROOF_TYPES = Set.of("image/*", "application/pdf");
 
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
     private final MarketplaceOrderFlowService orderFlowService;
     private final NotificationDispatchService notifier;
+    private final FileStorageService fileStorageService;
 
     public AdminMarketplaceApiController(MarketplaceItemRepository marketplaceItemRepository,
                                          MarketplaceOrderRepository marketplaceOrderRepository,
                                          MarketplaceOrderFlowService orderFlowService,
-                                         NotificationDispatchService notifier) {
+                                         NotificationDispatchService notifier,
+                                         FileStorageService fileStorageService) {
         this.marketplaceItemRepository = marketplaceItemRepository;
         this.marketplaceOrderRepository = marketplaceOrderRepository;
         this.orderFlowService = orderFlowService;
         this.notifier = notifier;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping
@@ -132,16 +140,17 @@ public class AdminMarketplaceApiController {
         if (order == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        if (order.getPaymentProof() == null || order.getPaymentProof().length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
 
         MediaType type = MediaType.APPLICATION_OCTET_STREAM;
         if (order.getPaymentProofContentType() != null && !order.getPaymentProofContentType().isBlank()) {
             type = MediaType.parseMediaType(order.getPaymentProofContentType());
         }
 
-        return ResponseEntity.ok().contentType(type).body(order.getPaymentProof());
+        byte[] bytes = resolveBytes(order.getPaymentProof(), order.getPaymentProofKey());
+        if (bytes == null || bytes.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok().contentType(type).body(bytes);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -193,14 +202,11 @@ public class AdminMarketplaceApiController {
 
                 saved++;
                 if (saved == 1) {
-                    item.setPhoto(file.getBytes());
-                    item.setPhotoContentType(file.getContentType());
+                    storeMarketplaceItemPhoto(item, file, 1);
                 } else if (saved == 2) {
-                    item.setPhoto2(file.getBytes());
-                    item.setPhoto2ContentType(file.getContentType());
+                    storeMarketplaceItemPhoto(item, file, 2);
                 } else if (saved == 3) {
-                    item.setPhoto3(file.getBytes());
-                    item.setPhoto3ContentType(file.getContentType());
+                    storeMarketplaceItemPhoto(item, file, 3);
                     break;
                 }
             }
@@ -265,9 +271,9 @@ public class AdminMarketplaceApiController {
         row.put("listed", item.isListed());
         row.put("createdAt", item.getCreatedAt());
         String base = "/api/marketplace/items/" + item.getId() + "/photo";
-        String img1 = (item.getPhoto() == null || item.getPhoto().length == 0) ? null : base;
-        String img2 = (item.getPhoto2() == null || item.getPhoto2().length == 0) ? null : (base + "/2");
-        String img3 = (item.getPhoto3() == null || item.getPhoto3().length == 0) ? null : (base + "/3");
+        String img1 = hasMedia(item.getPhoto(), item.getPhotoKey()) ? base : null;
+        String img2 = hasMedia(item.getPhoto2(), item.getPhoto2Key()) ? (base + "/2") : null;
+        String img3 = hasMedia(item.getPhoto3(), item.getPhoto3Key()) ? (base + "/3") : null;
         row.put("imageUrl", img1);
         List<String> imageUrls = new ArrayList<>();
         if (img1 != null && !img1.isBlank()) imageUrls.add(img1);
@@ -275,6 +281,58 @@ public class AdminMarketplaceApiController {
         if (img3 != null && !img3.isBlank()) imageUrls.add(img3);
         row.put("imageUrls", imageUrls);
         return row;
+    }
+
+    private void storeMarketplaceItemPhoto(MarketplaceItem item, MultipartFile file, int slot) throws Exception {
+        try {
+            FileStorageService.StoredFile stored = fileStorageService.save("marketplace/items", file, MAX_UPLOAD_BYTES, IMAGE_TYPES);
+            if (slot == 2) {
+                item.setPhoto2(null);
+                item.setPhoto2ContentType(stored.contentType());
+                item.setPhoto2Key(stored.key());
+            } else if (slot == 3) {
+                item.setPhoto3(null);
+                item.setPhoto3ContentType(stored.contentType());
+                item.setPhoto3Key(stored.key());
+            } else {
+                item.setPhoto(null);
+                item.setPhotoContentType(stored.contentType());
+                item.setPhotoKey(stored.key());
+            }
+        } catch (IOException ex) {
+            // Fallback to DB blob if filesystem storage isn't available.
+            if (slot == 2) {
+                item.setPhoto2(file.getBytes());
+                item.setPhoto2ContentType(file.getContentType());
+                item.setPhoto2Key(null);
+            } else if (slot == 3) {
+                item.setPhoto3(file.getBytes());
+                item.setPhoto3ContentType(file.getContentType());
+                item.setPhoto3Key(null);
+            } else {
+                item.setPhoto(file.getBytes());
+                item.setPhotoContentType(file.getContentType());
+                item.setPhotoKey(null);
+            }
+        }
+    }
+
+    private boolean hasMedia(byte[] blob, String key) {
+        return (blob != null && blob.length > 0) || (key != null && !key.isBlank());
+    }
+
+    private byte[] resolveBytes(byte[] blob, String key) {
+        if (blob != null && blob.length > 0) {
+            return blob;
+        }
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        try {
+            return fileStorageService.read(key);
+        } catch (IOException ignored) {
+            return null;
+        }
     }
 
     private String humanStatus(String status) {

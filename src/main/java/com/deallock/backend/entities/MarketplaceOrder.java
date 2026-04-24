@@ -63,6 +63,9 @@ public class MarketplaceOrder {
 
     private String paymentProofContentType;
 
+    @Column(length = 500)
+    private String paymentProofKey;
+
     @Column(length = 2000)
     private String paymentProofNote;
 

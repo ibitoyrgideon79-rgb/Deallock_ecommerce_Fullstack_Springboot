@@ -1,7 +1,7 @@
 package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.User;
-import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.services.CurrentUserService;
 import com.deallock.backend.services.NotificationService;
 import java.security.Principal;
 import org.springframework.stereotype.Controller;
@@ -23,21 +23,18 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice(annotations = Controller.class)
 public class CurrentUserModelAdvice {
 
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
 
-    public CurrentUserModelAdvice(UserRepository userRepository,
+    public CurrentUserModelAdvice(CurrentUserService currentUserService,
                                   NotificationService notificationService) {
-        this.userRepository = userRepository;
+        this.currentUserService = currentUserService;
         this.notificationService = notificationService;
     }
 
     @ModelAttribute("currentUser")
     public User currentUser(Principal principal) {
-        if (principal == null || principal.getName() == null) {
-            return null;
-        }
-        return userRepository.findByEmail(principal.getName()).orElse(null);
+        return currentUserService.resolve(principal).orElse(null);
     }
 
     @ModelAttribute("isAdmin")

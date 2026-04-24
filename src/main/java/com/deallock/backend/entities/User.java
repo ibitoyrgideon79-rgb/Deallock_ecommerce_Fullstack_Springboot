@@ -43,6 +43,7 @@ public class User {
     @Column(columnDefinition = "LONGBLOB")
     private byte[] profileImage;
     private String profileImageContentType;
+    private String profileImageKey;
 
     private Instant creation;
 

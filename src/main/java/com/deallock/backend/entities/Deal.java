@@ -85,29 +85,41 @@ public class Deal {
     @Column(columnDefinition = "LONGBLOB")
     private byte[] itemPhoto;
     private String itemPhotoContentType;
+    @Column(length = 500)
+    private String itemPhotoKey;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] itemPhoto2;
     private String itemPhoto2ContentType;
+    @Column(length = 500)
+    private String itemPhoto2Key;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] itemPhoto3;
     private String itemPhoto3ContentType;
+    @Column(length = 500)
+    private String itemPhoto3Key;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] paymentProof;
     private String paymentProofContentType;
+    @Column(length = 500)
+    private String paymentProofKey;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] securedItemPhoto;
     private String securedItemPhotoContentType;
+    @Column(length = 500)
+    private String securedItemPhotoKey;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] balancePaymentProof;
     private String balancePaymentProofContentType;
+    @Column(length = 500)
+    private String balancePaymentProofKey;
 }

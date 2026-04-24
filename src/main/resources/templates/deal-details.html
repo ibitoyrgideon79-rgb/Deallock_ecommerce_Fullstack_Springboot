@@ -173,7 +173,7 @@
         </div>
       </div>
 
-      <div style="margin-top:16px;" th:if="${deal.itemPhoto != null}">
+      <div style="margin-top:16px;" th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}">
         <strong>Item Photos</strong>
         <div class="deal-photo-box">
           <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal item photo">
@@ -188,7 +188,7 @@
         </div>
       </div>
 
-      <div style="margin-top:16px;" th:if="${deal.securedItemPhoto != null}">
+      <div style="margin-top:16px;" th:if="${deal.securedItemPhoto != null || deal.securedItemPhotoKey != null}">
         <strong>Secured Item Photo</strong>
         <div class="deal-photo-box">
           <img th:src="@{'/api/deals/' + ${deal.id} + '/secured-photo'}" alt="Secured item photo">
