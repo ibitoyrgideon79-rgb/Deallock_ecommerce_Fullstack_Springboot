@@ -11,19 +11,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import com.deallock.backend.services.GoogleOauth2UserService;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
-    private final GoogleOauth2UserService googleOauth2UserService;
 
-    public SecurityConfig(UserDetailsService userDetailsService,
-                          GoogleOauth2UserService googleOauth2UserService) {
+    public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
-        this.googleOauth2UserService = googleOauth2UserService;
     }
 
     @Bean
@@ -42,8 +38,6 @@ public class SecurityConfig {
                                 "/health",
                                 "/login",
                                 "/register",
-                                "/oauth2/**",
-                                "/login/oauth2/**",
                                 "/terms",
                                 "/send-otp",
                                 "/ourteam",
@@ -80,16 +74,6 @@ public class SecurityConfig {
                         })
                         .failureUrl("/login?error=true")
                         .permitAll()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(googleOauth2UserService))
-                        .successHandler((request, response, authentication) -> {
-                            boolean isAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-                            response.sendRedirect(isAdmin ? "/admin" : "/dashboard");
-                        })
-                        .failureUrl("/login?error=true")
                 )
                 .logout(logout -> logout
                         .logoutRequestMatcher(request ->
