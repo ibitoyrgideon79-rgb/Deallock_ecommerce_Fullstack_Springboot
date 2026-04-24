@@ -6,88 +6,78 @@
   <link rel="stylesheet" href="/frontend/css/tailwind.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/x-icon" href="/frontend/images/logo.jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
   <title>deallock.ng</title>
 </head>
 <body>
 
- <header class="bg-white border-b border-gray-100 shadow-sm">
+ <header class="bg-white border-b border-gray-100 shadow-sm relative">
   <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
     
     
     <div class="flex items-center gap-x-3">
-
       <a href="/" class="flex items-center gap-x-2">
         <img src="/frontend/images/logo.jpeg" alt="DealLock Logo" class="h-9 w-auto rounded-xl">
-  
       </a>
-      
+  
       <span class="text-gray-700 text-sm font-medium hidden sm:block">
         Deal securing and purchase support.
       </span>
     </div>
 
+
     <div class="hidden md:flex items-center gap-x-2">
-      <a href="/" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Home
-      </a>
-      <a href="/marketplace" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Marketplace
-      </a>
-      <a href="/terms" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Terms
-      </a>
-      <a href="/contactus" 
-         class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-        Contact
-      </a>
+      <a href="/" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
+      <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
+      <a href="/terms" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
+      <a href="/ourteam" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
     </div>
 
-    <div class="flex items-center gap-x-3">
+    
+    <div class="hidden md:flex items-center gap-x-3">
       <div th:if="${currentUser == null}" class="flex items-center gap-x-2">
-        <a href="/login" 
-           class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-          Login
-        </a>
-        <a href="/register" 
-           class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">
-          Register
-        </a>
+        <a href="/login" class="px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Login</a>
+        <a href="/register" class="px-6 py-2 text-sm font-medium bg-black text-white hover:bg-gray-800 rounded-full transition-colors">Register</a>
       </div>
 
-      
       <div th:if="${currentUser != null}" class="relative group">
-        <button onclick="toggleDropdown()" 
-                class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" 
-               alt="User Avatar" 
-               class="w-8 h-8 rounded-full object-cover border border-gray-200">
+        <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
           <span class="text-sm font-medium text-gray-700" th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
-
-        
-        <div id="user-dropdown" 
-             class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-          <a href="/admin" 
-             class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">
-            Admin Dashboard
-          </a>
-          <a href="/logout" 
-             class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">
-            Log out
-          </a>
+        <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+          <a th:if="${isAdmin}" href="/admin" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+          <a th:if="${!isAdmin}" href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
+          <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
         </div>
       </div>
     </div>
 
-  
-    <button id="menu-toggle" class="md:hidden text-gray-700">
+    
+    <button id="menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
       <i class="fas fa-bars text-2xl"></i>
     </button>
   </nav>
+
+  
+  <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-4 shadow-xl">
+    <a href="/" class="block text-gray-700 font-medium">Home</a>
+    <a href="/marketplace" class="block text-gray-700 font-medium">Marketplace</a>
+    <a href="/terms" class="block text-gray-700 font-medium">Terms</a>
+    <a href="/ourteam" class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
+    
+    
+    <div th:if="${currentUser == null}" class="flex flex-col gap-y-3 pt-2">
+      <a href="/login" class="text-center px-6 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full">Login</a>
+      <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
+    </div>
+    <div th:if="${currentUser != null}" class="pt-2">
+       <a th:if="${isAdmin}" href="/admin" class="block py-2 text-gray-700">Admin Dashboard</a>
+       <a th:if="${!isAdmin}" href="/dashboard" class="block py-2 text-gray-700">User Dashboard</a>
+       <a href="/logout" class="block py-2 text-red-600">Log out</a>
+    </div>
+  </div>
 </header>
 
 <div class="flex min-h-[calc(100vh-80px)]">
