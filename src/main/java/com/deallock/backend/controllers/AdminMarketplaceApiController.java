@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,6 +82,7 @@ public class AdminMarketplaceApiController {
     }
 
     @PostMapping("/orders/{id}/status")
+    @Transactional
     public ResponseEntity<?> updateOrderStatus(@PathVariable("id") Long id,
                                                @RequestBody(required = false) Map<String, Object> body,
                                                Authentication authentication) {
@@ -106,12 +108,41 @@ public class AdminMarketplaceApiController {
         if (note != null && note.length() > 2000) {
             note = note.substring(0, 2000);
         }
-        if (note != null && !note.isBlank()) {
-            order.setAdminNote(note);
+        if (note != null && note.isBlank()) {
+            note = null;
         }
 
-        orderFlowService.applyTransition(order, normalizedNext);
-        marketplaceOrderRepository.save(order);
+        Instant paymentReceivedAt = order.getPaymentReceivedAt();
+        Instant shippedAt = order.getShippedAt();
+        Instant deliveredAt = order.getDeliveredAt();
+        Instant updatedAt = Instant.now();
+
+        if (MarketplaceOrderFlowService.STATUS_PAYMENT_RECEIVED.equals(normalizedNext) && paymentReceivedAt == null) {
+            paymentReceivedAt = updatedAt;
+        }
+        if (MarketplaceOrderFlowService.STATUS_SHIPPED.equals(normalizedNext) && shippedAt == null) {
+            shippedAt = updatedAt;
+        }
+        if (MarketplaceOrderFlowService.STATUS_DELIVERED.equals(normalizedNext) && deliveredAt == null) {
+            deliveredAt = updatedAt;
+        }
+
+        marketplaceOrderRepository.updateWorkflowFields(
+                order.getId(),
+                normalizedNext,
+                note != null ? note : order.getAdminNote(),
+                paymentReceivedAt,
+                shippedAt,
+                deliveredAt,
+                updatedAt
+        );
+
+        order.setStatus(normalizedNext);
+        order.setAdminNote(note != null ? note : order.getAdminNote());
+        order.setPaymentReceivedAt(paymentReceivedAt);
+        order.setShippedAt(shippedAt);
+        order.setDeliveredAt(deliveredAt);
+        order.setUpdatedAt(updatedAt);
 
         String orderCode = "MO-" + order.getId();
         String statusText = humanStatus(normalizedNext);
@@ -217,6 +248,7 @@ public class AdminMarketplaceApiController {
     }
 
     @PostMapping("/{id}/toggle-listed")
+    @Transactional
     public ResponseEntity<?> toggleListed(@PathVariable("id") Long id, Authentication authentication) {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -227,9 +259,9 @@ public class AdminMarketplaceApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         var item = opt.get();
-        item.setListed(!item.isListed());
-        marketplaceItemRepository.save(item);
-        return ResponseEntity.ok(Map.of("listed", item.isListed()));
+        boolean nextListed = !item.isListed();
+        marketplaceItemRepository.updateListed(id, nextListed);
+        return ResponseEntity.ok(Map.of("listed", nextListed));
     }
 
     @DeleteMapping("/{id}")
