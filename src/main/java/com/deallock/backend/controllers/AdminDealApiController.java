@@ -86,9 +86,8 @@ public class AdminDealApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         Object[] data = light.get();
-        String title = data.length > 1 && data[1] != null ? String.valueOf(data[1]) : "";
-        Object rawUserId = data.length > 2 ? data[2] : null;
-        Long userId = rawUserId instanceof Number n ? n.longValue() : null;
+        String title = (String) data[1];
+        Long userId = ((Number) data[2]).longValue();
 
         int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
         if (updated == 0) {
@@ -136,9 +135,8 @@ public class AdminDealApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         Object[] data = light.get();
-        String title = data.length > 1 && data[1] != null ? String.valueOf(data[1]) : "";
-        Object rawUserId = data.length > 2 ? data[2] : null;
-        Long userId = rawUserId instanceof Number n ? n.longValue() : null;
+        String title = (String) data[1];
+        Long userId = ((Number) data[2]).longValue();
 
         String reason = null;
         if (body != null && body.get("reason") != null) {
