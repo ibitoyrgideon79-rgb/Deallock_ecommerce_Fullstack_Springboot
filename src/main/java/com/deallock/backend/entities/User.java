@@ -2,6 +2,7 @@ package com.deallock.backend.entities;
 
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,8 @@ import java.time.LocalDate;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Setter(AccessLevel.NONE)
+    private Long id;
 
 
     private String fullName;

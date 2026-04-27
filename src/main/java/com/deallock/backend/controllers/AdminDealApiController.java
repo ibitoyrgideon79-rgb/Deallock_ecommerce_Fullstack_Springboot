@@ -136,7 +136,7 @@ public class AdminDealApiController {
         }
         Object[] data = light.get();
         String title = (String) data[1];
-        Integer userId = (Integer) data[2];
+        Long userId = ((Number) data[2]).longValue();
 
         String reason = null;
         if (body != null && body.get("reason") != null) {

@@ -19,8 +19,12 @@ public class FileStorageService {
 
     private final Path uploadRoot;
 
-    public FileStorageService(@Value("${app.upload-dir:uploads}") String uploadDir) {
-        this.uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+    public FileStorageService(@Value("${app.upload-dir:}") String uploadDir) {
+        String normalized = uploadDir == null ? "" : uploadDir.trim();
+        if (normalized.isBlank()) {
+            normalized = Paths.get(System.getProperty("java.io.tmpdir"), "deallock", "uploads").toString();
+        }
+        this.uploadRoot = Paths.get(normalized).toAbsolutePath().normalize();
     }
 
     public StoredFile save(String folder,
@@ -134,4 +138,3 @@ public class FileStorageService {
         };
     }
 }
-

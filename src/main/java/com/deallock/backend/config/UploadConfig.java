@@ -3,6 +3,7 @@ package com.deallock.backend.config;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -10,11 +11,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class UploadConfig implements WebMvcConfigurer {
 
-    private static final String UPLOAD_DIR = "uploads";
+    private final String uploadDir;
+
+    public UploadConfig(@Value("${app.upload-dir:}") String uploadDir) {
+        this.uploadDir = uploadDir;
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path uploadPath = Paths.get(UPLOAD_DIR);
+        String normalized = uploadDir == null ? "" : uploadDir.trim();
+        if (normalized.isBlank()) {
+            normalized = Paths.get(System.getProperty("java.io.tmpdir"), "deallock", "uploads").toString();
+        }
+        Path uploadPath = Paths.get(normalized);
         if (Files.notExists(uploadPath)) {
             try {
                 Files.createDirectories(uploadPath);
