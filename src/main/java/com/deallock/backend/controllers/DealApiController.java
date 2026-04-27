@@ -8,6 +8,9 @@ import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NewsletterService;
 import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.SmsService;
+import com.deallock.backend.services.CurrentUserService;
+import com.deallock.backend.services.FileStorageService;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.Principal;
@@ -18,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,6 +42,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class DealApiController {
 
     private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/*");
+    private static final Set<String> PROOF_TYPES = Set.of("image/*", "application/pdf");
 
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
@@ -46,6 +52,8 @@ public class DealApiController {
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
     private final NewsletterService newsletterService;
+    private final CurrentUserService currentUserService;
+    private final FileStorageService fileStorageService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -60,7 +68,9 @@ public class DealApiController {
                              NotificationDispatchService notifier,
                              DealReadService dealReadService,
                              DealCacheService dealCacheService,
-                             NewsletterService newsletterService) {
+                             NewsletterService newsletterService,
+                             CurrentUserService currentUserService,
+                             FileStorageService fileStorageService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.smsService = smsService;
@@ -68,20 +78,18 @@ public class DealApiController {
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
         this.newsletterService = newsletterService;
+        this.currentUserService = currentUserService;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping
     public ResponseEntity<?> listDeals(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var email = principal.getName();
-        var user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
+        var userOpt = currentUserService.resolve(principal);
+        if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return ResponseEntity.ok(dealReadService.listDealsForUserEmail(email));
+        return ResponseEntity.ok(dealReadService.listDealsForUser(userOpt.get()));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -105,10 +113,7 @@ public class DealApiController {
                                         // New UI can send up to 3 files under the same field name.
                                         @RequestParam(value = "itemPhotos", required = false) MultipartFile[] itemPhotos,
                                         Principal principal) throws Exception {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -186,21 +191,18 @@ public class DealApiController {
 
                 saved++;
                 if (saved == 1) {
-                    deal.setItemPhoto(file.getBytes());
-                    deal.setItemPhotoContentType(file.getContentType());
+                    storeDealItemPhoto(deal, file, 1);
                 } else if (saved == 2) {
-                    deal.setItemPhoto2(file.getBytes());
-                    deal.setItemPhoto2ContentType(file.getContentType());
+                    storeDealItemPhoto(deal, file, 2);
                 } else if (saved == 3) {
-                    deal.setItemPhoto3(file.getBytes());
-                    deal.setItemPhoto3ContentType(file.getContentType());
+                    storeDealItemPhoto(deal, file, 3);
                     break;
                 }
             }
         }
 
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
         CompletableFuture.runAsync(() -> {
             try {
@@ -262,7 +264,7 @@ public class DealApiController {
     public ResponseEntity<byte[]> dealPhoto(@PathVariable("id") Long id,
                                             Principal principal,
                                             Authentication authentication) {
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -287,7 +289,7 @@ public class DealApiController {
                                                 @PathVariable("slot") int slot,
                                                 Principal principal,
                                                 Authentication authentication) {
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -310,18 +312,23 @@ public class DealApiController {
     private ResponseEntity<byte[]> dealPhotoSlot(Deal deal, int slot) {
         byte[] bytes;
         String contentType;
+        String key;
 
         if (slot == 2) {
             bytes = deal.getItemPhoto2();
             contentType = deal.getItemPhoto2ContentType();
+            key = deal.getItemPhoto2Key();
         } else if (slot == 3) {
             bytes = deal.getItemPhoto3();
             contentType = deal.getItemPhoto3ContentType();
+            key = deal.getItemPhoto3Key();
         } else {
             bytes = deal.getItemPhoto();
             contentType = deal.getItemPhotoContentType();
+            key = deal.getItemPhotoKey();
         }
 
+        bytes = resolveBytes(bytes, key);
         if (bytes == null || bytes.length == 0) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -337,7 +344,7 @@ public class DealApiController {
     public ResponseEntity<byte[]> securedPhoto(@PathVariable("id") Long id,
                                                Principal principal,
                                                Authentication authentication) {
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -354,22 +361,22 @@ public class DealApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        if (deal.getSecuredItemPhoto() == null || deal.getSecuredItemPhoto().length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         MediaType type = MediaType.APPLICATION_OCTET_STREAM;
         if (deal.getSecuredItemPhotoContentType() != null) {
             type = MediaType.parseMediaType(deal.getSecuredItemPhotoContentType());
         }
-        return ResponseEntity.ok().contentType(type).body(deal.getSecuredItemPhoto());
+        byte[] bytes = resolveBytes(deal.getSecuredItemPhoto(), deal.getSecuredItemPhotoKey());
+        if (bytes == null || bytes.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok().contentType(type).body(bytes);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDeal(@PathVariable("id") Long id,
                                         Principal principal,
                                         Authentication authentication) {
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -388,7 +395,7 @@ public class DealApiController {
         }
 
         dealRepository.deleteById(id);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
         String actor = isAdmin ? "admin" : "user";
         notifier.notifyAdmins(
@@ -418,10 +425,7 @@ public class DealApiController {
                                                      @RequestParam(value = "weeks", required = false) Integer weeks,
                                                      Principal principal,
                                                      Authentication authentication) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -478,7 +482,7 @@ public class DealApiController {
         deal.setWeeklyPaymentAmount(roundMoney(deal.getRemainingBalanceAmount().divide(BigDecimal.valueOf(installmentWeeks), 2, RoundingMode.HALF_UP)));
 
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
 
         notifier.notifyUser(deal.getUser(),
@@ -507,7 +511,7 @@ public class DealApiController {
     public ResponseEntity<?> markPaid(@PathVariable("id") Long id,
                                       Principal principal,
                                       Authentication authentication) {
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -531,7 +535,7 @@ public class DealApiController {
 
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
         return ResponseEntity.ok(Map.of("message", "Payment marked as processing"));
     }
@@ -541,10 +545,7 @@ public class DealApiController {
                                                 @RequestParam("paymentProof") MultipartFile paymentProof,
                                                 Principal principal,
                                                 Authentication authentication) throws Exception {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -572,8 +573,7 @@ public class DealApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Deal not approved"));
         }
 
-        deal.setPaymentProof(paymentProof.getBytes());
-        deal.setPaymentProofContentType(paymentProof.getContentType());
+        storeDealPaymentProof(deal, paymentProof, false);
         deal.setPaymentProofUploadedAt(Instant.now());
         if (deal.getValue() != null) {
             if (deal.getUpfrontPaymentAmount() != null) {
@@ -583,8 +583,15 @@ public class DealApiController {
             }
         }
         deal.setPaymentStatus("PAID_PENDING_CONFIRMATION");
+        // Clear old BLOB fields to avoid save errors
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
         notifier.notifyUser(deal.getUser(),
                 "Payment proof received. We are verifying your payment.",
@@ -605,10 +612,7 @@ public class DealApiController {
                                                        @RequestParam("paymentProof") MultipartFile paymentProof,
                                                        Principal principal,
                                                        Authentication authentication) throws Exception {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -636,15 +640,21 @@ public class DealApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Deal not secured yet"));
         }
 
-        deal.setBalancePaymentProof(paymentProof.getBytes());
-        deal.setBalancePaymentProofContentType(paymentProof.getContentType());
+        storeDealPaymentProof(deal, paymentProof, true);
         deal.setBalancePaymentUploadedAt(Instant.now());
         if (deal.getRemainingBalanceAmount() != null) {
             deal.setBalancePaymentAmount(deal.getRemainingBalanceAmount());
         }
         deal.setBalancePaymentStatus("PAID_PENDING_CONFIRMATION");
+        // Clear old BLOB fields to avoid save errors
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
 
         notifier.notifyUser(deal.getUser(),
@@ -665,10 +675,7 @@ public class DealApiController {
     public ResponseEntity<byte[]> balancePaymentProof(@PathVariable("id") Long id,
                                                       Principal principal,
                                                       Authentication authentication) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -683,25 +690,22 @@ public class DealApiController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        if (deal.getBalancePaymentProof() == null || deal.getBalancePaymentProof().length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         MediaType type = MediaType.APPLICATION_OCTET_STREAM;
         if (deal.getBalancePaymentProofContentType() != null) {
             type = MediaType.parseMediaType(deal.getBalancePaymentProofContentType());
         }
-        return ResponseEntity.ok().contentType(type).body(deal.getBalancePaymentProof());
+        byte[] bytes = resolveBytes(deal.getBalancePaymentProof(), deal.getBalancePaymentProofKey());
+        if (bytes == null || bytes.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok().contentType(type).body(bytes);
     }
 
     @PostMapping("/{id}/confirm-delivery")
     public ResponseEntity<?> confirmDelivery(@PathVariable("id") Long id,
                                              Principal principal,
                                              Authentication authentication) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -723,7 +727,7 @@ public class DealApiController {
 
         deal.setDeliveryConfirmedByUser(true);
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
 
         notifier.notifyUser(deal.getUser(),
@@ -745,10 +749,7 @@ public class DealApiController {
                                             @RequestParam("feedback") String feedback,
                                             Principal principal,
                                             Authentication authentication) {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -775,7 +776,7 @@ public class DealApiController {
         deal.setFeedback(trimmed);
         deal.setFeedbackSubmittedAt(Instant.now());
         dealRepository.save(deal);
-        dealCacheService.evictUserDeals(principal.getName());
+        dealCacheService.evictUserDealsById(userOpt.get().getId());
         dealCacheService.evictAdminDeals();
         notifier.notifyAdmins(
                 "New feedback submitted: " + safe(deal.getTitle()),
@@ -793,7 +794,7 @@ public class DealApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -808,15 +809,90 @@ public class DealApiController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != userOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        if (deal.getPaymentProof() == null || deal.getPaymentProof().length == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         MediaType type = MediaType.APPLICATION_OCTET_STREAM;
         if (deal.getPaymentProofContentType() != null) {
             type = MediaType.parseMediaType(deal.getPaymentProofContentType());
         }
-        return ResponseEntity.ok().contentType(type).body(deal.getPaymentProof());
+        byte[] bytes = resolveBytes(deal.getPaymentProof(), deal.getPaymentProofKey());
+        if (bytes == null || bytes.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok().contentType(type).body(bytes);
+    }
+
+    private void storeDealItemPhoto(Deal deal, MultipartFile file, int slot) throws Exception {
+        try {
+            FileStorageService.StoredFile stored = fileStorageService.save("deals/items", file, MAX_UPLOAD_BYTES, IMAGE_TYPES);
+            if (slot == 2) {
+                deal.setItemPhoto2(null);
+                deal.setItemPhoto2ContentType(stored.contentType());
+                deal.setItemPhoto2Key(stored.key());
+            } else if (slot == 3) {
+                deal.setItemPhoto3(null);
+                deal.setItemPhoto3ContentType(stored.contentType());
+                deal.setItemPhoto3Key(stored.key());
+            } else {
+                deal.setItemPhoto(null);
+                deal.setItemPhotoContentType(stored.contentType());
+                deal.setItemPhotoKey(stored.key());
+            }
+        } catch (IOException ex) {
+            // Fallback to DB blob if filesystem storage isn't available.
+            if (slot == 2) {
+                deal.setItemPhoto2(file.getBytes());
+                deal.setItemPhoto2ContentType(file.getContentType());
+                deal.setItemPhoto2Key(null);
+            } else if (slot == 3) {
+                deal.setItemPhoto3(file.getBytes());
+                deal.setItemPhoto3ContentType(file.getContentType());
+                deal.setItemPhoto3Key(null);
+            } else {
+                deal.setItemPhoto(file.getBytes());
+                deal.setItemPhotoContentType(file.getContentType());
+                deal.setItemPhotoKey(null);
+            }
+        }
+    }
+
+    private void storeDealPaymentProof(Deal deal, MultipartFile file, boolean balance) throws Exception {
+        try {
+            String folder = balance ? "deals/balance-proofs" : "deals/payment-proofs";
+            FileStorageService.StoredFile stored = fileStorageService.save(folder, file, MAX_UPLOAD_BYTES, PROOF_TYPES);
+            if (balance) {
+                deal.setBalancePaymentProof(null);
+                deal.setBalancePaymentProofContentType(stored.contentType());
+                deal.setBalancePaymentProofKey(stored.key());
+            } else {
+                deal.setPaymentProof(null);
+                deal.setPaymentProofContentType(stored.contentType());
+                deal.setPaymentProofKey(stored.key());
+            }
+        } catch (IOException ex) {
+            // Fallback to DB blob if filesystem storage isn't available.
+            if (balance) {
+                deal.setBalancePaymentProof(file.getBytes());
+                deal.setBalancePaymentProofContentType(file.getContentType());
+                deal.setBalancePaymentProofKey(null);
+            } else {
+                deal.setPaymentProof(file.getBytes());
+                deal.setPaymentProofContentType(file.getContentType());
+                deal.setPaymentProofKey(null);
+            }
+        }
+    }
+
+    private byte[] resolveBytes(byte[] blob, String key) {
+        if (blob != null && blob.length > 0) {
+            return blob;
+        }
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        try {
+            return fileStorageService.read(key);
+        } catch (IOException ignored) {
+            return null;
+        }
     }
 
     private void notifyAdminsAndUserOnCreate(Deal deal) {

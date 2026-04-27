@@ -372,7 +372,7 @@
               <div class="deal-value" th:text="${'NGN ' + deal.value}">NGN 0</div>
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
               <div class="deal-status" th:text="${deal.link}">Link</div>
-              <div th:if="${deal.itemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal photo" style="max-width:220px; border-radius:10px;">
               </div>
               <div style="margin-top:10px; display:flex; gap:10px;">
@@ -412,7 +412,7 @@
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
               <div class="deal-status" th:text="${deal.link}">Link</div>
               <div class="deal-status" th:text="${deal.paymentStatus != null ? deal.paymentStatus : 'NOT_PAID'}">Payment</div>
-              <div th:if="${deal.itemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal photo" style="max-width:220px; border-radius:10px;">
               </div>
               <div style="margin-top:10px;">
@@ -453,10 +453,10 @@
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
               <div class="deal-status" th:text="${deal.link}">Link</div>
               <div class="deal-status" th:text="${deal.paymentStatus}">Payment</div>
-              <div th:if="${deal.itemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal photo" style="max-width:220px; border-radius:10px;">
               </div>
-              <div th:if="${deal.securedItemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.securedItemPhoto != null || deal.securedItemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/secured-photo'}" alt="Secured item photo" style="max-width:220px; border-radius:10px;">
               </div>
               <div style="margin-top:10px;">
@@ -489,7 +489,7 @@
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
               <div class="deal-status" th:text="${deal.link}">Link</div>
               <div class="deal-status" th:text="${deal.paymentStatus}">Payment</div>
-              <div th:if="${deal.itemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal photo" style="max-width:220px; border-radius:10px;">
               </div>
               <div style="margin-top:10px;"><a th:href="@{'/dashboard/deal/' + ${deal.id}}" class="btn-submit">See Deal Details</a></div>
@@ -507,7 +507,7 @@
               <div class="deal-value" th:text="${'NGN ' + deal.value}">NGN 0</div>
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
               <div class="deal-status" th:text="${deal.link}">Link</div>
-              <div th:if="${deal.itemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal photo" style="max-width:220px; border-radius:10px;">
               </div>
               <div style="margin-top:10px;"><a th:href="@{'/dashboard/deal/' + ${deal.id}}" class="btn-submit">See Deal Details</a></div>
@@ -526,10 +526,10 @@
               <div class="deal-status" th:text="${deal.clientName}">Seller</div>
               <div class="deal-status" th:text="${deal.balancePaymentStatus != null ? deal.balancePaymentStatus : 'NOT_PAID'}">Balance Status</div>
               <div class="deal-status" th:text="${deal.remainingBalanceAmount != null ? 'Balance: NGN ' + deal.remainingBalanceAmount : 'Balance: NGN 0'}">Balance</div>
-              <div th:if="${deal.balancePaymentProof != null}" style="margin-top:8px;">
+              <div th:if="${deal.balancePaymentProof != null || deal.balancePaymentProofKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/balance-payment-proof'}" alt="Balance payment proof" style="max-width:220px; border-radius:10px;">
               </div>
-              <div th:if="${deal.balancePaymentProof == null}" style="margin-top:8px; color:#64748b;">No balance receipt uploaded yet.</div>
+              <div th:if="${deal.balancePaymentProof == null && deal.balancePaymentProofKey == null}" style="margin-top:8px; color:#64748b;">No balance receipt uploaded yet.</div>
               <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
                 <a th:href="@{'/dashboard/deal/' + ${deal.id}}" class="btn-submit">See Deal Details</a>
                 <form th:if="${deal.balancePaymentStatus != null && deal.balancePaymentStatus.equalsIgnoreCase('PAID_PENDING_CONFIRMATION')}"
@@ -628,7 +628,7 @@
               <div class="deal-status" th:text="${deal.link}">Link</div>
               <div class="deal-status" th:if="${deal.rejectionReason != null && !#strings.isEmpty(deal.rejectionReason)}"
                    th:text="${'Rejection reason: ' + deal.rejectionReason}">Rejection reason</div>
-              <div th:if="${deal.itemPhoto != null}" style="margin-top:8px;">
+              <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}" style="margin-top:8px;">
                 <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Deal photo" style="max-width:220px; border-radius:10px;">
               </div>
               <div style="margin-top:10px;">

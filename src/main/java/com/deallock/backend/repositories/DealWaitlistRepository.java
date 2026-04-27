@@ -5,8 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DealWaitlistRepository extends JpaRepository<DealWaitlistEntry, Long> {
-    boolean existsByDealIdAndUserId(Long dealId, int userId);
+    boolean existsByDealIdAndUserId(Long dealId, Long userId);
     long countByDealId(Long dealId);
-    Optional<DealWaitlistEntry> findFirstByDealIdAndUserId(Long dealId, int userId);
+    Optional<DealWaitlistEntry> findFirstByDealIdAndUserId(Long dealId, Long userId);
 }
-

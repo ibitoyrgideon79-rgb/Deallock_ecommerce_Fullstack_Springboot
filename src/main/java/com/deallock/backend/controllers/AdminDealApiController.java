@@ -2,17 +2,24 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.entities.MarketplaceItem;
+import com.deallock.backend.entities.User;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
+import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.services.DealCacheService;
 import com.deallock.backend.services.DealReadService;
 import com.deallock.backend.services.NotificationDispatchService;
+import com.deallock.backend.services.FileStorageService;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,17 +27,25 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/admin/deals")
 public class AdminDealApiController {
+
+    private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/*");
 
     private final DealRepository dealRepository;
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final NotificationDispatchService notifier;
     private final DealReadService dealReadService;
     private final DealCacheService dealCacheService;
+    private final FileStorageService fileStorageService;
+    private final UserRepository userRepository;
 
     @Value("${app.deals.payment-timeout:24h}")
     private Duration paymentTimeout;
@@ -39,12 +54,16 @@ public class AdminDealApiController {
                                   MarketplaceItemRepository marketplaceItemRepository,
                                   NotificationDispatchService notifier,
                                   DealReadService dealReadService,
-                                  DealCacheService dealCacheService) {
+                                  DealCacheService dealCacheService,
+                                  FileStorageService fileStorageService,
+                                  UserRepository userRepository) {
         this.dealRepository = dealRepository;
         this.marketplaceItemRepository = marketplaceItemRepository;
         this.notifier = notifier;
         this.dealReadService = dealReadService;
         this.dealCacheService = dealCacheService;
+        this.fileStorageService = fileStorageService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -56,6 +75,7 @@ public class AdminDealApiController {
     }
 
     @PostMapping("/{id}/approve")
+    @Transactional
     public ResponseEntity<?> approve(@PathVariable("id") Long id, Authentication authentication) {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -66,30 +86,39 @@ public class AdminDealApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
+        String title = deal.getTitle() == null ? "Untitled Deal" : deal.getTitle();
+        User user = deal.getUser();
+
         deal.setStatus("Approved");
         deal.setRejectionReason(null);
         dealRepository.save(deal);
+
         dealCacheService.evictAdminDeals();
-        if (deal.getUser() != null) {
-            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        if (user != null) {
+            dealCacheService.evictUserDealsById(user.getId());
+            if (user.getEmail() != null) {
+                dealCacheService.evictUserDeals(user.getEmail());
+            }
         }
 
-        notifier.notifyUser(deal.getUser(),
-                "Your deal was approved. Please proceed to payment.",
-                "Your Deal Was Approved",
-                "Your deal was approved: " + safe(deal.getTitle()),
-                "Your deal was approved: " + safe(deal.getTitle()));
-
+        if (user != null) {
+            notifier.notifyUser(user,
+                    "Your deal was approved. Please proceed to payment.",
+                    "Your Deal Was Approved",
+                    "Your deal was approved: " + title,
+                    "Your deal was approved: " + title);
+        }
         notifier.notifyAdmins(
-                "Deal approved: " + safe(deal.getTitle()),
+                "Deal approved: " + title,
                 "Deal Approved",
-                "Deal approved: " + safe(deal.getTitle()),
-                "Deal approved: " + safe(deal.getTitle()));
+                "Deal approved: " + title,
+                "Deal approved: " + title);
 
         return ResponseEntity.ok(Map.of("message", "approved"));
     }
 
     @PostMapping("/{id}/reject")
+    @Transactional
     public ResponseEntity<?> reject(@PathVariable("id") Long id,
                                     @RequestBody(required = false) Map<String, Object> body,
                                     Authentication authentication) {
@@ -102,33 +131,41 @@ public class AdminDealApiController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
+        String title = deal.getTitle() == null ? "Untitled Deal" : deal.getTitle();
+        User user = deal.getUser();
+
         String reason = null;
         if (body != null && body.get("reason") != null) {
             reason = String.valueOf(body.get("reason")).trim();
-        }
-        if (reason != null && reason.length() > 2000) {
-            reason = reason.substring(0, 2000);
+            if (reason.length() > 2000) {
+                reason = reason.substring(0, 2000);
+            }
         }
 
         deal.setStatus("Rejected");
         deal.setRejectionReason(reason);
         dealRepository.save(deal);
+
         dealCacheService.evictAdminDeals();
-        if (deal.getUser() != null) {
-            dealCacheService.evictUserDeals(deal.getUser().getEmail());
+        if (user != null) {
+            dealCacheService.evictUserDealsById(user.getId());
+            if (user.getEmail() != null) {
+                dealCacheService.evictUserDeals(user.getEmail());
+            }
         }
 
-        notifier.notifyUser(deal.getUser(),
-                "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
-                "Your Deal Was Rejected",
-                "Your deal was rejected: " + safe(deal.getTitle()) + (reason == null || reason.isBlank() ? "" : ("\nReason: " + reason)),
-                "Your deal was rejected: " + safe(deal.getTitle()));
-
+        if (user != null) {
+            notifier.notifyUser(user,
+                    "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
+                    "Your Deal Was Rejected",
+                    "Your deal was rejected: " + title + (reason == null || reason.isBlank() ? "" : ("\nReason: " + reason)),
+                    "Your deal was rejected: " + title);
+        }
         notifier.notifyAdmins(
-                "Deal rejected: " + safe(deal.getTitle()),
+                "Deal rejected: " + title,
                 "Deal Rejected",
-                "Deal rejected: " + safe(deal.getTitle()),
-                "Deal rejected: " + safe(deal.getTitle()));
+                "Deal rejected: " + title,
+                "Deal rejected: " + title);
 
         return ResponseEntity.ok(Map.of("message", "rejected"));
     }
@@ -148,9 +185,17 @@ public class AdminDealApiController {
         }
 
         deal.setPaymentStatus("PAID_CONFIRMED");
+        // Clear old BLOBs
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -184,17 +229,26 @@ public class AdminDealApiController {
         }
 
         deal.setPaymentStatus("NOT_PAID");
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
         return ResponseEntity.ok(Map.of("message", "payment-not-received"));
     }
 
-    @PostMapping("/{id}/secured")
-    public ResponseEntity<?> secured(@PathVariable("id") Long id, Authentication authentication) {
+    @PostMapping(path = "/{id}/secured", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> secured(@PathVariable("id") Long id,
+                                     @RequestParam(value = "securedPhoto", required = false) MultipartFile securedPhoto,
+                                     Authentication authentication) throws Exception {
         if (!isAdmin(authentication)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -209,12 +263,34 @@ public class AdminDealApiController {
         if (!"PAID_CONFIRMED".equalsIgnoreCase(deal.getPaymentStatus())) {
             return ResponseEntity.badRequest().body(Map.of("message", "Payment must be confirmed first"));
         }
+        if (securedPhoto != null && !securedPhoto.isEmpty() && securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(Map.of("message", "Secured photo must be at most 2MB."));
+        }
 
         deal.setSecured(true);
         deal.setSecuredAt(Instant.now());
+        if (securedPhoto != null && !securedPhoto.isEmpty()) {
+            try {
+                FileStorageService.StoredFile stored = fileStorageService.save("deals/secured-items", securedPhoto, MAX_UPLOAD_BYTES, IMAGE_TYPES);
+                deal.setSecuredItemPhoto(null);
+                deal.setSecuredItemPhotoContentType(stored.contentType());
+                deal.setSecuredItemPhotoKey(stored.key());
+            } catch (IOException ex) {
+                deal.setSecuredItemPhoto(securedPhoto.getBytes());
+                deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
+                deal.setSecuredItemPhotoKey(null);
+            }
+        }
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -248,9 +324,16 @@ public class AdminDealApiController {
         }
 
         deal.setBalancePaymentStatus("PAID_CONFIRMED");
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -284,9 +367,16 @@ public class AdminDealApiController {
         }
 
         deal.setDeliveryInitiatedAt(Instant.now());
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
+            dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }
 
@@ -320,6 +410,12 @@ public class AdminDealApiController {
         }
 
         deal.setDeliveryConfirmedAt(Instant.now());
+        deal.setPaymentProof(null);
+        deal.setItemPhoto(null);
+        deal.setItemPhoto2(null);
+        deal.setItemPhoto3(null);
+        deal.setSecuredItemPhoto(null);
+        deal.setBalancePaymentProof(null);
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
@@ -376,7 +472,6 @@ public class AdminDealApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "User did not allow marketplace listing for this item"));
         }
 
-        // "Expired unpaid" policy: approved + NOT_PAID + older than configured timeout.
         String paymentStatus = deal.getPaymentStatus() == null ? "NOT_PAID" : deal.getPaymentStatus();
         if (deal.getCreatedAt() == null
                 || deal.getStatus() == null

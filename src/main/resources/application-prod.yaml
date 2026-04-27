@@ -14,7 +14,8 @@ spring:
   servlet:
     multipart:
       max-file-size: 2MB
-      max-request-size: 2MB
+      # Allow a little overhead for multipart boundaries/fields so a 2MB file doesn't 413.
+      max-request-size: 3MB
   mail:
     host: ${SMTP_HOST:smtp.zeptomail.com}
     port: ${SMTP_PORT:587}

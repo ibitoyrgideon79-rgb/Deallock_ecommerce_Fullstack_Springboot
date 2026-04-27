@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/frontend/css/tailwind.css">
+  <title>Track Marketplace Order</title>
+</head>
+<body class="bg-gray-50 min-h-screen" th:attr="data-order-id=${order['id']}">
+  <header class="bg-white border-b border-gray-100 shadow-sm">
+    <nav class="max-w-4xl mx-auto px-5 py-4 flex flex-wrap gap-2 items-center justify-between">
+      <a href="/dashboard?tab=orders" class="text-sm font-medium text-gray-700 hover:text-black">&larr; Back to My Orders</a>
+      <div class="flex items-center gap-2">
+        <a th:href="@{'/dashboard/order/' + ${order['id']} + '/pay'}" class="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50">Pay</a>
+        <a th:href="@{'/dashboard/order/' + ${order['id']}}" class="text-sm font-medium border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50">Order Details</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-5 py-8">
+    <section class="bg-white border border-gray-200 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="text-2xl font-semibold">Track Order</h1>
+        <span id="status-badge" class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700" th:text="${order['status']}">PENDING_PAYMENT</span>
+      </div>
+      <div class="text-sm text-gray-600 mb-5">
+        Order <span class="font-semibold" th:text="${order['orderCode']}">MO-0</span> -
+        <span th:text="${order['deliveryMethod']}">pickup</span>
+      </div>
+      <div id="track-list" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <script th:inline="javascript">
+    window.__ORDER_ID__ = /*[[${order['id']}]]*/ 0;
+  </script>
+  <script src="/frontend/js/marketplace-order-track.js" defer></script>
+</body>
+</html>

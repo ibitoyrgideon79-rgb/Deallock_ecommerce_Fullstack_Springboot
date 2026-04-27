@@ -104,6 +104,7 @@
     const cancelBtn = document.getElementById('cancel-deal-btn');
     const payStatus = document.getElementById('pay-status');
     const proofInput = document.getElementById('payment-proof');
+    const MAX_BYTES = 2 * 1024 * 1024; // 2MB
 
     async function post(url) {
       const res = await fetch(url, { method: 'POST', credentials: 'include' });
@@ -118,19 +119,29 @@
           payStatus.textContent = 'Please upload your payment receipt.';
           return;
         }
+        const file = proofInput.files[0];
+        if (file.size > MAX_BYTES) {
+          payStatus.textContent = 'Receipt is too large. Max 2MB.';
+          return;
+        }
         payBtn.disabled = true;
         payBtn.textContent = 'Uploading...';
         const formData = new FormData();
-        formData.append('paymentProof', proofInput.files[0]);
+        formData.append('paymentProof', file);
         const res = await fetch(`/api/deals/${payBtn.dataset.dealId}/payment-proof`, {
           method: 'POST',
           body: formData,
-          credentials: 'include'
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
         });
-        if (!res.ok) throw new Error('Request failed');
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        const payload = ct.includes('application/json') ? await res.json().catch(() => ({})) : {};
+        if (!res.ok) {
+          throw new Error(payload?.message || `Upload failed (${res.status})`);
+        }
         window.location.href = `/dashboard/deal/${payBtn.dataset.dealId}/track`;
       } catch (e) {
-        payStatus.textContent = 'Failed to upload proof. Try again.';
+        payStatus.textContent = e?.message || 'Failed to upload proof. Try again.';
         payBtn.disabled = false;
         payBtn.textContent = 'Submit Proof';
       }

@@ -25,7 +25,11 @@ public class AuditLogService {
         log.setEmail(email);
         log.setIpAddress(getClientIp(request));
         log.setUserAgent(request != null ? request.getHeader("User-Agent") : null);
-        log.setDetails(details);
+        if (details != null && details.length() > 2000) {
+            log.setDetails(details.substring(0, 2000));
+        } else {
+            log.setDetails(details);
+        }
         log.setSuccess(success);
         log.setCreatedAt(Instant.now());
         auditRepo.save(log);

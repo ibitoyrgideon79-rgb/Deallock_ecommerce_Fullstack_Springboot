@@ -1,0 +1,3 @@
+ALTER TABLE audit_logs
+  MODIFY COLUMN details VARCHAR(2000) NULL;
+

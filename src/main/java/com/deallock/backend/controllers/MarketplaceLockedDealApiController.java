@@ -104,7 +104,7 @@ public class MarketplaceLockedDealApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "This item is now available"));
         }
 
-        int userId = userOpt.get().getId();
+        Long userId = userOpt.get().getId();
         if (waitlistRepository.existsByDealIdAndUserId(dealId, userId)) {
             long count = waitlistRepository.countByDealId(dealId);
             return ResponseEntity.ok(Map.of("message", "Already on waitlist", "waitlistCount", count));

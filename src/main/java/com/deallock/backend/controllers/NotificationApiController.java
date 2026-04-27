@@ -2,6 +2,7 @@ package com.deallock.backend.controllers;
 
 import com.deallock.backend.repositories.NotificationRepository;
 import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.services.CurrentUserService;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -19,11 +20,14 @@ public class NotificationApiController {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
 
     public NotificationApiController(NotificationRepository notificationRepository,
-                                     UserRepository userRepository) {
+                                     UserRepository userRepository,
+                                     CurrentUserService currentUserService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping
@@ -32,7 +36,7 @@ public class NotificationApiController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

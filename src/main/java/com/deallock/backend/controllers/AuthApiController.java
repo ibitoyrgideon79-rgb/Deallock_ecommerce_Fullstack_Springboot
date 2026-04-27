@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Map;
 
 @RestController
@@ -67,10 +68,11 @@ public class AuthApiController {
     }
 
     @PostMapping("/send-otp")
+    @Transactional
     public ResponseEntity<?> sendOtp(@RequestBody OtpRequest req, HttpServletRequest request) {
         String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
-        String email = req.email == null ? null : req.email.trim();
-        String phone = req.phone == null ? null : req.phone.trim();
+        String email = normalizeEmail(req.email);
+        String phone = normalizePhone(req.phone);
 
         if ("phone".equals(channel)) {
             if (phone == null || phone.isBlank()) {
@@ -112,6 +114,13 @@ public class AuthApiController {
         entry.setExpiresAt(Instant.now().plusSeconds(300));
         entry.setVerified(false);
 
+        // Keep a single live OTP per destination so resends do not leave older codes
+        // behind and confuse verification.
+        if ("phone".equals(channel)) {
+            otpRepo.deleteByPhone(phone);
+        } else {
+            otpRepo.deleteByEmailIgnoreCase(email);
+        }
         otpRepo.save(entry);
 
         auditLogService.log("OTP_SENT", "phone".equals(channel) ? phone : email, request, true, null);
@@ -121,43 +130,49 @@ public class AuthApiController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody OtpverifyRequest req, HttpServletRequest request) {
         String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
+        String email = normalizeEmail(req.email);
+        String phone = normalizePhone(req.phone);
+        String otp = req.otp == null ? null : req.otp.trim();
         if ("phone".equals(channel)) {
-            if (req.phone == null || req.phone.isBlank()) {
+            if (phone == null || phone.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Phone is required"));
             }
-            if (!req.phone.trim().matches(PHONE_REGEX)) {
+            if (!phone.matches(PHONE_REGEX)) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Phone number must be in international format e.g. +2348012345678"));
             }
         } else {
-            if (req.email == null || req.email.isBlank()) {
+            if (email == null || email.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
             }
         }
+        if (otp == null || !otp.matches("\\d{6}")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
+        }
         var entryOpt = "phone".equals(channel)
-                ? otpRepo.findTopByPhoneOrderByIdDesc(req.phone)
-                : otpRepo.findTopByEmailOrderByIdDesc(req.email);
+                ? otpRepo.findTopByPhoneOrderByIdDesc(phone)
+                : otpRepo.findTopByEmailOrderByIdDesc(email);
 
         if (entryOpt.isEmpty()) {
-            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, false, "no_otp");
+            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? phone : email, request, false, "no_otp");
             return ResponseEntity.badRequest().body(Map.of("message", "No OTP found"));
         }
 
         var entry = entryOpt.get();
 
         if (entry.getExpiresAt().isBefore(Instant.now())) {
-            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, false, "expired");
+            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? phone : email, request, false, "expired");
             return ResponseEntity.badRequest().body(Map.of("message", "OTP expired"));
         }
 
-        if (!entry.getCode().equals(req.otp)) {
-            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, false, "invalid");
+        if (!entry.getCode().equals(otp)) {
+            auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? phone : email, request, false, "invalid");
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
         }
 
         entry.setVerified(true);
         otpRepo.save(entry);
 
-        auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? req.phone : req.email, request, true, null);
+        auditLogService.log("OTP_VERIFY", "phone".equals(channel) ? phone : email, request, true, null);
         return ResponseEntity.ok(Map.of("message", "OTP verified"));
     }
 
@@ -165,8 +180,8 @@ public class AuthApiController {
     @Transactional
     public ResponseEntity<?> signupInit(@Validated @RequestBody SignupInitRequest req, HttpServletRequest request) {
         String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
-        String email = req.email == null ? null : req.email.trim();
-        String phone = req.phone == null ? null : req.phone.trim();
+        String email = normalizeEmail(req.email);
+        String phone = normalizePhone(req.phone);
 
         if ("phone".equals(channel)) {
             if (phone == null || phone.isBlank()) {
@@ -235,8 +250,8 @@ public class AuthApiController {
     @PostMapping("/profile/complete")
     @Transactional
     public ResponseEntity<?> completeProfile(@Validated @RequestBody CompleteProfileRequest req, HttpServletRequest request) {
-        String email = req.email == null ? null : req.email.trim();
-        String phone = req.phone == null ? null : req.phone.trim();
+        String email = normalizeEmail(req.email);
+        String phone = normalizePhone(req.phone);
 
         if (phone != null && !phone.isBlank() && !phone.matches(PHONE_REGEX)) {
             auditLogService.log("PROFILE_COMPLETE", email, request, false, "phone_invalid");
@@ -307,35 +322,41 @@ public class AuthApiController {
             return ResponseEntity.badRequest().body(Map.of("message", "Login is required"));
         }
 
-        boolean loginLooksLikePhone = login.startsWith("+");
+        boolean loginLooksLikePhone = login.startsWith("+") || login.replaceAll("[^\\d]", "").length() >= 8;
         String channel = req.channel == null || req.channel.isBlank()
                 ? (loginLooksLikePhone ? "phone" : "email")
                 : req.channel.toLowerCase();
+        if ("phone".equals(channel)) {
+            login = normalizePhone(login);
+        } else {
+            login = normalizeEmail(login);
+        }
+        final String normalizedLogin = login;
 
         var entryOpt = "phone".equals(channel)
-                ? otpRepo.findTopByPhoneOrderByIdDesc(login)
-                : otpRepo.findTopByEmailOrderByIdDesc(login);
+                ? otpRepo.findTopByPhoneOrderByIdDesc(normalizedLogin)
+                : otpRepo.findTopByEmailOrderByIdDesc(normalizedLogin);
 
         if (entryOpt.isEmpty()) {
-            auditLogService.log("LOGIN_OTP", login, request, false, "no_otp");
+            auditLogService.log("LOGIN_OTP", normalizedLogin, request, false, "no_otp");
             return ResponseEntity.badRequest().body(Map.of("message", "No OTP found"));
         }
 
         var entry = entryOpt.get();
         if (entry.getExpiresAt().isBefore(Instant.now())) {
-            auditLogService.log("LOGIN_OTP", login, request, false, "expired");
+            auditLogService.log("LOGIN_OTP", normalizedLogin, request, false, "expired");
             return ResponseEntity.badRequest().body(Map.of("message", "OTP expired"));
         }
         if (!entry.getCode().equals(otp)) {
-            auditLogService.log("LOGIN_OTP", login, request, false, "invalid");
+            auditLogService.log("LOGIN_OTP", normalizedLogin, request, false, "invalid");
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
         }
 
-        var userOpt = userRepository.findByEmail(login)
-                .or(() -> userRepository.findByUsername(login))
-                .or(() -> userRepository.findByPhone(login));
+        var userOpt = userRepository.findByEmail(normalizedLogin)
+                .or(() -> userRepository.findByUsername(normalizedLogin))
+                .or(() -> userRepository.findByPhone(normalizedLogin));
         if (userOpt.isEmpty()) {
-            auditLogService.log("LOGIN_OTP", login, request, false, "user_not_found");
+            auditLogService.log("LOGIN_OTP", normalizedLogin, request, false, "user_not_found");
             return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
         }
 
@@ -372,8 +393,17 @@ public class AuthApiController {
         }
 
         String role = isAdmin ? "ROLE_ADMIN" : (user.getRole() == null || user.getRole().isBlank() ? "ROLE_USER" : user.getRole());
+        String principalName = (user.getEmail() != null && !user.getEmail().isBlank())
+                ? user.getEmail()
+                : ((user.getUsername() != null && !user.getUsername().isBlank())
+                ? user.getUsername()
+                : user.getPhone());
+        if (principalName == null || principalName.isBlank()) {
+            auditLogService.log("LOGIN_OTP", login, request, false, "missing_principal");
+            return ResponseEntity.status(500).body(Map.of("message", "Account record is incomplete. Please contact support."));
+        }
         var auth = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
+                principalName,
                 null,
                 java.util.List.of(new SimpleGrantedAuthority(role))
         );
@@ -392,6 +422,35 @@ public class AuthApiController {
                 "message", "Logged in",
                 "nextUrl", isAdmin ? "/admin" : "/dashboard"
         ));
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        String trimmed = email.trim();
+        return trimmed.isEmpty() ? null : trimmed.toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return null;
+        }
+        String cleaned = phone.trim().replaceAll("\\s+", "");
+        if (cleaned.isEmpty()) {
+            return null;
+        }
+        if (cleaned.startsWith("+")) {
+            return cleaned;
+        }
+        String digits = cleaned.replaceAll("[^\\d]", "");
+        if (digits.startsWith("0") && digits.length() == 11) {
+            return "+234" + digits.substring(1);
+        }
+        if (digits.startsWith("234") && digits.length() == 13) {
+            return "+" + digits;
+        }
+        return digits.isEmpty() ? null : "+" + digits;
     }
 }
 

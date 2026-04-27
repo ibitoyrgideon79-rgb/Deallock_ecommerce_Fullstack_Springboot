@@ -3,6 +3,7 @@ package com.deallock.backend.services;
 import com.deallock.backend.repositories.MarketplaceItemRepository;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.entities.User;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -35,15 +36,20 @@ public class DealReadService {
         this.lockPolicy = lockPolicy;
     }
 
-    @Cacheable(cacheNames = "userDeals", key = "#email")
     public List<Map<String, Object>> listDealsForUserEmail(String email) {
         var userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
             return List.of();
         }
+        return listDealsForUser(userOpt.get());
+    }
+
+    @Cacheable(cacheNames = "userDeals", key = "#user.id")
+    public List<Map<String, Object>> listDealsForUser(User user) {
+        if (user == null) return List.of();
         Instant now = Instant.now();
 
-        return dealRepository.findByUserOrderByCreatedAtDesc(userOpt.get()).stream()
+        return dealRepository.findByUserOrderByCreatedAtDesc(user).stream()
                 .map(d -> {
                     Map<String, Object> row = new HashMap<>();
                     row.put("id", d.getId());

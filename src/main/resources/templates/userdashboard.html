@@ -300,6 +300,7 @@
           <option value="4">4 weeks</option>
           <option value="custom">Custom</option>
         </select>
+<<<<<<< HEAD
         <input type="number" id="custom-weeks" min="1" max="12" oninput="calculatePaymentPlan()" 
                placeholder="Custom weeks (max 12)" 
                class="w-full border border-gray-300 rounded-2xl px-5 py-4 mt-3 focus:outline-none focus:border-emerald-500 hidden">
@@ -316,11 +317,28 @@
           <hr class="border-gray-200">
           <div class="flex justify-between font-semibold"><span>Total to Pay</span><span id="plan-total" class="font-medium">₦0</span></div>
           <div class="flex justify-between font-bold text-lg"><span>Upfront Due Now</span><span id="plan-upfront" class="font-medium text-emerald-700">₦0</span></div>
+=======
+        <input type="number" id="custom-weeks" oninput="calculatePaymentPlan()" placeholder="Custom weeks (max 12)" class="w-full border border-gray-300 rounded-2xl px-5 py-3 mt-3 hidden" min="1" max="12">
+        <div id="error-weeks" class="error-text"></div>
+      </div>
+
+      <!-- Payment plan summary -->
+      <div id="payment-plan" class="bg-gray-50 p-6 rounded-2xl hidden">
+        <h3 class="font-medium mb-4">Payment Plan</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between"><span>Item Value (NGN)</span><span id="plan-item-value">&#8358; 0.00</span></div>
+          <div class="flex justify-between"><span>Holding Fee + VAT</span><span id="plan-holding">&#8358; 0.00</span></div>
+          <div class="flex justify-between"><span>Logistics Fee</span><span id="plan-logistics">&#8358; 0.00</span></div>
+          <hr>
+          <div class="flex justify-between font-semibold"><span>Total Amount to Pay</span><span id="plan-total">&#8358; 0.00</span></div>
+          <div class="flex justify-between font-bold text-lg"><span>Upfront Due Now (50%)</span><span id="plan-upfront">&#8358; 0.00</span></div>
+>>>>>>> 65c7be68ace536f9c9afbdf37208d634d7d3babe
         </div>
       </div>
 
       <div>
         <p class="font-medium mb-3">Should DealLock list this item on our platform?</p>
+<<<<<<< HEAD
         <div class="flex flex-col gap-4">
           <label class="flex items-center gap-3">
             <input type="radio" name="listing" value="yes" checked class="w-4 h-4 accent-black">
@@ -330,11 +348,15 @@
             <input type="radio" name="listing" value="no" class="w-4 h-4 accent-black">
             <span>No — I will complete payment without listing</span>
           </label>
+=======
+        <div class="flex gap-6">
+          <label><input type="radio" name="listing" value="yes" checked> Yes &mdash; your deposit will be refunded minus service charge.</label>
+          <label><input type="radio" name="listing" value="no"> No &mdash; you must request payment date extension.</label>
+>>>>>>> 65c7be68ace536f9c9afbdf37208d634d7d3babe
         </div>
       </div>
 
       <div class="space-y-4 pt-4 border-t">
-        <label class="flex items-start gap-3 text-sm">
           <input type="checkbox" id="agree-terms" class="mt-1 accent-black">
           <span>I have read and agree to the <a href="/terms" class="text-emerald-600 hover:underline">Terms and Conditions</a></span>
         </label>
@@ -351,22 +373,6 @@
     </div>
   </div>
 </div>
-
-<!-- MOBILE SIDEBAR OVERLAY -->
-<div id="sidebar-overlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-[100] hidden lg:hidden"></div>
-
-<!-- FOOTER -->
-<footer class="bg-white border-t border-gray-200 mt-16">
-  <div class="max-w-7xl mx-auto px-6 py-16">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-      <div>
-        <h3 class="font-semibold text-lg mb-5">Our Objectives</h3>
-        <ul class="space-y-3 text-gray-600">
-          <li class="flex items-start gap-2"><span class="text-emerald-600">•</span> Making quality products affordable</li>
-          <li class="flex items-start gap-2"><span class="text-emerald-600">•</span> Building trust in every transaction</li>
-          <li class="flex items-start gap-2"><span class="text-emerald-600">•</span> Streamlining the buying process</li>
-        </ul>
-      </div>
       <div>
         <h3 class="font-semibold text-lg mb-5">Why Choose DealLock</h3>
         <ul class="space-y-3 text-gray-600">
@@ -389,7 +395,6 @@
         <form id="newsletter-form" onsubmit="handleSubscribe(event)" class="space-y-3">
           <input type="email" id="newsletter-email" placeholder="Your email address" 
                  class="w-full border border-gray-300 rounded-2xl px-5 py-4 focus:outline-none">
-          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-medium">SUBSCRIBE</button>
         </form>
       </div>
     </div>
@@ -399,11 +404,6 @@
     </div>
   </div>
 
-  <!-- Scroll to Top -->
-  <button onclick="scrollToTop()" id="scroll-top-btn"
-          class="fixed bottom-8 right-8 p-4 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition-all opacity-0 pointer-events-none">
-    <i class="fas fa-arrow-up text-xl"></i>
-  </button>
 </footer>
 
 <script src="/frontend/js/userdashboard.js" defer></script>

@@ -47,13 +47,13 @@
           <div><strong>Status</strong><br><span th:text="${deal.paymentStatus}">Status</span></div>
         </div>
         <div class="proof-images">
-          <div th:if="${deal.itemPhoto != null}">
+          <div th:if="${deal.itemPhoto != null || deal.itemPhotoKey != null}">
             <div style="font-weight:600; margin-bottom:6px;">Item Photo</div>
             <img th:src="@{'/api/deals/' + ${deal.id} + '/photo'}" alt="Item photo">
           </div>
           <div>
             <div style="font-weight:600; margin-bottom:6px;">Payment Receipt</div>
-            <img th:if="${deal.paymentProof != null}" th:src="@{'/api/deals/' + ${deal.id} + '/payment-proof'}" alt="Payment proof">
+            <img th:if="${deal.paymentProof != null || deal.paymentProofKey != null}" th:src="@{'/api/deals/' + ${deal.id} + '/payment-proof'}" alt="Payment proof">
             <div th:if="${deal.paymentProof == null}" style="color:#94a3b8;">No receipt uploaded</div>
           </div>
         </div>

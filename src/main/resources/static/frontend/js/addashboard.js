@@ -24,6 +24,23 @@ function showToast(message, type) {
   setTimeout(() => t.remove(), 4500);
 }
 
+function handleApiError(err) {
+  const msg = err?.message || 'Request failed.';
+  showToast(msg, 'error');
+  if (err?.redirectToLogin) {
+    setTimeout(() => { window.location.href = '/login'; }, 700);
+  }
+}
+
+// Never fail silently in admin: surface any JS/runtime/API errors as toasts.
+window.addEventListener('error', (e) => {
+  const msg = e?.message || 'Unexpected error.';
+  showToast(msg, 'error');
+});
+window.addEventListener('unhandledrejection', (e) => {
+  handleApiError(e?.reason);
+});
+
 let currentPage = 'Pending Approval';
 let dealsCache = [];
 let marketItemsCache = [];
@@ -152,113 +169,237 @@ function filterDealsForPage() {
 }
 
 async function apiPost(path, body) {
+  const headers = { 'Accept': 'application/json' };
+  if (body) headers['Content-Type'] = 'application/json';
   const res = await fetch(path, {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': body ? 'application/json' : undefined
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'same-origin'
   });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Session expired. Please log in again.');
+    e.redirectToLogin = true;
+    throw e;
+  }
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      const e = new Error('Session expired. Please log in again.');
+      e.redirectToLogin = true;
+      throw e;
+    }
     throw new Error(payload?.message || `Request failed (${res.status})`);
   }
   return payload;
 }
 
+async function apiPostMultipart(path, formData) {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json' },
+    body: formData,
+    credentials: 'same-origin'
+  });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Session expired. Please log in again.');
+    e.redirectToLogin = true;
+    throw e;
+  }
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 401) {
+      const e = new Error('Session expired. Please log in again.');
+      e.redirectToLogin = true;
+      throw e;
+    }
+    throw new Error(payload?.message || `Request failed (${res.status})`);
+  }
+  return payload;
+}
+
+function pickFile(accept) {
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = accept || 'image/*';
+    input.onchange = () => resolve(input.files && input.files[0] ? input.files[0] : null);
+    input.click();
+  });
+}
+
+async function fetchJsonList(url) {
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin'
+  });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.status === 401 || res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Session expired. Please log in again.');
+    e.redirectToLogin = true;
+    throw e;
+  }
+  if (!res.ok) {
+    throw new Error(`Failed to load (${res.status})`);
+  }
+  const payload = await res.json().catch(() => ([]));
+  return Array.isArray(payload) ? payload : [];
+}
+
 async function approveDeal(id) {
   if (!confirm('Approve this deal?')) return;
-  await apiPost(`/api/admin/deals/${id}/approve`);
-  showToast('Deal approved', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/approve`);
+    showToast('Deal approved', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function listDealOnMarketplace(id) {
   if (!confirm('List this expired unpaid item on marketplace?')) return;
-  await apiPost(`/api/admin/deals/${id}/list-on-marketplace`);
-  showToast('Listed on marketplace', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/list-on-marketplace`);
+    showToast('Listed on marketplace', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function toggleProductListed(id) {
-  await apiPost(`/api/admin/marketplace/items/${id}/toggle-listed`);
-  showToast('Updated', 'success');
-  await loadMarketItems();
+  try {
+    await apiPost(`/api/admin/marketplace/items/${id}/toggle-listed`);
+    showToast('Updated', 'success');
+    await loadMarketItems();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function deleteProduct(id) {
   if (!confirm('Delete this marketplace item?')) return;
-  const res = await fetch(`/api/admin/marketplace/items/${id}`, {
-    method: 'DELETE',
-    headers: { Accept: 'application/json' },
-    credentials: 'same-origin'
-  });
-  const payload = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(payload?.message || `Request failed (${res.status})`);
+  try {
+    const res = await fetch(`/api/admin/marketplace/items/${id}`, {
+      method: 'DELETE',
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin'
+    });
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (res.redirected || !ct.includes('application/json')) {
+      const e = new Error('Session expired. Please log in again.');
+      e.redirectToLogin = true;
+      throw e;
+    }
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(payload?.message || `Request failed (${res.status})`);
+    }
+    showToast('Deleted', 'success');
+    await loadMarketItems();
+  } catch (e) {
+    handleApiError(e);
   }
-  showToast('Deleted', 'success');
-  await loadMarketItems();
 }
 
 async function updateOrderStatus(orderId, status) {
   if (!confirm(`Update order to ${status.replaceAll('_', ' ')}?`)) return;
-  const payload = await apiPost(`/api/admin/marketplace/items/orders/${orderId}/status`, { status });
-  const updatedCode = payload?.order?.orderCode || `MO-${orderId}`;
-  showToast(`Updated ${updatedCode} to ${status.replaceAll('_', ' ')}`, 'success');
-  await loadOrders();
+  try {
+    const payload = await apiPost(`/api/admin/marketplace/items/orders/${orderId}/status`, { status });
+    const updatedCode = payload?.order?.orderCode || `MO-${orderId}`;
+    showToast(`Updated ${updatedCode} to ${status.replaceAll('_', ' ')}`, 'success');
+    await loadOrders();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function rejectDeal(id) {
   const reason = prompt('Reason for rejection (optional):') || '';
   if (!confirm('Reject this deal?')) return;
-  await apiPost(`/api/admin/deals/${id}/reject`, { reason });
-  showToast('Deal rejected', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/reject`, { reason });
+    showToast('Deal rejected', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function confirmPayment(id) {
   if (!confirm('Mark payment as confirmed?')) return;
-  await apiPost(`/api/admin/deals/${id}/payment-confirmed`);
-  showToast('Payment confirmed', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/payment-confirmed`);
+    showToast('Payment confirmed', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function markSecured(id) {
-  if (!confirm('Mark deal as secured?')) return;
-  await apiPost(`/api/admin/deals/${id}/secured`);
+  if (!confirm('Upload secured photo and mark deal as secured?')) return;
+  const file = await pickFile('image/*');
+  if (!file) {
+    showToast('Secured photo is required.', 'error');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Secured photo must be at most 2MB.', 'error');
+    return;
+  }
+  const fd = new FormData();
+  fd.append('securedPhoto', file);
+  await apiPostMultipart(`/api/admin/deals/${id}/secured`, fd);
   showToast('Deal secured', 'success');
   await loadDeals();
 }
 
 async function confirmBalance(id) {
   if (!confirm('Mark balance as confirmed?')) return;
-  await apiPost(`/api/admin/deals/${id}/balance-confirmed`);
-  showToast('Balance confirmed', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/balance-confirmed`);
+    showToast('Balance confirmed', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function initiateDelivery(id) {
   if (!confirm('Initiate delivery?')) return;
-  await apiPost(`/api/admin/deals/${id}/delivery-initiated`);
-  showToast('Delivery initiated', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/delivery-initiated`);
+    showToast('Delivery initiated', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function confirmDelivery(id) {
   if (!confirm('Confirm delivery?')) return;
-  await apiPost(`/api/admin/deals/${id}/delivery-confirmed`);
-  showToast('Delivery confirmed', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/delivery-confirmed`);
+    showToast('Delivery confirmed', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 async function deleteDeal(id) {
   if (!confirm('Delete this deal?')) return;
-  await apiPost(`/api/admin/deals/${id}/delete`);
-  showToast('Deal deleted', 'success');
-  await loadDeals();
+  try {
+    await apiPost(`/api/admin/deals/${id}/delete`);
+    showToast('Deal deleted', 'success');
+    await loadDeals();
+  } catch (e) {
+    handleApiError(e);
+  }
 }
 
 function actionCell(deal) {
@@ -427,21 +568,18 @@ async function loadMarketItems() {
   if (tbody) {
     tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
   }
-
-  const res = await fetch('/api/admin/marketplace/items', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-  if (res.status === 401) {
-    window.location.href = '/login';
-    return;
-  }
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+  try {
+    marketItemsCache = await fetchJsonList('/api/admin/marketplace/items');
+    render();
+  } catch (e) {
+    if (e?.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">${e?.message || 'Failed to load items.'}</td></tr>`;
+    }
   }
-
-  marketItemsCache = await res.json();
-  render();
 }
 
 async function loadCurrentPageData() {
@@ -462,20 +600,18 @@ async function loadOrders() {
     tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
   }
 
-  const res = await fetch('/api/admin/marketplace/items/orders', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-  if (res.status === 401) {
-    window.location.href = '/login';
-    return;
-  }
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+  try {
+    ordersCache = await fetchJsonList('/api/admin/marketplace/items/orders');
+    render();
+  } catch (e) {
+    if (e?.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">${e?.message || 'Failed to load orders.'}</td></tr>`;
+    }
   }
-
-  ordersCache = await res.json();
-  render();
 }
 
 async function loadDeals() {
@@ -484,20 +620,18 @@ async function loadDeals() {
     tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-gray-400 font-bold uppercase">Loading...</td></tr>`;
   }
 
-  const res = await fetch('/api/admin/deals', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' });
-  if (res.status === 401) {
-    window.location.href = '/login';
-    return;
-  }
-  if (!res.ok) {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">Failed to load (${res.status})</td></tr>`;
+  try {
+    dealsCache = await fetchJsonList('/api/admin/deals');
+    render();
+  } catch (e) {
+    if (e?.redirectToLogin) {
+      window.location.href = '/login';
+      return;
     }
-    return;
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-[10px] text-red-600 font-bold uppercase">${e?.message || 'Failed to load deals.'}</td></tr>`;
+    }
   }
-
-  dealsCache = await res.json();
-  render();
 }
 
 function toggleNav(id) {
@@ -547,6 +681,12 @@ async function submitNewProduct() {
     headers: { Accept: 'application/json' },
     credentials: 'same-origin'
   });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !contentType.includes('application/json')) {
+    showToast('Session expired. Please log in again.', 'error');
+    setTimeout(() => { window.location.href = '/login'; }, 700);
+    return;
+  }
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
     showToast(payload?.message || `Request failed (${res.status})`, 'error');

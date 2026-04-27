@@ -3,38 +3,50 @@ package com.deallock.backend.controllers;
 import com.deallock.backend.entities.Deal;
 import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.services.CurrentUserService;
+import com.deallock.backend.services.FileStorageService;
 import com.deallock.backend.services.NotificationDispatchService;
 import com.deallock.backend.services.NotificationService;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.security.Principal;
+import java.util.Set;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class AdminController {
 
     private static final long MAX_UPLOAD_BYTES = 2L * 1024L * 1024L;
+    private static final Set<String> IMAGE_TYPES = Set.of("image/*");
 
     private final DealRepository dealRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final NotificationDispatchService notifier;
+    private final CurrentUserService currentUserService;
+    private final FileStorageService fileStorageService;
 
     public AdminController(DealRepository dealRepository,
                            UserRepository userRepository,
                            NotificationService notificationService,
-                           NotificationDispatchService notifier) {
+                           NotificationDispatchService notifier,
+                           CurrentUserService currentUserService,
+                           FileStorageService fileStorageService) {
         this.dealRepository = dealRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.notifier = notifier;
+        this.currentUserService = currentUserService;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping("/admin")
@@ -129,7 +141,7 @@ public class AdminController {
         model.addAttribute("end", end);
         model.addAttribute("now", Instant.now());
         if (principal != null) {
-            userRepository.findByEmail(principal.getName()).ifPresent(user -> {
+            currentUserService.resolve(principal).ifPresent(user -> {
                 model.addAttribute("currentUser", user);
                 model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
                 model.addAttribute("notificationCount", notificationService.countUnread(user));
@@ -141,7 +153,7 @@ public class AdminController {
     @GetMapping("/admin/payment-proofs")
     public String paymentProofs(Model model, Principal principal) {
         if (principal != null) {
-            userRepository.findByEmail(principal.getName()).ifPresent(user -> {
+            currentUserService.resolve(principal).ifPresent(user -> {
                 model.addAttribute("currentUser", user);
                 model.addAttribute("isAdmin", "ROLE_ADMIN".equals(user.getRole()));
                 model.addAttribute("notificationCount", notificationService.countUnread(user));
@@ -235,11 +247,8 @@ public class AdminController {
 
     @PostMapping("/admin/deals/{id}/secured")
     public String dealSecured(@PathVariable("id") Long id,
-                              @RequestParam(value = "securedPhoto") org.springframework.web.multipart.MultipartFile securedPhoto) {
-        if (securedPhoto == null || securedPhoto.isEmpty()) {
-            return "redirect:/admin?message=secured-photo-required";
-        }
-        if (securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
+                              @RequestParam(value = "securedPhoto", required = false) MultipartFile securedPhoto) {
+        if (securedPhoto != null && !securedPhoto.isEmpty() && securedPhoto.getSize() > MAX_UPLOAD_BYTES) {
             return "redirect:/admin?message=secured-too-large";
         }
         var dealOpt = dealRepository.findById(id);
@@ -253,11 +262,20 @@ public class AdminController {
         if (!deal.isSecured()) {
             deal.setSecured(true);
             deal.setSecuredAt(Instant.now());
-            try {
-                deal.setSecuredItemPhoto(securedPhoto.getBytes());
-                deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
-            } catch (Exception ex) {
-                System.out.println("[WARN] Failed to read secured photo: " + ex.getMessage());
+            if (securedPhoto != null && !securedPhoto.isEmpty()) {
+                try {
+                    FileStorageService.StoredFile stored = fileStorageService.save("deals/secured-items", securedPhoto, MAX_UPLOAD_BYTES, IMAGE_TYPES);
+                    deal.setSecuredItemPhoto(null);
+                    deal.setSecuredItemPhotoContentType(stored.contentType());
+                    deal.setSecuredItemPhotoKey(stored.key());
+                } catch (IOException ex) {
+                    try {
+                        deal.setSecuredItemPhoto(securedPhoto.getBytes());
+                        deal.setSecuredItemPhotoContentType(securedPhoto.getContentType());
+                        deal.setSecuredItemPhotoKey(null);
+                    } catch (Exception ignored) {
+                    }
+                }
             }
             dealRepository.save(deal);
             notifier.notifyUser(deal.getUser(),

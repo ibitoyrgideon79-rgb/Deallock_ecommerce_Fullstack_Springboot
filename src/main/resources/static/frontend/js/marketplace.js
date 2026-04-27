@@ -1,4 +1,4 @@
-﻿function showToast(message, type) {
+function showToast(message, type) {
   const t = document.createElement('div');
   const tone = type === 'error' ? 'bg-red-600' : 'bg-emerald-600';
   t.className = `fixed bottom-6 right-6 z-[9999] ${tone} text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[320px]`;
@@ -7,8 +7,38 @@
   setTimeout(() => t.remove(), 4500);
 }
 
-let products = [];
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
 
+async function apiJson(url, options) {
+  const res = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers: {
+      Accept: 'application/json',
+      ...(options?.headers || {})
+    }
+  });
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  if (res.redirected || !contentType.includes('application/json')) {
+    const e = new Error('Please log in to continue.');
+    e.redirectToLogin = true;
+    throw e;
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+  return data;
+}
+
+let products = [];
 let cart = JSON.parse(localStorage.getItem('bw_cart')) || [];
 let currentProduct = null;
 const DOOR_DELIVERY_FEE = 2500;
@@ -27,46 +57,30 @@ function renderProducts() {
     return;
   }
 
-  grid.innerHTML = products
-    .map(
-      p => `
-        <div onclick="showProductDetail(${p.id})" class="flex flex-col border border-black bg-white cursor-pointer group h-full">
-          <div class="h-48 w-full overflow-hidden border-b border-black flex-shrink-0">
-            <img src="${p.image}" class="w-full h-full object-cover" alt="${p.name}">
-          </div>
-
-          <div class="p-3 flex flex-col justify-between flex-grow">
-            <h3 class="text-[10px] font-black uppercase mb-2 line-clamp-2">${p.name}</h3>
-            <div class="flex justify-between items-center mt-auto">
-              <span class="text-sm font-black">${formatPrice(p.price)}</span>
-              <button onclick="addToCartDirect(${p.id}); event.stopPropagation()" class="border border-black px-2 py-1 text-[9px] font-black hover:bg-black hover:text-white">ADD</button>
-            </div>
-          </div>
+  grid.innerHTML = products.map(p => `
+    <div onclick="showProductDetail(${p.id})" class="flex flex-col border border-black bg-white cursor-pointer group h-full">
+      <div class="h-48 w-full overflow-hidden border-b border-black flex-shrink-0 flex items-center justify-center bg-gray-50">
+        <img src="${p.image}" class="max-w-full max-h-full object-contain p-2" alt="${escapeHtml(p.name)}">
+      </div>
+      <div class="p-3 flex flex-col justify-between flex-grow">
+        <h3 class="text-[10px] font-black uppercase mb-2 line-clamp-2">${escapeHtml(p.name)}</h3>
+        <div class="flex justify-between items-center mt-auto">
+          <span class="text-sm font-black">${formatPrice(p.price)}</span>
+          <button onclick="addToCartDirect(${p.id}); event.stopPropagation()" class="border border-black px-2 py-1 text-[9px] font-black hover:bg-black hover:text-white">ADD</button>
         </div>
-      `
-    )
-    .join('');
-
-}
-
-function imageHeightClass(size) {
-  const v = (size || '').toString().toLowerCase();
-  if (v === 'big' || v === 'large') return 'h-48';
-  if (v === 'medium') return 'h-44';
-  return 'h-40';
+      </div>
+    </div>
+  `).join('');
 }
 
 async function loadProducts() {
   try {
-    const res = await fetch('/api/marketplace/items', { headers: { Accept: 'application/json' } });
-    if (!res.ok) throw new Error(`Failed to load (${res.status})`);
-    const rows = await res.json();
+    const rows = await apiJson('/api/marketplace/items');
     products = (Array.isArray(rows) ? rows : []).map(r => ({
       id: r.id,
       name: r.name || 'Item',
       price: Number(r.price || 0),
       oldPrice: r.oldPrice != null ? Number(r.oldPrice) : null,
-      size: r.size || 'small',
       images: Array.isArray(r.imageUrls) && r.imageUrls.length > 0
         ? r.imageUrls
         : (r.imageUrl ? [r.imageUrl] : []),
@@ -85,26 +99,21 @@ async function loadProducts() {
 function renderCart() {
   const container = document.getElementById('cart-items');
   if (!container) return;
-
   if (cart.length === 0) {
     container.innerHTML = `<div class="py-10 text-center text-[10px] font-bold uppercase text-gray-400">Empty</div>`;
     return;
   }
 
-  container.innerHTML = cart
-    .map(
-      (item, index) => `
-        <div class="flex gap-3 border-b border-gray-100 pb-3">
-          <img src="${item.image}" class="w-10 h-10 object-cover border border-black" alt="${item.name}">
-          <div class="flex-1">
-            <p class="text-[9px] font-black uppercase truncate">${item.name}</p>
-            <p class="text-[10px] font-bold">${formatPrice(item.price)} x${item.quantity}</p>
-          </div>
-          <button onclick="removeFromCart(${index})" class="text-lg" aria-label="Remove">&times;</button>
-        </div>
-      `
-    )
-    .join('');
+  container.innerHTML = cart.map((item, index) => `
+    <div class="flex gap-3 border-b border-gray-100 pb-3">
+      <img src="${item.image}" class="w-10 h-10 object-contain bg-gray-50 border border-black" alt="${escapeHtml(item.name)}">
+      <div class="flex-1">
+        <p class="text-[9px] font-black uppercase truncate">${escapeHtml(item.name)}</p>
+        <p class="text-[10px] font-bold">${formatPrice(item.price)} x${item.quantity}</p>
+      </div>
+      <button onclick="removeFromCart(${index})" class="text-lg" aria-label="Remove">&times;</button>
+    </div>
+  `).join('');
 }
 
 function handleDeliveryUI() {
@@ -118,21 +127,13 @@ function handleDeliveryUI() {
 function saveAndUpdate() {
   localStorage.setItem('bw_cart', JSON.stringify(cart));
   renderCart();
-
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const checked = document.querySelector('input[name="delivery"]:checked');
-  const isDoor = checked ? checked.value === 'door' : false;
-  const delivery = isDoor && cart.length > 0 ? DOOR_DELIVERY_FEE : 0;
-
-  const subEl = document.getElementById('cart-subtotal');
-  const delEl = document.getElementById('delivery-fee');
-  const totalEl = document.getElementById('grand-total');
-  const countEl = document.getElementById('mobile-cart-count');
-
-  if (subEl) subEl.textContent = formatPrice(subtotal);
-  if (delEl) delEl.textContent = formatPrice(delivery);
-  if (totalEl) totalEl.textContent = formatPrice(subtotal + delivery);
-  if (countEl) countEl.textContent = String(cart.reduce((s, i) => s + i.quantity, 0));
+  const delivery = checked?.value === 'door' && cart.length > 0 ? DOOR_DELIVERY_FEE : 0;
+  document.getElementById('cart-subtotal').textContent = formatPrice(subtotal);
+  document.getElementById('delivery-fee').textContent = formatPrice(delivery);
+  document.getElementById('grand-total').textContent = formatPrice(subtotal + delivery);
+  document.getElementById('mobile-cart-count').textContent = String(cart.reduce((sum, i) => sum + i.quantity, 0));
 }
 
 function addToCartDirect(id) {
@@ -159,36 +160,25 @@ function showProductDetail(id) {
   const price = document.getElementById('modal-price');
   const oldPrice = document.getElementById('modal-old-price');
   const modal = document.getElementById('product-modal');
-  
-  // NEW: Get the description container and thumbnail wrapper
   const description = document.getElementById('modal-description');
   const thumbContainer = document.getElementById('modal-thumbnails');
 
-  // Set basic details
   if (img) img.src = currentProduct.image;
   if (title) title.textContent = currentProduct.name;
   if (price) price.textContent = formatPrice(currentProduct.price);
-  
-  // Handle old price visibility
   if (oldPrice) {
     oldPrice.textContent = currentProduct.oldPrice != null ? formatPrice(currentProduct.oldPrice) : '';
     oldPrice.style.display = currentProduct.oldPrice != null ? 'inline' : 'none';
   }
-
-  // 1. FETCHED DESCRIPTION: Use innerHTML to render fetched admin content
   if (description) {
     description.innerHTML = currentProduct.descriptionHTML || '<p>No details available.</p>';
   }
-
-  // 2. THUMBNAILS: Generate 3 clickable images
-  if (thumbContainer && Array.isArray(currentProduct.images)) {
-    thumbContainer.innerHTML = ''; // Clear old thumbs
-    // Assuming currentProduct.images is an array of 3+ strings
-    currentProduct.images.slice(0, 3).forEach((src) => {
+  if (thumbContainer) {
+    thumbContainer.innerHTML = '';
+    (currentProduct.images || []).slice(0, 3).forEach(src => {
       const thumb = document.createElement('img');
       thumb.src = src;
-      thumb.className = "w-20 h-20 object-cover border border-black cursor-pointer hover:opacity-70 transition-opacity";
-      // Update main image on click
+      thumb.className = 'w-20 h-20 object-cover border border-black cursor-pointer hover:opacity-70 transition-opacity';
       thumb.onclick = () => { if (img) img.src = src; };
       thumbContainer.appendChild(thumb);
     });
@@ -196,7 +186,7 @@ function showProductDetail(id) {
 
   if (modal) {
     modal.classList.replace('hidden', 'flex');
-    document.body.style.overflow = 'hidden'; // 3. MOBILE: Disable background scroll
+    document.body.style.overflow = 'hidden';
   }
 }
 
@@ -204,10 +194,9 @@ function closeProductModal() {
   const modal = document.getElementById('product-modal');
   if (modal) {
     modal.classList.replace('flex', 'hidden');
-    document.body.style.overflow = ''; // Restore scroll
+    document.body.style.overflow = '';
   }
 }
-
 
 function addCurrentProductToCart() {
   if (!currentProduct) return;
@@ -221,46 +210,31 @@ function toggleMobileCart() {
 
 function proceedToCheckout() {
   const checked = document.querySelector('input[name="delivery"]:checked');
-  const method = checked ? checked.value : 'pickup';
-  const address = (document.getElementById('address-input')?.value || '').trim();
+  const deliveryMethod = checked ? checked.value : 'pickup';
+  const deliveryAddress = (document.getElementById('address-input')?.value || '').trim();
   const paymentMethod = (document.getElementById('payment-method')?.value || 'BANK_TRANSFER').trim();
 
   if (cart.length === 0) {
     showToast('Your cart is empty.', 'error');
     return;
   }
-  if (method === 'door' && !address) {
+  if (deliveryMethod === 'door' && !deliveryAddress) {
     showToast('Enter delivery address.', 'error');
     return;
   }
 
   const payload = {
-    deliveryMethod: method,
-    deliveryAddress: method === 'door' ? address : '',
+    deliveryMethod,
+    deliveryAddress: deliveryMethod === 'door' ? deliveryAddress : '',
     paymentMethod,
     items: cart.map(i => ({ id: i.id, quantity: i.quantity }))
   };
 
-  fetch('/api/marketplace/checkout', {
+  apiJson('/api/marketplace/checkout', {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   })
-    .then(async res => {
-      const contentType = (res.headers.get('content-type') || '').toLowerCase();
-      if (res.redirected || !contentType.includes('application/json')) {
-        throw new Error('Please log in to continue checkout.');
-      }
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.message || `Checkout failed (${res.status})`);
-      }
-      return data;
-    })
     .then(data => {
       const orderId = Number(data?.order?.id || 0);
       cart = [];
@@ -268,19 +242,16 @@ function proceedToCheckout() {
       saveAndUpdate();
       const addrInput = document.getElementById('address-input');
       if (addrInput) addrInput.value = '';
-      if (window.location.pathname.includes('/marketplace') && orderId > 0) {
-        window.location.href = `/dashboard/order/${orderId}?created=1`;
-      } else if (window.location.pathname.includes('/marketplace')) {
+      if (orderId > 0) {
+        window.location.href = `/dashboard/order/${orderId}/pay?created=1`;
+      } else {
         window.location.href = '/dashboard?tab=orders';
       }
     })
     .catch(e => {
-      const msg = e?.message || 'Checkout failed.';
-      showToast(msg, 'error');
-      if (msg.toLowerCase().includes('login')) {
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 700);
+      showToast(e?.message || 'Checkout failed.', 'error');
+      if (e?.redirectToLogin || (e?.message || '').toLowerCase().includes('log in')) {
+        setTimeout(() => { window.location.href = '/login'; }, 700);
       }
     });
 }

@@ -4,6 +4,7 @@ import com.deallock.backend.repositories.DealRepository;
 import com.deallock.backend.repositories.MarketplaceOrderRepository;
 import com.deallock.backend.repositories.UserRepository;
 import com.deallock.backend.entities.Deal;
+import com.deallock.backend.services.CurrentUserService;
 import com.deallock.backend.services.NotificationService;
 import com.deallock.backend.services.MarketplaceLockPolicy;
 import com.deallock.backend.services.MarketplaceOrderFlowService;
@@ -25,19 +26,22 @@ public class PageController {
     private final MarketplaceLockPolicy lockPolicy;
     private final MarketplaceOrderRepository marketplaceOrderRepository;
     private final MarketplaceOrderFlowService marketplaceOrderFlowService;
+    private final CurrentUserService currentUserService;
 
     public PageController(UserRepository userRepository,
                           DealRepository dealRepository,
                           NotificationService notificationService,
                           MarketplaceLockPolicy lockPolicy,
                           MarketplaceOrderRepository marketplaceOrderRepository,
-                          MarketplaceOrderFlowService marketplaceOrderFlowService) {
+                          MarketplaceOrderFlowService marketplaceOrderFlowService,
+                          CurrentUserService currentUserService) {
         this.userRepository = userRepository;
         this.dealRepository = dealRepository;
         this.notificationService = notificationService;
         this.lockPolicy = lockPolicy;
         this.marketplaceOrderRepository = marketplaceOrderRepository;
         this.marketplaceOrderFlowService = marketplaceOrderFlowService;
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping("/login")
@@ -95,7 +99,7 @@ public class PageController {
     @GetMapping("/ai-agent")
     public String aiAgent(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) return "redirect:/login";
         var user = userOpt.get();
         model.addAttribute("currentUser", user);
@@ -110,7 +114,7 @@ public class PageController {
     @GetMapping("/dashboard")
     public String dashboard(Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) return "redirect:/login";
         var user = userOpt.get();
         model.addAttribute("currentUser", user);
@@ -158,11 +162,28 @@ public class PageController {
         if (!isAdmin && (deal.getUser() == null || deal.getUser().getId() != ctx.user().getId())) {
             return "redirect:/dashboard?deal=not-found";
         }
+        if (deal.getStatus() == null || !"Approved".equalsIgnoreCase(deal.getStatus())) {
+            return "redirect:/dashboard/deal/" + id;
+        }
+        String paymentStatus = deal.getPaymentStatus() == null ? "NOT_PAID" : deal.getPaymentStatus();
+        if (!"NOT_PAID".equalsIgnoreCase(paymentStatus)) {
+            return "redirect:/dashboard/deal/" + id + "/track";
+        }
 
         model.addAttribute("currentUser", ctx.user());
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
         model.addAttribute("deal", deal);
+
+        // deal-pay.html expects `halfPayment` (historical naming).
+        // In our domain model, this is the upfront payment: 50% of value + logistics.
+        java.math.BigDecimal upfront = deal.getUpfrontPaymentAmount();
+        if (upfront == null) {
+            java.math.BigDecimal value = deal.getValue() == null ? java.math.BigDecimal.ZERO : deal.getValue();
+            java.math.BigDecimal logistics = deal.getLogisticsFeeAmount() == null ? java.math.BigDecimal.ZERO : deal.getLogisticsFeeAmount();
+            upfront = value.multiply(java.math.BigDecimal.valueOf(0.5)).add(logistics);
+        }
+        model.addAttribute("halfPayment", upfront);
         return "deal-pay";
     }
 
@@ -231,6 +252,52 @@ public class PageController {
         return "marketplace-order-details";
     }
 
+    @GetMapping("/dashboard/order/{id}/track")
+    public String marketplaceOrderTrack(@PathVariable("id") Long id, Model model, Principal principal) {
+        var ctx = requireUser(principal);
+        if (ctx == null) return "redirect:/login";
+
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) return "redirect:/dashboard?tab=orders&order=not-found";
+
+        var order = orderOpt.get();
+        boolean isAdmin = ctx.isAdmin();
+        if (!isAdmin) {
+            if (order.getUser() == null || order.getUser().getId() != ctx.user().getId()) {
+                return "redirect:/dashboard?tab=orders&order=not-found";
+            }
+        }
+
+        model.addAttribute("currentUser", ctx.user());
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
+        model.addAttribute("order", marketplaceOrderFlowService.toVm(order));
+        return "marketplace-order-track";
+    }
+
+    @GetMapping("/dashboard/order/{id}/pay")
+    public String marketplaceOrderPay(@PathVariable("id") Long id, Model model, Principal principal) {
+        var ctx = requireUser(principal);
+        if (ctx == null) return "redirect:/login";
+
+        var orderOpt = marketplaceOrderRepository.findById(id);
+        if (orderOpt.isEmpty()) return "redirect:/dashboard?tab=orders&order=not-found";
+
+        var order = orderOpt.get();
+        boolean isAdmin = ctx.isAdmin();
+        if (!isAdmin) {
+            if (order.getUser() == null || order.getUser().getId() != ctx.user().getId()) {
+                return "redirect:/dashboard?tab=orders&order=not-found";
+            }
+        }
+
+        model.addAttribute("currentUser", ctx.user());
+        model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("notificationCount", notificationService.countUnread(ctx.user()));
+        model.addAttribute("order", marketplaceOrderFlowService.toVm(order));
+        return "marketplace-order-pay";
+    }
+
     
     private List<Map<String, Object>> toDealsVm(List<Deal> deals) {
         return deals.stream()
@@ -250,7 +317,7 @@ public class PageController {
     }
 private UserCtx requireUser(Principal principal) {
         if (principal == null) return null;
-        var userOpt = userRepository.findByEmail(principal.getName());
+        var userOpt = currentUserService.resolve(principal);
         if (userOpt.isEmpty()) return null;
         var user = userOpt.get();
         return new UserCtx(user, "ROLE_ADMIN".equals(user.getRole()));

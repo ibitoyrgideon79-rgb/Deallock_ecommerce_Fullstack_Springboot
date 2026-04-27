@@ -7,7 +7,9 @@ spring:
     restart:
       enabled: false
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/deallock?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${SPRING_DATASOURCE_USERNAME:deallock}
@@ -23,7 +25,8 @@ spring:
   servlet:
     multipart:
       max-file-size: 2MB
-      max-request-size: 2MB
+      # Allow a little overhead for multipart boundaries/fields so a 2MB file doesn't 413.
+      max-request-size: 3MB
 
 server:
   tomcat:
