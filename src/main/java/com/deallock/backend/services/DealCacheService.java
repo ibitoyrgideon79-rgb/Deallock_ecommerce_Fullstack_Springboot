@@ -27,7 +27,7 @@ public class DealCacheService {
         }
     }
 
-    public void evictUserDealsById(Integer userId) {
+    public void evictUserDealsById(Long userId) {
         if (userId == null) return;
         Cache cache = cacheManager.getCache("userDeals");
         if (cache != null) {

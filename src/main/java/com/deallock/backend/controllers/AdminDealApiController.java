@@ -87,7 +87,7 @@ public class AdminDealApiController {
         }
         Object[] data = light.get();
         String title = (String) data[1];
-        Integer userId = (Integer) data[2];
+        Long userId = ((Number) data[2]).longValue();
 
         int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
         if (updated == 0) {
