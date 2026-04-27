@@ -81,30 +81,26 @@ public class AdminDealApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Optional<Object[]> light = dealRepository.findLightweightById(id);
-        if (light.isEmpty()) {
+        Deal deal = dealRepository.findById(id).orElse(null);
+        if (deal == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        Object[] data = light.get();
-        String title = data[1] == null ? "Untitled Deal" : String.valueOf(data[1]);
-        Long userId = data[2] instanceof Number number ? number.longValue() : null;
 
-        int updated = dealRepository.updateStatusAndReason(id, "Approved", null);
-        if (updated == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        String title = deal.getTitle() == null ? "Untitled Deal" : deal.getTitle();
+        User user = deal.getUser();
+
+        deal.setStatus("Approved");
+        deal.setRejectionReason(null);
+        dealRepository.save(deal);
 
         dealCacheService.evictAdminDeals();
-        if (userId != null) {
-            dealCacheService.evictUserDealsById(userId);
-            userRepository.findById(userId).ifPresent(user -> {
-                if (user.getEmail() != null) {
-                    dealCacheService.evictUserDeals(user.getEmail());
-                }
-            });
+        if (user != null) {
+            dealCacheService.evictUserDealsById(user.getId());
+            if (user.getEmail() != null) {
+                dealCacheService.evictUserDeals(user.getEmail());
+            }
         }
 
-        User user = userId == null ? null : userRepository.findById(userId).orElse(null);
         if (user != null) {
             notifier.notifyUser(user,
                     "Your deal was approved. Please proceed to payment.",
@@ -130,38 +126,34 @@ public class AdminDealApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Optional<Object[]> light = dealRepository.findLightweightById(id);
-        if (light.isEmpty()) {
+        Deal deal = dealRepository.findById(id).orElse(null);
+        if (deal == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        Object[] data = light.get();
-        String title = data[1] == null ? "Untitled Deal" : String.valueOf(data[1]);
-        Long userId = data[2] instanceof Number number ? number.longValue() : null;
+
+        String title = deal.getTitle() == null ? "Untitled Deal" : deal.getTitle();
+        User user = deal.getUser();
 
         String reason = null;
         if (body != null && body.get("reason") != null) {
             reason = String.valueOf(body.get("reason")).trim();
-        }
-        if (reason != null && reason.length() > 2000) {
-            reason = reason.substring(0, 2000);
+            if (reason.length() > 2000) {
+                reason = reason.substring(0, 2000);
+            }
         }
 
-        int updated = dealRepository.updateStatusAndReason(id, "Rejected", reason);
-        if (updated == 0) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        deal.setStatus("Rejected");
+        deal.setRejectionReason(reason);
+        dealRepository.save(deal);
 
         dealCacheService.evictAdminDeals();
-        if (userId != null) {
-            dealCacheService.evictUserDealsById(userId);
-            userRepository.findById(userId).ifPresent(user -> {
-                if (user.getEmail() != null) {
-                    dealCacheService.evictUserDeals(user.getEmail());
-                }
-            });
+        if (user != null) {
+            dealCacheService.evictUserDealsById(user.getId());
+            if (user.getEmail() != null) {
+                dealCacheService.evictUserDeals(user.getEmail());
+            }
         }
 
-        User user = userId == null ? null : userRepository.findById(userId).orElse(null);
         if (user != null) {
             notifier.notifyUser(user,
                     "Your deal was rejected." + (reason == null || reason.isBlank() ? "" : (" Reason: " + reason)),
@@ -203,7 +195,6 @@ public class AdminDealApiController {
         dealRepository.save(deal);
         dealCacheService.evictAdminDeals();
         if (deal.getUser() != null) {
-            // getUser().getId() returns int (primitive) -> no .intValue()
             dealCacheService.evictUserDealsById(deal.getUser().getId());
             dealCacheService.evictUserDeals(deal.getUser().getEmail());
         }

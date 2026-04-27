@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,7 @@ public class AuditLog {
     private String email;
     private String ipAddress;
     private String userAgent;
+    @Column(length = 2000)
     private String details;
     private boolean success;
     private Instant createdAt;
