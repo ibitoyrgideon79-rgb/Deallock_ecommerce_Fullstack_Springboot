@@ -68,6 +68,7 @@ public class AuthApiController {
     }
 
     @PostMapping("/send-otp")
+    @transactional
     public ResponseEntity<?> sendOtp(@RequestBody OtpRequest req, HttpServletRequest request) {
         String channel = req.channel == null || req.channel.isBlank() ? "email" : req.channel.toLowerCase();
         String email = normalizeEmail(req.email);
