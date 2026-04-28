@@ -10,17 +10,37 @@
 
   <title>deallock.ng — Dashboard</title>
   <style>
-    .step-card {
-      padding: 1.75rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 1rem;
-      transition: all 0.3s ease;
-      max-width: 520px;
+    /* Tab visibility */
+    .tab-content          { display: none; }
+    .tab-content.active   { display: block; }
+    .tab-link.active      { background-color: #f3f4f6; font-weight: 600; }
+    .filter-btn.active    { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .error-text           { color: #ef4444; font-size: 0.875rem; margin-top: 4px; }
+
+    /* Sidebar drawer transition */
+    #sidebar-drawer {
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
     }
-    .step-card:hover {
-      border-color: #10b981;
-      box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+
+    /* New Deal modal — CSS-driven open/close (JS adds/removes .active) */
+    .modal-overlay {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
     }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-dialog {
+      transform: scale(0.95);
+      transition: transform 0.3s;
+    }
+    .modal-overlay.active .modal-dialog {
+      transform: scale(1);
+    }
+
+    /* Sponsor ticker (kept in case landing section is added later) */
     @keyframes scrollLeft {
       from { transform: translateX(0); }
       to   { transform: translateX(-50%); }
@@ -32,25 +52,9 @@
       animation: scrollLeft 40s linear infinite;
     }
     .sponsors-container:hover .sponsors-track { animation-play-state: paused; }
-    .sponsor-logo img {
-      max-height: 68px;
-      filter: grayscale(100%);
-      transition: all 0.4s ease;
-    }
-    .sponsor-logo img:hover { filter: grayscale(0%); transform: scale(1.05); }
-    .tab-content          { display: none; }
-    .tab-content.active   { display: block; }
-    .tab-link.active      { background-color: #f3f4f6; font-weight: 600; }
-    .filter-btn.active    { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .error-text           { color: #ef4444; font-size: 0.875rem; margin-top: 4px; }
-
-    /* Sidebar transition — Tailwind JIT may not ship -translate-x-full by default */
-    #sidebar-drawer {
-      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-    }
   </style>
 </head>
-<body>
+<body class="bg-gray-50">
 
 <!-- ═══════════════════════════════════════════════════
      HEADER
@@ -68,9 +72,9 @@
       </span>
     </div>
 
-    <!-- Desktop nav -->
+    <!-- Desktop nav links -->
     <div class="hidden md:flex items-center gap-x-2">
-      <a href="/"           class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
+      <a href="/"            class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Home</a>
       <a href="/marketplace" class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Marketplace</a>
       <a href="/terms"       class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Terms</a>
       <a href="/contactus"   class="px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors">Contact</a>
@@ -84,21 +88,24 @@
       </div>
       <div th:if="${currentUser != null}" class="relative group">
         <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
-               class="w-8 h-8 rounded-full object-cover border border-gray-200">
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl)
+                          ? currentUser.profileImageUrl
+                          : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
+               class="w-8 h-8 rounded-full object-cover border border-gray-200" alt="avatar">
           <span class="text-sm font-medium text-gray-700"
-                th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
+                th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName)
+                            ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
         <div class="hidden group-hover:block absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-          <a th:if="${isAdmin}"   href="/admin"     class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
-          <a th:if="${!isAdmin}"  href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
+          <a th:if="${isAdmin}"  href="/admin"     class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+          <a th:if="${!isAdmin}" href="/dashboard" class="block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100">User Dashboard</a>
           <a href="/logout" class="block px-5 py-3 text-sm text-red-600 hover:bg-gray-100">Log out</a>
         </div>
       </div>
     </div>
 
-    <!-- Mobile header hamburger (top nav only) -->
+    <!-- Mobile hamburger (top nav only) -->
     <button id="menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
       <i class="fas fa-bars text-2xl"></i>
     </button>
@@ -109,7 +116,7 @@
     <a href="/"            class="block text-gray-700 font-medium">Home</a>
     <a href="/marketplace" class="block text-gray-700 font-medium">Marketplace</a>
     <a href="/terms"       class="block text-gray-700 font-medium">Terms</a>
-    <a href="/contactus"   class="block text-gray-700 font-medium border-b border-gray-50 pb-4">Contact</a>
+    <a href="/contactus"   class="block text-gray-700 font-medium border-b border-gray-100 pb-4">Contact</a>
     <div th:if="${currentUser == null}" class="flex flex-col gap-y-3 pt-2">
       <a href="/login"    class="text-center px-6 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-full">Login</a>
       <a href="/register" class="text-center px-6 py-2 text-sm font-medium bg-black text-white rounded-full">Register</a>
@@ -127,7 +134,8 @@
      DASHBOARD BODY
 ════════════════════════════════════════════════════ -->
 
-<!-- Overlay for sidebar drawer (mobile) -->
+<!-- Sidebar overlay — click closes drawer on mobile.
+     JS: openSidebar() removes 'hidden'; closeSidebar() adds it back. -->
 <div id="sidebar-overlay"
      onclick="closeSidebar()"
      class="fixed inset-0 bg-black/50 z-[100] hidden lg:hidden"></div>
@@ -150,22 +158,28 @@
         <i class="fas fa-times"></i>
       </button>
 
-      <!-- Avatar -->
+      <!-- Avatar — clicking opens profile upload -->
       <div class="flex flex-col items-center">
         <div onclick="changeProfilePicture()"
-             class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
+             class="w-28 h-28 bg-gray-200 rounded-2xl overflow-hidden border-4 border-white shadow
+                    cursor-pointer hover:ring-2 hover:ring-gray-300 transition">
           <img id="profile-photo"
-               th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
+               th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl)
+                          ? currentUser.profileImageUrl
+                          : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
                alt="Profile"
                class="w-full h-full object-cover">
         </div>
+        <!-- Hidden file input wired to changeProfilePicture() -->
+        <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="previewImage(this)">
         <h2 class="mt-5 text-2xl font-semibold"
-            th:text="'Hi, ' + (${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName.split(' ')[0] : 'User'})">
+            th:text="'Hi, ' + (${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName)
+                                  ? currentUser.fullName.split(' ')[0] : 'User'})">
           Hi, User
         </h2>
       </div>
 
-      <!-- Nav links -->
+      <!-- Sidebar nav links -->
       <div class="mt-12 space-y-1">
         <a href="#" onclick="showTab('deals'); closeSidebar(); return false;"
            class="tab-link active flex items-center gap-3 px-5 py-4 rounded-2xl">
@@ -194,19 +208,22 @@
     <!-- ─── MAIN CONTENT ─── -->
     <div class="lg:col-span-9 mt-6 lg:mt-0">
 
-      <!-- ══ MY DEALS TAB ══ -->
+      <!-- ══════════════════════════════
+           MY DEALS TAB
+      ══════════════════════════════ -->
       <div id="deals-tab" class="tab-content active">
 
-        <!-- Top bar: hamburger + filters + actions -->
+        <!-- Top bar -->
         <div class="flex flex-wrap gap-3 items-center justify-between mb-6">
 
-          <!-- Hamburger — mobile only, controls sidebar drawer -->
+          <!-- Hamburger — mobile only -->
           <button onclick="openSidebar()"
                   class="lg:hidden flex items-center justify-center w-10 h-10
                          rounded-xl bg-gray-100 text-gray-700 shrink-0">
             <i class="fas fa-bars"></i>
           </button>
 
+          <!-- Filter pills -->
           <div class="flex gap-2 bg-gray-100 p-1 rounded-3xl">
             <button onclick="filterDeals('all')"       class="filter-btn active px-4 py-2 rounded-3xl text-sm font-medium">All Deals</button>
             <button onclick="filterDeals('active')"    class="filter-btn px-4 py-2 rounded-3xl text-sm font-medium">Active</button>
@@ -219,7 +236,9 @@
               <i class="fas fa-calendar-alt"></i>
               <span class="hidden sm:inline">Date Range</span>
             </button>
-            <button id="new-deal-cta" onclick="openNewDealModal()"
+            <!-- id="new-deal-cta" used by showNewDealIndicatorIfRequested() to pulse the button -->
+            <!-- onclick calls openModal() which JS exposes as window.openModal -->
+            <button id="new-deal-cta" onclick="openModal()"
                     class="flex items-center gap-2 bg-gray-900 text-white px-5 py-2 rounded-2xl text-sm font-medium">
               <i class="fas fa-plus"></i>
               <span class="hidden sm:inline">New Deal</span>
@@ -227,7 +246,7 @@
           </div>
         </div>
 
-        <!-- Table — horizontally scrollable on mobile -->
+        <!-- Deals table -->
         <div class="overflow-x-auto rounded-3xl border border-gray-200">
           <table class="w-full min-w-[600px] bg-white">
             <thead class="bg-gray-50">
@@ -240,36 +259,23 @@
                 <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Action</th>
               </tr>
             </thead>
+            <!-- JS (renderDealsTable) writes all rows here -->
             <tbody id="deals-table-body" class="divide-y text-sm">
-              <tr th:if="${deals == null or #lists.isEmpty(deals)}">
-                <td colspan="6" class="p-8 text-center text-gray-500">No deals found.</td>
-              </tr>
-              <tr th:each="d, iter : ${deals}" class="hover:bg-gray-50">
-                <td class="p-5 whitespace-nowrap"         th:text="${iter.index + 1}">1</td>
-                <td class="p-5 font-medium whitespace-nowrap" th:text="${'DL-' + d.id}">DL-1</td>
-                <td class="p-5 whitespace-nowrap"         th:text="${d.title != null ? d.title : 'Untitled Deal'}">Untitled Deal</td>
-                <td class="p-5 font-medium whitespace-nowrap">&#8358; <span th:text="${d.value}">0</span></td>
-                <td class="p-5 whitespace-nowrap">
-                  <span class="px-4 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700"
-                        th:text="${d.status != null ? d.status : 'Pending Approval'}">Pending Approval</span>
-                </td>
-                <td class="p-5 whitespace-nowrap">
-                  <a th:href="@{'/dashboard/deal/' + ${d.id}}"
-                     class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
-                </td>
+              <tr>
+                <td colspan="6" class="p-8 text-center text-gray-500">Loading...</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <!-- Mobile scroll hint -->
         <p class="lg:hidden text-center text-xs text-gray-400 mt-2">← Scroll sideways to see all columns →</p>
       </div>
 
 
-      <!-- ══ MY ORDERS TAB ══ -->
+      <!-- ══════════════════════════════
+           MY ORDERS TAB
+      ══════════════════════════════ -->
       <div id="orders-tab" class="tab-content hidden">
 
-        <!-- Top bar -->
         <div class="flex items-center gap-3 mb-6">
           <button onclick="openSidebar()"
                   class="lg:hidden flex items-center justify-center w-10 h-10
@@ -291,6 +297,7 @@
                 <th class="text-left p-5 text-sm font-medium text-gray-500 whitespace-nowrap">Action</th>
               </tr>
             </thead>
+            <!-- JS (renderOrdersTable / loadOrders) writes all rows here -->
             <tbody id="orders-table-body" class="divide-y text-sm"></tbody>
           </table>
         </div>
@@ -298,10 +305,11 @@
       </div>
 
 
-      <!-- ══ PROFILE SETTINGS TAB ══ -->
+      <!-- ══════════════════════════════
+           PROFILE SETTINGS TAB
+      ══════════════════════════════ -->
       <div id="settings-tab" class="tab-content hidden">
 
-        <!-- Top bar -->
         <div class="flex items-center gap-3 mb-6">
           <button onclick="openSidebar()"
                   class="lg:hidden flex items-center justify-center w-10 h-10
@@ -313,43 +321,51 @@
 
         <div class="bg-white border border-gray-200 rounded-3xl p-6 md:p-8 space-y-10">
 
-          <!-- Profile picture -->
+          <!-- Profile picture upload -->
           <div class="flex flex-col items-center pb-8 border-b border-gray-100">
             <div class="relative group">
               <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
+                <!-- id="settings-profile-preview" — updated live by previewImage() -->
                 <img id="settings-profile-preview"
-                     th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
-                     class="w-full h-full object-cover">
+                     th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl)
+                                ? currentUser.profileImageUrl
+                                : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}"
+                     class="w-full h-full object-cover" alt="Profile preview">
               </div>
               <button onclick="document.getElementById('profile-upload').click()"
                       class="absolute bottom-1 right-1 bg-gray-900 text-white p-2 rounded-full shadow-md hover:bg-gray-700 transition">
                 <i class="fas fa-camera text-sm"></i>
               </button>
-              <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="previewImage(this)">
             </div>
+            <!-- uploadNewPicture() reads from #profile-upload in the sidebar -->
             <button onclick="uploadNewPicture()"
-                    class="mt-4 text-sm font-semibold text-gray-900 border border-gray-900 px-4 py-2 rounded-xl hover:bg-gray-900 hover:text-white transition">
+                    class="mt-4 text-sm font-semibold text-gray-900 border border-gray-900
+                           px-4 py-2 rounded-xl hover:bg-gray-900 hover:text-white transition">
               Update Profile Picture
             </button>
           </div>
 
-          <!-- Basic info -->
+          <!-- Basic info fields -->
           <div class="space-y-6">
             <div>
               <label class="block text-sm font-medium mb-2 text-gray-700">Full Name</label>
               <input type="text" id="full-name" th:value="${currentUser.fullName}"
-                     class="w-full border border-gray-300 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-gray-200 outline-none">
+                     class="w-full border border-gray-300 rounded-2xl px-5 py-3
+                            focus:ring-2 focus:ring-gray-200 outline-none">
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium mb-2 text-gray-700">Email Address</label>
+                <!-- Email is read-only — subscribeCurrentUser() reads it from window.__DEALLOCK_CURRENT_EMAIL__ -->
                 <input type="email" th:value="${currentUser.email}" readonly
-                       class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+                       class="w-full border border-gray-300 rounded-2xl px-5 py-3
+                              bg-gray-50 cursor-not-allowed">
               </div>
               <div>
                 <label class="block text-sm font-medium mb-2 text-gray-700">Phone Number</label>
                 <input type="tel" th:value="${currentUser.phone}" readonly
-                       class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-gray-50 cursor-not-allowed">
+                       class="w-full border border-gray-300 rounded-2xl px-5 py-3
+                              bg-gray-50 cursor-not-allowed">
               </div>
             </div>
           </div>
@@ -364,139 +380,246 @@
 
 <!-- ═══════════════════════════════════════════════════
      NEW DEAL MODAL
+     JS: openModal() adds .active; closeModal() removes it.
+     form#new-deal-form submit is caught by JS addEventListener.
 ════════════════════════════════════════════════════ -->
-<div id="new-deal-modal"
-     class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4">
+<div class="modal-overlay fixed inset-0 bg-black/55 flex items-center justify-center z-[1000]"
+     id="create-deal-modal">
+  <div class="modal-dialog bg-white w-[90%] max-w-[540px] max-h-[90vh] overflow-y-auto rounded-3xl p-7 shadow-2xl">
 
-  <div class="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl">
-
-    <!-- Header -->
-    <div class="flex justify-between items-center p-6 border-b">
-      <h2 class="text-xl font-semibold">Create New Deal</h2>
-      <button onclick="closeNewDealModal()" class="text-gray-500 hover:text-black text-xl">&times;</button>
+    <!-- Modal header -->
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-2xl font-bold text-gray-900">New Deal</h3>
+      <!-- id="close-modal" wired in JS -->
+      <button type="button" id="close-modal"
+              class="text-4xl text-gray-400 hover:text-gray-700 leading-none">&times;</button>
     </div>
 
-    <!-- Body -->
-    <div class="p-6 space-y-5">
+    <!-- All form fields share one <form> so FormData captures everything.
+         JS listens on form#new-deal-form submit event. -->
+    <form id="new-deal-form">
 
-      <input id="item-name" type="text" placeholder="Item Name"
-             class="w-full border rounded-xl px-4 py-3">
-
-      <input id="item-link" type="text" placeholder="Item Link"
-             class="w-full border rounded-xl px-4 py-3">
-
-      <input id="seller-name" type="text" placeholder="Seller Name"
-             class="w-full border rounded-xl px-4 py-3">
-
-      <input id="expected-value" type="number" placeholder="Expected Value"
-             oninput="calculatePaymentPlan()"
-             class="w-full border rounded-xl px-4 py-3">
-
-      <textarea id="description" rows="3" placeholder="Description"
-                class="w-full border rounded-xl px-4 py-3"></textarea>
-
-      <!-- Upload -->
-      <input type="file" id="item-photo"
-             class="w-full border rounded-xl px-4 py-3">
-
-      <!-- Weeks -->
-      <select id="weeks" onchange="toggleCustomWeeks(); calculatePaymentPlan()"
-              class="w-full border rounded-xl px-4 py-3">
-        <option value="">Select duration</option>
-        <option value="1">1 week</option>
-        <option value="2">2 weeks</option>
-        <option value="custom">Custom</option>
-      </select>
-
-      <input type="number" id="custom-weeks"
-             placeholder="Custom weeks"
-             oninput="calculatePaymentPlan()"
-             class="w-full border rounded-xl px-4 py-3 hidden">
-
-      <!-- Payment Plan -->
-      <div id="payment-plan" class="hidden bg-gray-50 p-4 rounded-xl text-sm">
-        <div class="flex justify-between"><span>Item Value</span><span id="plan-item-value">₦0</span></div>
-        <div class="flex justify-between"><span>Fees</span><span id="plan-holding">₦0</span></div>
-        <div class="flex justify-between font-semibold"><span>Total</span><span id="plan-total">₦0</span></div>
-        <div class="flex justify-between font-bold"><span>Upfront</span><span id="plan-upfront">₦0</span></div>
+      <!-- Deal / Item Name -->
+      <div class="mb-5">
+        <label for="deal-title" class="block mb-1.5 font-medium text-gray-700">Deal / Item Name <span class="text-red-500">*</span></label>
+        <input type="text" id="deal-title" name="deal-title"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="e.g. iPhone 15 Pro Max 256GB" required>
       </div>
 
-    </div>
+      <!-- Item Link -->
+      <div class="mb-5">
+        <label for="deal-link" class="block mb-1.5 font-medium text-gray-700">Deal / Item Link</label>
+        <input type="text" id="deal-link" name="deal-link"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="https://">
+      </div>
 
-    <!-- Footer -->
-    <div class="p-6 border-t flex gap-3">
-      <button onclick="closeNewDealModal()"
-              class="flex-1 border rounded-xl py-3">
-        Cancel
-      </button>
-      <button onclick="submitNewDeal()"
-              class="flex-1 bg-black text-white rounded-xl py-3">
-        Submit Deal
-      </button>
-    </div>
+      <!-- Client / Seller Name -->
+      <div class="mb-5">
+        <label for="client-name" class="block mb-1.5 font-medium text-gray-700">Client / Seller Name <span class="text-red-500">*</span></label>
+        <input type="text" id="client-name" name="client-name"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="Full name or Business name" required>
+      </div>
 
-  </div>
-</div>
-<<<<<<< HEAD
-        <label class="block text-sm font-medium mb-2">Number of weekly installments</label>
-        <input type="number" id="weeks" oninput="calculatePaymentPlan()"
-               placeholder="e.g. 7"
-               class="w-full border border-gray-300 rounded-2xl px-5 py-3">
-=======
-        <label class="block text-sm font-medium mb-2">How many weeks will you use to pay the balance?</label>
-        <select id="weeks" onchange="toggleCustomWeeks(); calculatePaymentPlan()" class="w-full border border-gray-300 rounded-2xl px-5 py-3 bg-white">
-          <option value="1">1 week</option>
-          <option value="2">2 weeks</option>
-          <option value="custom">Custom</option>
+      <!-- Seller Phone -->
+      <div class="mb-5">
+        <label for="seller-phone" class="block mb-1.5 font-medium text-gray-700">Seller Phone</label>
+        <input type="tel" id="seller-phone" name="seller-phone"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="+234...">
+      </div>
+
+      <!-- Seller Address -->
+      <div class="mb-5">
+        <label for="seller-address" class="block mb-1.5 font-medium text-gray-700">Seller Address</label>
+        <input type="text" id="seller-address" name="seller-address"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="Where to pick up the item">
+      </div>
+
+      <!-- Delivery Address -->
+      <div class="mb-5">
+        <label for="delivery-address" class="block mb-1.5 font-medium text-gray-700">Delivery Address</label>
+        <input type="text" id="delivery-address" name="delivery-address"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="Where to deliver the item">
+      </div>
+
+      <!-- Item Size -->
+      <div class="mb-5">
+        <label for="item-size" class="block mb-1.5 font-medium text-gray-700">Item Size</label>
+        <select id="item-size" name="item-size"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base bg-white">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
         </select>
-        <input type="number" id="custom-weeks" oninput="calculatePaymentPlan()" placeholder="Custom weeks (max 12)" class="w-full border border-gray-300 rounded-2xl px-5 py-3 mt-3 hidden" min="1" max="12">
->>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31
-        <div id="error-weeks" class="error-text"></div>
       </div>
 
-      <!-- Payment plan summary -->
-      <div id="payment-plan" class="bg-gray-50 p-6 rounded-2xl hidden">
-        <h3 class="font-medium mb-4">Payment Plan</h3>
-        <div class="space-y-3 text-sm">
-          <div class="flex justify-between"><span>Item Value (NGN)</span><span id="plan-item-value">&#8358; 0.00</span></div>
-          <div class="flex justify-between"><span>Holding Fee + VAT</span><span id="plan-holding">&#8358; 0.00</span></div>
-          <div class="flex justify-between"><span>Logistics Fee</span><span>&#8358; 1,950.00</span></div>
-          <hr>
-          <div class="flex justify-between font-semibold"><span>Total Amount to Pay</span><span id="plan-total">&#8358; 0.00</span></div>
-          <div class="flex justify-between font-bold text-lg"><span>Upfront Due Now (50% + logistics)</span><span id="plan-upfront">&#8358; 0.00</span></div>
+      <!-- Expected Value -->
+      <div class="mb-5">
+        <label for="deal-value" class="block mb-1.5 font-medium text-gray-700">Expected Value (NGN) <span class="text-red-500">*</span></label>
+        <input type="number" id="deal-value" name="deal-value"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base"
+               placeholder="e.g. 1250000" min="1000" required>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-5">
+        <label for="description" class="block mb-1.5 font-medium text-gray-700">Description / Details</label>
+        <textarea id="description" name="description" rows="4"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base resize-y min-h-[100px]"
+                  placeholder="Item condition, location, delivery terms, payment method..."></textarea>
+      </div>
+
+      <!-- Photo Upload
+           id="item-photo"      — file input, JS reads via fileInput
+           id="upload-area"     — drag-and-drop zone, JS adds/removes classes
+           id="preview-container" — hidden until a file is selected
+           id="preview-img"     — shows selected image
+           id="remove-preview"  — clears the selection  -->
+      <div class="mb-6">
+        <label class="block mb-1.5 font-medium text-gray-700">
+          Upload Item Photo / Proof <span class="text-red-500 text-sm">(required)</span>
+        </label>
+        <div class="relative">
+          <input type="file" id="item-photo" name="itemPhoto" accept="image/*" required
+                 class="absolute inset-0 opacity-0 cursor-pointer z-10">
+          <div id="upload-area"
+               class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center
+                      bg-gray-50 hover:border-green-500 hover:bg-green-50 transition-all">
+            <div class="text-5xl text-gray-400 mb-3">+</div>
+            <div class="text-gray-500">
+              Click or drag photo here<br>
+              <small class="text-gray-400 text-sm block mt-2">Max 10 MB &bull; JPG, PNG</small>
+            </div>
+          </div>
+          <div id="preview-container" class="relative mt-4 rounded-2xl overflow-hidden shadow-md hidden">
+            <img id="preview-img" alt="Preview" class="w-full max-h-60 object-contain">
+            <button type="button" id="remove-preview"
+                    class="absolute top-3 right-3 w-8 h-8 bg-black/70 text-white
+                           rounded-full text-2xl leading-none flex items-center justify-center">
+              &times;
+            </button>
+          </div>
         </div>
       </div>
 
-      <div>
-        <p class="font-medium mb-3">Should DealLock list this item on our platform?</p>
-<<<<<<< HEAD
-        <div class="flex flex-wrap gap-6">
-          <label><input type="radio" name="listing" value="yes" checked> Yes &mdash; You may list the item</label>
-          <label><input type="radio" name="listing" value="no"> No &mdash; Do not list the item</label>
-=======
-        <div class="flex gap-6">
-          <label><input type="radio" name="listing" value="yes" checked> Yes &mdash; your deposit will be refunded minus service charge.</label>
-          <label><input type="radio" name="listing" value="no"> No &mdash; you must request payment date extension.</label>
->>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31
+      <!-- ── Payment Plan ──
+           JS (updatePaymentPreview) reads:
+             #deal-value, #weeks, #custom-weeks, #custom-weeks-group
+           JS writes:
+             #display-value, #display-service-fee, #display-extra-fee (row: #extra-fee-row),
+             #display-vat, #display-total,
+             #upfront-amount, #weekly-count, #weekly-amount
+           JS shows/hides: #breakdown -->
+      <div class="mb-6">
+        <label class="block mb-1.5 font-medium text-gray-700">Payment Plan <span class="text-red-500">*</span></label>
+
+        <!-- Fee breakdown display -->
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-5 text-sm">
+          <div class="flex justify-between py-2 border-b border-gray-100">
+            <span>Item Value (NGN)</span>
+            <strong id="display-value">0</strong>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-100">
+            <span>Service Fee (5% per week)</span>
+            <strong id="display-service-fee">NGN 0</strong>
+          </div>
+          <!-- hidden until custom weeks > 2 -->
+          <div class="flex justify-between py-2 border-b border-gray-100 hidden" id="extra-fee-row">
+            <span>Extra 5% (extended plan)</span>
+            <strong id="display-extra-fee">NGN 0</strong>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-100">
+            <span>VAT (7.5%)</span>
+            <strong id="display-vat">NGN 0</strong>
+          </div>
+          <div class="flex justify-between pt-3 mt-1 border-t-2 border-gray-200 font-semibold text-base text-gray-900">
+            <span>Total Amount to Pay</span>
+            <strong id="display-total">NGN 0</strong>
+          </div>
+        </div>
+
+        <!-- Weeks select -->
+        <div class="mb-4">
+          <label for="weeks" class="block mb-1.5 font-medium text-gray-700">Number of weekly installments</label>
+          <select id="weeks" name="weeks"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-xl text-base bg-white">
+            <option value="">Select duration</option>
+            <option value="1">1 week (full payment)</option>
+            <option value="2">2 weeks (standard max)</option>
+            <option value="custom">Request more than 2 weeks</option>
+          </select>
+        </div>
+
+        <!-- Custom weeks — shown when "Request more than 2 weeks" is selected.
+             id="custom-weeks-group" toggled by JS -->
+        <div id="custom-weeks-group" class="hidden mb-4">
+          <label for="custom-weeks" class="block mb-1.5 font-medium text-gray-700">Requested weeks (3 or more)</label>
+          <input type="number" id="custom-weeks" name="customWeeks" min="3"
+                 class="w-full max-w-[160px] px-4 py-3 border border-gray-300 rounded-xl text-base"
+                 placeholder="e.g. 4, 6, 8...">
+          <small class="text-gray-500 mt-1 block">Plans longer than 2 weeks attract an extra 5% fee.</small>
+        </div>
+
+        <!-- Payment schedule preview — shown by JS once value + weeks are filled -->
+        <div id="breakdown" class="hidden mt-4 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm">
+          <h4 class="font-semibold mb-3">Payment Schedule Preview</h4>
+          <div class="flex justify-between py-2">
+            <span>Upfront (50% of total)</span>
+            <strong id="upfront-amount">NGN 0</strong>
+          </div>
+          <div class="flex justify-between py-2">
+            <span>Weekly payment &times; <span id="weekly-count">0</span></span>
+            <strong id="weekly-amount">NGN 0</strong>
+          </div>
         </div>
       </div>
 
-      <label class="flex items-start gap-3 text-sm">
-        <input type="checkbox" id="agree-terms">
-        <span>I have read and agree to the <span class="text-blue-600">Terms and Conditions</span></span>
-      </label>
-      <label class="flex items-start gap-3 text-sm">
-        <input type="checkbox" id="subscribe-updates">
-        <span>Also subscribe me to DealLock updates by email.</span>
-      </label>
-    </div>
+      <!-- Listing preference -->
+      <div class="mb-5">
+        <p class="font-medium mb-3 text-gray-700">Should DealLock list this item on our platform?</p>
+        <div class="flex flex-wrap gap-6 text-sm">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="listing" value="yes" checked>
+            Yes &mdash; your deposit will be refunded minus service charge.
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="listing" value="no">
+            No &mdash; you must request a payment date extension.
+          </label>
+        </div>
+      </div>
 
-    <div class="border-t p-6 flex gap-4">
-      <button onclick="closeNewDealModal()"
-              class="flex-1 py-4 border border-gray-300 rounded-2xl font-medium">Cancel</button>
-      <button onclick="submitNewDeal()"
-              class="flex-1 py-4 bg-gray-900 text-white rounded-2xl font-semibold">Submit Deal</button>
-    </div>
+      <!-- Terms & newsletter -->
+      <div class="mb-5 space-y-3 text-sm">
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" id="agree-terms" name="agree-terms" class="mt-0.5">
+          <span>I have read and agree to the <a href="/terms" class="text-blue-600 hover:underline">Terms and Conditions</a>.</span>
+        </label>
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" id="subscribe-updates" name="subscribeUpdates" class="mt-0.5">
+          <span>Also subscribe me to DealLock updates by email.</span>
+        </label>
+      </div>
+
+      <!-- Form actions -->
+      <div class="flex gap-3 justify-end pt-2">
+        <!-- id="cancel-create" wired in JS to closeModal() -->
+        <button type="button" id="cancel-create"
+                class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl">
+          Lock Deal
+        </button>
+      </div>
+
+    </form>
   </div>
 </div>
 
@@ -508,79 +631,117 @@
   <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 py-12 lg:py-16">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
 
+      <!-- Objectives -->
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Our Objectives</h3>
-        <ul class="space-y-3 text-gray-600">
+        <ul class="space-y-3 text-gray-600 text-sm">
           <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Making quality products affordable through flexible payments</li>
           <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Building trust and security in every transaction</li>
           <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Streamlining the buying process for everyone</li>
         </ul>
       </div>
 
+      <!-- Why DealLock -->
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Why Choose DealLock</h3>
-        <ul class="space-y-3 text-gray-600">
+        <ul class="space-y-3 text-gray-600 text-sm">
           <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Flexible "Pay Small Small" payment plans</li>
           <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Secure and transparent transactions</li>
           <li class="flex items-start"><span class="text-emerald-600 mr-2 text-xl leading-none">&bull;</span>Wide range of quality products</li>
         </ul>
       </div>
 
+      <!-- Contact -->
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Contact Us</h3>
-        <div class="space-y-4 text-gray-600">
-          <div class="flex items-start"><i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3 text-xl"></i><span>Abuja, Nigeria</span></div>
-          <div class="flex items-center"><i class="fas fa-phone text-emerald-600 mr-3 text-xl"></i><a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a></div>
-          <div class="flex items-center"><i class="fas fa-envelope text-emerald-600 mr-3 text-xl"></i><a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a></div>
+        <div class="space-y-4 text-gray-600 text-sm">
+          <div class="flex items-start">
+            <i class="fas fa-map-marker-alt text-emerald-600 mt-1 mr-3"></i>
+            <span>Abuja, Nigeria</span>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-phone text-emerald-600 mr-3"></i>
+            <a href="tel:+2347031031944" class="hover:text-emerald-700 transition-colors">+234 703 103 1944</a>
+          </div>
+          <div class="flex items-center">
+            <i class="fas fa-envelope text-emerald-600 mr-3"></i>
+            <a href="mailto:info@deallock.ng" class="hover:text-emerald-700 transition-colors">info@deallock.ng</a>
+          </div>
         </div>
-        <div class="flex space-x-6 mt-8">
-          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-facebook-f text-2xl"></i></a>
-          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-twitter text-2xl"></i></a>
-          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-instagram text-2xl"></i></a>
+        <div class="flex space-x-6 mt-6">
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-facebook-f text-xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-twitter text-xl"></i></a>
+          <a href="#" class="text-gray-500 hover:text-emerald-600 transition-colors"><i class="fab fa-instagram text-xl"></i></a>
         </div>
       </div>
 
+      <!-- Newsletter -->
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-5">Stay Updated</h3>
-        <p class="text-gray-600 mb-6 text-sm">Get the latest deals, payment tips, and new products from DealLock.</p>
+        <p class="text-gray-600 mb-5 text-sm">Get the latest deals, payment tips, and new products from DealLock.</p>
+        <!-- handleSubscribe() is exposed globally by JS -->
         <form id="newsletter-form" class="space-y-3" onsubmit="handleSubscribe(event)">
           <div class="relative">
-            <input type="email" id="newsletter-email" placeholder="Enter your email address"
-                   class="w-full bg-white border border-gray-300 text-gray-900 placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-all">
+            <input type="email" id="newsletter-email"
+                   placeholder="Enter your email address"
+                   class="w-full bg-white border border-gray-300 text-gray-900
+                          placeholder-gray-500 rounded-2xl py-3.5 px-5 pr-14
+                          focus:outline-none focus:border-emerald-600 focus:ring-1
+                          focus:ring-emerald-600 transition-all">
             <button type="submit"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-2xl transition-colors">
+                    class="absolute right-2 top-1/2 -translate-y-1/2
+                           bg-emerald-600 hover:bg-emerald-700 text-white
+                           p-3 rounded-2xl transition-colors">
               <i class="fas fa-paper-plane"></i>
             </button>
           </div>
           <button type="submit"
-                  class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-2xl transition-colors">
+                  class="w-full bg-emerald-600 hover:bg-emerald-700 text-white
+                         font-medium py-3.5 rounded-2xl transition-colors">
             SUBSCRIBE
           </button>
         </form>
       </div>
+
     </div>
 
+    <!-- Bottom bar -->
     <div class="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+      <!-- id="year" written by JS on DOMContentLoaded -->
       <p>&copy; <span id="year"></span> DealLock Nigeria. All rights reserved. |
         <a href="https://deallock.ng" class="hover:text-emerald-600">deallock.ng</a>
       </p>
     </div>
   </div>
 
-  <button onclick="scrollToTop()"
-          id="scroll-top-btn"
-          class="fixed bottom-8 right-8 p-4 rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 hover:scale-110 transition-all duration-300 focus:outline-none z-50 opacity-0 pointer-events-none">
+  <!-- Scroll-to-top button.
+       id="scroll-top-btn" — JS toggles opacity-0 / pointer-events-none based on scroll position.
+       onclick calls scrollToTop() exposed globally by JS. -->
+  <button onclick="scrollToTop()" id="scroll-top-btn"
+          class="fixed bottom-8 right-8 p-4 rounded-full bg-emerald-600 text-white
+                 shadow-lg hover:bg-emerald-700 hover:scale-110 transition-all duration-300
+                 focus:outline-none z-50 opacity-0 pointer-events-none">
     <i class="fas fa-arrow-up text-xl"></i>
   </button>
 </footer>
 
 
 <!-- ═══════════════════════════════════════════════════
-     SCRIPTS
+     GLOBAL STATE — injected by Thymeleaf so JS can read
+     user identity without extra API calls.
+     dealsCache is pre-seeded so the table renders
+     immediately before loadDeals() returns.
 ════════════════════════════════════════════════════ -->
-<script src="/frontend/js/home.js" defer></script>
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  window.__DEALLOCK_DEALS__         = /*[[${dealsJson}]]*/ [];
+  window.__DEALLOCK_CURRENT_EMAIL__ = /*[[${currentUser != null ? currentUser.email : ''}]]*/ '';
+  window.__DEALLOCK_CURRENT_NAME__  = /*[[${currentUser != null ? currentUser.fullName : ''}]]*/ '';
+  /*]]>*/
+</script>
 
-
+<!-- Scripts — deferred so DOM is ready when they execute -->
 <script src="/frontend/js/userdashboard.js" defer></script>
+
 </body>
 </html>

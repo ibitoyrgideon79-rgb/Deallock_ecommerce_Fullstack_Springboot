@@ -1,19 +1,20 @@
-﻿// User dashboard UI logic.
-// Key point: always treat non-JSON responses as "not logged in" (Spring redirects to /login).
+﻿// ==================== FULL MERGED JAVASCRIPT FOR DASHBOARD + NEW MODAL ====================
 
-function showToast(message, type) {
-  const t = document.createElement('div');
-  const tone = type === 'error' ? 'bg-red-600' : 'bg-emerald-600';
-  t.className = `fixed bottom-6 right-6 z-[9999] ${tone} text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[320px]`;
-  t.textContent = message;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 4500);
+// ====================== UTILITY FUNCTIONS ======================
+
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  const bg = type === 'error' ? 'bg-red-600' : 'bg-emerald-600';
+  toast.className = `fixed bottom-6 right-6 z-[9999] ${bg} text-white px-5 py-3.5 rounded-2xl shadow-2xl text-sm max-w-xs`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4500);
 }
 
 function showShortPopup(message, type = 'success') {
   const popup = document.createElement('div');
-  const tone = type === 'error' ? 'bg-red-600' : 'bg-black';
-  popup.className = `fixed top-6 right-6 z-[9999] ${tone} text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-[340px]`;
+  const bg = type === 'error' ? 'bg-red-600' : 'bg-black';
+  popup.className = `fixed top-6 right-6 z-[9999] ${bg} text-white px-5 py-3 rounded-2xl shadow-2xl text-sm max-w-xs`;
   popup.textContent = message;
   document.body.appendChild(popup);
   setTimeout(() => popup.remove(), 3500);
@@ -29,83 +30,42 @@ function escapeHtml(value) {
 }
 
 function naira(amount) {
-  const n = typeof amount === 'number' ? amount : Number(amount || 0);
-  return `\u20A6 ${n.toLocaleString()}`;
+  const n = Number(amount || 0);
+  return '₦ ' + n.toLocaleString('en-NG');
 }
 
-function resolveWeeksInput() {
-  const weeksSelect = document.getElementById('weeks');
-  const mode = weeksSelect?.value || '';
-  if (mode === 'custom') {
-    const custom = parseInt(document.getElementById('custom-weeks')?.value || '0', 10);
-    return { weeks: custom, mode: 'custom' };
-  }
-  const weeks = parseInt(mode || '0', 10);
-  return { weeks, mode: mode || '' };
-}
-
-function toggleCustomWeeks() {
-  const weeksSelect = document.getElementById('weeks');
-  const customWrap = document.getElementById('custom-weeks');
-  if (!weeksSelect || !customWrap) return;
-  const show = weeksSelect.value === 'custom';
-  customWrap.classList.toggle('hidden', !show);
-  if (!show) customWrap.value = '';
-}
-
-async function apiJson(url, options) {
+// apiJson helper — treats non-JSON responses as session expiry
+// (Spring Security redirects expired sessions to /login as HTML)
+async function apiJson(url, options = {}) {
   const res = await fetch(url, {
     credentials: 'same-origin',
     ...options,
     headers: {
       Accept: 'application/json',
-      ...(options && options.headers ? options.headers : {})
+      ...(options.headers || {})
     }
   });
 
   const contentType = (res.headers.get('content-type') || '').toLowerCase();
 
-  // If auth expired, Spring Security typically redirects to /login and returns HTML.
   if (res.redirected || !contentType.includes('application/json')) {
-    const e = new Error('Session expired. Please log in again.');
-    e.redirectToLogin = true;
-    throw e;
+    const err = new Error('Session expired. Please log in again.');
+    err.redirectToLogin = true;
+    throw err;
   }
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error((data && data.message) ? data.message : `Request failed (${res.status}).`);
-  }
+  if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
   return data;
 }
 
-// Toggle Sidebar on Mobile
-function toggleSidebar() {
-  document.getElementById('sidebar')?.classList.toggle('hidden');
-}
-
-// Tab Switching
-function showTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(el => {
-    el.classList.remove('active');
-    el.classList.add('hidden');
-  });
-  const tabEl = document.getElementById(tab + '-tab');
-  tabEl?.classList.add('active');
-  tabEl?.classList.remove('hidden');
-
-  document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active', 'bg-gray-100'));
-  if (typeof event !== 'undefined' && event?.currentTarget) {
-    event.currentTarget.classList.add('active', 'bg-gray-100');
-  }
-  if (tab === 'orders') {
-    loadOrders();
-  }
-}
+// ====================== DEALS STATE ======================
 
 let dealsCache = Array.isArray(window.__DEALLOCK_DEALS__) ? window.__DEALLOCK_DEALS__ : [];
 let dealFilter = 'all'; // all | active | completed
 let ordersCache = [];
+
+// ====================== DEAL HELPERS ======================
 
 function dealUiStage(deal) {
   const status = (deal?.status || '').toString().toLowerCase();
@@ -124,15 +84,7 @@ function dealStatusLabel(deal) {
   return raw.toUpperCase();
 }
 
-// Filter Deals (buttons: All / Active / Completed)
-function filterDeals(type) {
-  dealFilter = type;
-  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-  if (typeof event !== 'undefined' && event?.currentTarget) {
-    event.currentTarget.classList.add('active');
-  }
-  renderDealsTable();
-}
+// ====================== DEALS TABLE ======================
 
 async function loadDeals() {
   const tbody = document.getElementById('deals-table-body');
@@ -149,7 +101,6 @@ async function loadDeals() {
       return;
     }
 
-    // If we have server-rendered/initial deals, keep showing them so filters still work.
     if (Array.isArray(dealsCache) && dealsCache.length > 0) {
       showToast(e?.message || 'Failed to refresh deals list.', 'error');
       renderDealsTable();
@@ -198,33 +149,62 @@ function renderDealsTable() {
         </td>
         <td class="p-5">
           <a href="${detailsHref}" class="text-blue-600 hover:underline font-medium">View Details &rarr;</a>
-          ${canExtend && dealId != null ? `<button onclick="requestPaymentExtension(${dealId})" class="ml-3 text-[11px] border border-black px-2 py-1 hover:bg-black hover:text-white">Extend Payment Period</button>` : ''}
+          ${canExtend && dealId != null
+            ? `<button onclick="requestPaymentExtension(${dealId})" class="ml-3 text-[11px] border border-black px-2 py-1 hover:bg-black hover:text-white">Extend Payment Period</button>`
+            : ''}
         </td>
       </tr>
     `;
   }).join('');
 }
 
+function filterDeals(type) {
+  dealFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  if (typeof event !== 'undefined' && event?.currentTarget) {
+    event.currentTarget.classList.add('active');
+  }
+  renderDealsTable();
+}
+
+async function requestPaymentExtension(dealId) {
+  const raw = window.prompt('Extend by how many weeks? (1 or 2)');
+  if (raw == null) return;
+  const weeks = Math.max(1, Math.min(2, parseInt(String(raw).trim(), 10) || 0));
+  if (!weeks) {
+    showToast('Enter 1 or 2 weeks.', 'error');
+    return;
+  }
+
+  try {
+    const payload = await apiJson(`/api/deals/${dealId}/request-extension?weeks=${weeks}`, { method: 'POST' });
+    showToast(
+      `Extension added (+${payload?.addedWeeks || weeks} week). Extra fee: ${naira(payload?.extensionFeeAdded || 0)}`,
+      'success'
+    );
+    await loadDeals();
+  } catch (e) {
+    if (e && e.redirectToLogin) {
+      window.location.href = '/login';
+      return;
+    }
+    showToast(e?.message || 'Could not extend payment period.', 'error');
+  }
+}
+
+// ====================== ORDERS TABLE ======================
+
 function orderStatusClass(status) {
   switch ((status || '').toUpperCase()) {
-    case 'PENDING_PAYMENT':
-      return 'bg-yellow-100 text-yellow-700';
-    case 'PAYMENT_SUBMITTED':
-      return 'bg-blue-100 text-blue-700';
-    case 'PAYMENT_NOT_RECEIVED':
-      return 'bg-red-100 text-red-700';
-    case 'PAYMENT_RECEIVED':
-      return 'bg-indigo-100 text-indigo-700';
-    case 'PROCESSING':
-      return 'bg-purple-100 text-purple-700';
-    case 'SHIPPED':
-      return 'bg-cyan-100 text-cyan-700';
-    case 'DELIVERED':
-      return 'bg-emerald-100 text-emerald-700';
-    case 'REVIEW':
-      return 'bg-gray-200 text-gray-700';
-    default:
-      return 'bg-gray-100 text-gray-700';
+    case 'PENDING_PAYMENT':     return 'bg-yellow-100 text-yellow-700';
+    case 'PAYMENT_SUBMITTED':   return 'bg-blue-100 text-blue-700';
+    case 'PAYMENT_NOT_RECEIVED':return 'bg-red-100 text-red-700';
+    case 'PAYMENT_RECEIVED':    return 'bg-indigo-100 text-indigo-700';
+    case 'PROCESSING':          return 'bg-purple-100 text-purple-700';
+    case 'SHIPPED':             return 'bg-cyan-100 text-cyan-700';
+    case 'DELIVERED':           return 'bg-emerald-100 text-emerald-700';
+    case 'REVIEW':              return 'bg-gray-200 text-gray-700';
+    default:                    return 'bg-gray-100 text-gray-700';
   }
 }
 
@@ -235,10 +215,12 @@ function readableOrderStatus(status) {
 function renderOrdersTable() {
   const tbody = document.getElementById('orders-table-body');
   if (!tbody) return;
+
   if (!Array.isArray(ordersCache) || ordersCache.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">No orders yet.</td></tr>`;
     return;
   }
+
   tbody.innerHTML = ordersCache.map((order, idx) => {
     const code = order?.orderCode || `MO-${order?.id || idx + 1}`;
     const summaryName = order?.summaryName || 'Marketplace Order';
@@ -246,6 +228,7 @@ function renderOrdersTable() {
     const badgeClass = orderStatusClass(status);
     const track = `Pay via ${order?.paymentMethod || 'BANK_TRANSFER'} · ${order?.deliveryMethod === 'pickup' ? 'Store pickup' : 'Door delivery'}`;
     const detailsHref = order?.id ? `/dashboard/order/${order.id}` : '#';
+
     return `
       <tr class="hover:bg-gray-50">
         <td class="p-5">${idx + 1}</td>
@@ -283,184 +266,13 @@ async function loadOrders() {
   }
 }
 
-// New Deal Modal Functions
-function openNewDealModal() {
-  document.getElementById('new-deal-modal')?.classList.remove('hidden');
-  document.getElementById('new-deal-modal')?.classList.add('flex');
-  calculatePaymentPlan();
-}
-
-function closeNewDealModal() {
-  document.getElementById('new-deal-modal')?.classList.add('hidden');
-  document.getElementById('new-deal-modal')?.classList.remove('flex');
-}
-
-function calculatePaymentPlan() {
-  const value = parseFloat(document.getElementById('expected-value')?.value) || 0;
-  const resolved = resolveWeeksInput();
-  const weeks = resolved.weeks || 0;
-  const planBox = document.getElementById('payment-plan');
-
-  // Hide the entire breakdown until we have enough inputs to calculate something meaningful.
-  if (planBox) {
-    const shouldShow = value > 0 && weeks > 0;
-    planBox.classList.toggle('hidden', !shouldShow);
-  }
-
-  if (value <= 0 || weeks <= 0) {
-    return;
-  }
-
-  const holdingFee = value * 0.05 * weeks;
-  const vat = holdingFee * 0.075;
-
-  const logisticsEstimate = 0;
-  const totalEstimate = value + holdingFee + vat + logisticsEstimate;
-  const upfrontEstimate = (value * 0.5) + logisticsEstimate;
-
-  const planItem = document.getElementById('plan-item-value');
-  const planHolding = document.getElementById('plan-holding');
-  const planTotal = document.getElementById('plan-total');
-  const planUpfront = document.getElementById('plan-upfront');
-  if (planItem) planItem.textContent = naira(value);
-  if (planHolding) planHolding.textContent = naira(holdingFee + vat);
-  if (planTotal) planTotal.textContent = naira(totalEstimate);
-  if (planUpfront) planUpfront.textContent = naira(upfrontEstimate);
-}
-
-async function submitNewDeal() {
-  const submitButtons = Array.from(document.querySelectorAll('button[onclick="submitNewDeal()"]'));
-  submitButtons.forEach(btn => {
-    btn.disabled = true;
-    btn.dataset.originalText = btn.textContent || 'Submit Deal';
-    btn.textContent = 'Submitting...';
-  });
-  const releaseSubmit = () => {
-    submitButtons.forEach(btn => {
-      btn.disabled = false;
-      if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
-    });
-  };
-
-  const itemName = document.getElementById('item-name')?.value?.trim() || '';
-  const link = document.getElementById('item-link')?.value?.trim() || '';
-  const sellerName = document.getElementById('seller-name')?.value?.trim() || '';
-  const sellerPhone = document.getElementById('seller-phone')?.value?.trim() || '';
-  const sellerAddress = document.getElementById('seller-address')?.value?.trim() || '';
-  const deliveryAddress = document.getElementById('delivery-address')?.value?.trim() || '';
-  const itemSize = document.getElementById('item-size')?.value?.trim() || '';
-  const itemPhotos = Array.from(document.getElementById('item-photo')?.files || []).slice(0, 3);
-  const value = document.getElementById('expected-value')?.value;
-  const resolvedWeeks = resolveWeeksInput();
-  const weeks = resolvedWeeks.weeks;
-  const description = document.getElementById('description')?.value?.trim() || '';
-  const listingChoice = document.querySelector('input[name=\"listing\"]:checked')?.value || 'yes';
-  const subscribeUpdates = !!document.getElementById('subscribe-updates')?.checked;
-
-  let hasError = false;
-  document.querySelectorAll('.error-text').forEach(el => (el.textContent = ''));
-
-  if (!itemName) {
-    document.getElementById('error-item-name').textContent = 'Item Name is required';
-    hasError = true;
-  }
-  if (!value || Number(value) <= 0) {
-    document.getElementById('error-value').textContent = 'Valid Expected Value is required';
-    hasError = true;
-  }
-  if (!weeks || Number(weeks) <= 0) {
-    document.getElementById('error-weeks').textContent = 'Select weeks (or enter custom weeks).';
-    hasError = true;
-  }
-  if (hasError) {
-    releaseSubmit();
-    return;
-  }
-
-  const agree = document.getElementById('agree-terms');
-  if (agree && !agree.checked) {
-    showToast('Please agree to the Terms and Conditions.', 'error');
-    releaseSubmit();
-    return;
-  }
-
-  const fd = new FormData();
-  fd.append('deal-title', itemName);
-  if (link) fd.append('deal-link', link);
-  fd.append('client-name', sellerName || 'N/A');
-  if (sellerPhone) fd.append('seller-phone', sellerPhone);
-  fd.append('seller-address', sellerAddress || 'N/A');
-  fd.append('delivery-address', deliveryAddress || 'N/A');
-  fd.append('item-size', itemSize || 'small');
-  fd.append('listing', listingChoice);
-  fd.append('weeks', resolvedWeeks.mode === 'custom' ? 'custom' : String(weeks));
-  if (resolvedWeeks.mode === 'custom') fd.append('customWeeks', String(weeks));
-  fd.append('deal-value', String(value));
-  fd.append('subscribeUpdates', subscribeUpdates ? 'true' : 'false');
-  if (description) fd.append('description', description);
-  // Send multiple files under one field name (server keeps backward compatibility too).
-  itemPhotos.forEach(f => fd.append('itemPhotos', f));
-
-  let payload;
-  try {
-    payload = await apiJson('/api/deals', { method: 'POST', body: fd });
-  } catch (e) {
-    if (e && e.redirectToLogin) {
-      window.location.href = '/login';
-      releaseSubmit();
-      return;
-    }
-    showToast(e?.message || 'Failed to submit deal.', 'error');
-    releaseSubmit();
-    return;
-  }
-
-  const upfront = payload?.upfrontPaymentAmount != null ? naira(payload.upfrontPaymentAmount) : '';
-  const total = payload?.totalAmount != null ? naira(payload.totalAmount) : '';
-  showToast(`Deal saved. Upfront: ${upfront} Total: ${total}`, 'success');
-
-  if (!subscribeUpdates) {
-    promptNewsletterAfterDeal();
-  } else {
-    showShortPopup("Thanks for subscribing. You'll hear from us faster.");
-  }
-
-  closeNewDealModal();
-  dealFilter = 'all';
-  await loadDeals();
-  releaseSubmit();
-}
-
-async function requestPaymentExtension(dealId) {
-  const raw = window.prompt('Extend by how many weeks? (1 or 2)');
-  if (raw == null) return;
-  const weeks = Math.max(1, Math.min(2, parseInt(String(raw).trim(), 10) || 0));
-  if (!weeks) {
-    showToast('Enter 1 or 2 weeks.', 'error');
-    return;
-  }
-
-  try {
-    const payload = await apiJson(`/api/deals/${dealId}/request-extension?weeks=${weeks}`, { method: 'POST' });
-    showToast(`Extension added (+${payload?.addedWeeks || weeks} week). Extra fee: ${naira(payload?.extensionFeeAdded || 0)}`, 'success');
-    await loadDeals();
-  } catch (e) {
-    if (e && e.redirectToLogin) {
-      window.location.href = '/login';
-      return;
-    }
-    showToast(e?.message || 'Could not extend payment period.', 'error');
-  }
-}
+// ====================== NEWSLETTER ======================
 
 async function subscribeCurrentUser(source = 'dashboard-deal-popup') {
   const emailFromWindow = (window.__DEALLOCK_CURRENT_EMAIL__ || '').toString().trim();
   const emailFromInput = document.querySelector('#settings-tab input[type="email"]')?.value?.trim() || '';
   const email = emailFromWindow || emailFromInput;
-  if (!email) {
-    showShortPopup('Could not find your email for subscription.', 'error');
-    return false;
-  }
+  if (!email) throw new Error('Email not found');
 
   const res = await fetch('/api/newsletter/subscribe', {
     method: 'POST',
@@ -507,13 +319,55 @@ function promptNewsletterAfterDeal() {
   });
 
   document.body.appendChild(box);
-  setTimeout(() => {
-    if (document.body.contains(box)) box.remove();
-  }, 10000);
+  setTimeout(() => { if (document.body.contains(box)) box.remove(); }, 10000);
+}
+
+// ====================== PROFILE ======================
+
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('settings-profile-preview');
+      if (preview) preview.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function changeProfilePicture() {
+  document.getElementById('profile-upload')?.click();
+}
+
+function uploadNewPicture() {
+  const input = document.getElementById('profile-upload');
+  if (!input || !input.files || !input.files[0]) {
+    alert('Please select a photo first using the camera icon.');
+    return;
+  }
+  const formData = new FormData();
+  formData.append('file', input.files[0]);
+  fetch('/profile/upload', { method: 'POST', body: formData })
+    .then(r => r.ok ? alert('Profile picture updated!') : alert('Upload failed, please try again.'))
+    .catch(() => alert('Network error. Please try again.'));
+}
+
+// ====================== MISC UI ======================
+
+function toggleSidebar() {
+  document.getElementById('sidebar')?.classList.toggle('hidden');
+}
+
+function openDateFilter() {
+  alert('Date range filter coming soon!');
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function showNewDealIndicatorIfRequested() {
-  const params = new URLSearchParams(window.location.search || '');
+  const params = new URLSearchParams(window.location.search);
   if (params.get('newDeal') !== '1') return;
 
   const btn = document.getElementById('new-deal-cta');
@@ -524,56 +378,69 @@ function showNewDealIndicatorIfRequested() {
   tip.className = 'fixed top-24 right-6 z-[9999] bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-lg text-sm';
   tip.textContent = 'Next step: click New Deal to submit your item.';
   document.body.appendChild(tip);
+
   setTimeout(() => {
     tip.remove();
     btn.classList.remove('ring-4', 'ring-emerald-400', 'ring-offset-2', 'animate-pulse');
   }, 6000);
 }
 
-// Initialize
+// ====================== MAIN SCRIPT ======================
+
 document.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search || '');
-  const requestedTab = (params.get('tab') || '').toLowerCase();
-  if (requestedTab === 'orders') {
-    showTab('orders');
-    loadOrders();
-  } else {
-    showTab('deals');
-  }
-  renderOrdersTable();
-  toggleCustomWeeks();
-  showNewDealIndicatorIfRequested();
-  loadDeals();
-});
 
-  /* ── Profile image preview ── */
-  function previewImage(input) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = e => document.getElementById('settings-profile-preview').src = e.target.result;
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-
-  /* ── Header mobile menu (top nav only) ── */
-  document.getElementById('menu-toggle').addEventListener('click', () => {
-    document.getElementById('mobile-menu').classList.toggle('hidden');
+  // ── Mobile user menu ──
+  const triggers = document.querySelectorAll('.user-trigger');
+  triggers.forEach(trigger => {
+    trigger.addEventListener('click', e => {
+      if (window.innerWidth >= 992) return;
+      e.stopPropagation();
+      const item = trigger.closest('.user-menu-item');
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.user-menu-item.open').forEach(el => el.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
   });
 
-  /* ── Sidebar drawer ── */
-  function openSidebar() {
+  document.addEventListener('click', e => {
+    if (window.innerWidth >= 992) return;
+    if (!e.target.closest('.user-menu-item')) {
+      document.querySelectorAll('.user-menu-item.open').forEach(el => el.classList.remove('open'));
+    }
+  });
+
+  // ── Tab switching ──
+  window.showTab = function(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    const tabEl = document.getElementById(tab + '-tab');
+    if (tabEl) tabEl.classList.remove('hidden');
+
+    document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+    const activeLink = document.querySelector(`[onclick*="showTab('${tab}')"]`);
+    if (activeLink) activeLink.classList.add('active');
+
+    if (tab === 'orders') loadOrders();
+  };
+
+  // ── Sidebar drawer ──
+  window.openSidebar = function() {
     document.getElementById('sidebar-drawer').classList.remove('-translate-x-full');
     document.getElementById('sidebar-overlay').classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
-  }
+  };
 
-  function closeSidebar() {
+  window.closeSidebar = function() {
     document.getElementById('sidebar-drawer').classList.add('-translate-x-full');
     document.getElementById('sidebar-overlay').classList.add('hidden');
     document.body.classList.remove('overflow-hidden');
-  }
+  };
 
-  /* ── Swipe gesture ── */
+  // ── Mobile top nav menu ──
+  document.getElementById('menu-toggle')?.addEventListener('click', () => {
+    document.getElementById('mobile-menu')?.classList.toggle('hidden');
+  });
+
+  // ── Swipe gesture for sidebar ──
   (function () {
     let startX = 0;
     let startY = 0;
@@ -586,181 +453,284 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchend', e => {
       const dx = e.changedTouches[0].clientX - startX;
       const dy = Math.abs(e.changedTouches[0].clientY - startY);
-
-      // Only trigger if horizontal swipe is dominant (not a vertical scroll)
-      if (dy > 40) return;
-
-      if (dx > 60 && startX < 30) openSidebar();  // right swipe from left edge
-      if (dx < -60) closeSidebar();                // left swipe anywhere closes
+      if (dy > 40) return; // ignore vertical-dominant swipes
+      if (dx > 60 && startX < 30) window.openSidebar();  // right swipe from left edge
+      if (dx < -60) window.closeSidebar();                // left swipe anywhere closes
     }, { passive: true });
   })();
 
-  /* ── Tab switching ── */
-  function showTab(name) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-    document.getElementById(name + '-tab').classList.add('active');
-    const link = document.querySelector(`[onclick*="showTab('${name}')"]`);
-    if (link) link.classList.add('active');
-  }
-
-  /* ── Deal filter buttons ── */
-  function filterDeals(type) {
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    // Wire to your actual filter logic in userdashboard.js
-  }
-
-  /* ── New Deal modal ── */
-  function openNewDealModal()  { document.getElementById('new-deal-modal').classList.remove('hidden'); }
-  function closeNewDealModal() { document.getElementById('new-deal-modal').classList.add('hidden'); }
-
-  /* ── Payment plan calculator ── */
-  function calculatePaymentPlan() {
-    const value   = parseFloat(document.getElementById('expected-value').value) || 0;
-    const weeks   = parseInt(document.getElementById('weeks').value) || 0;
-    const plan    = document.getElementById('payment-plan');
-
-    if (value <= 0 || weeks <= 0) { plan.classList.add('hidden'); return; }
-
-    const holdingRate = 0.05;
-    const vatRate     = 0.075;
-    const logistics   = 1950;
-
-    const holding  = value * holdingRate;
-    const vat      = holding * vatRate;
-    const totalFee = holding + vat;
-    const total    = value + totalFee + logistics;
-    const upfront  = (value * 0.5) + logistics;
-
-    const fmt = n => '₦ ' + n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    document.getElementById('plan-item-value').textContent = fmt(value);
-    document.getElementById('plan-holding').textContent    = fmt(totalFee);
-    document.getElementById('plan-total').textContent      = fmt(total);
-    document.getElementById('plan-upfront').textContent    = fmt(upfront);
-
-    plan.classList.remove('hidden');
-  }
-
-  /* ── Date filter placeholder ── */
-  function openDateFilter() {
-    alert('Date range filter coming soon!');
-  }
-
-  /* ── Newsletter ── */
-  function handleSubscribe(e) {
-    e.preventDefault();
-    const email = document.getElementById('newsletter-email').value.trim();
-    if (!email) return;
-    alert('Subscribed! Thank you, ' + email);
-    document.getElementById('newsletter-email').value = '';
-  }
-
-  /* ── Scroll to top ── */
-  function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
+  // ── Scroll-to-top button ──
   const scrollBtn = document.getElementById('scroll-top-btn');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 300) {
-      scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
-    } else {
-      scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+  if (scrollBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+      } else {
+        scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+      }
+    });
+  }
+
+  // ── Footer year ──
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // ====================== NEW DEAL MODAL ======================
+  const modal = document.getElementById('create-deal-modal');
+  const form  = document.getElementById('new-deal-form');
+  const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
+  window.openModal = function() {
+    if (modal) modal.classList.add('active');
+  };
+
+  window.closeModal = function() {
+    if (modal) modal.classList.remove('active');
+    if (form) form.reset();
+    clearPreview();
+  };
+
+  modal?.addEventListener('click', e => {
+    if (e.target === modal) window.closeModal();
+  });
+
+  document.getElementById('close-modal')?.addEventListener('click', window.closeModal);
+  document.getElementById('cancel-create')?.addEventListener('click', window.closeModal);
+
+  // ── File Upload ──
+  const fileInput        = document.getElementById('item-photo');
+  const uploadArea       = document.getElementById('upload-area');
+  const previewContainer = document.getElementById('preview-container');
+  const previewImg       = document.getElementById('preview-img');
+  const removeBtn        = document.getElementById('remove-preview');
+
+  function showPreview(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewContainer.classList.remove('hidden');
+      uploadArea.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPreview() {
+    previewContainer?.classList.add('hidden');
+    if (uploadArea) uploadArea.style.display = 'block';
+    if (fileInput) fileInput.value = '';
+  }
+
+  fileInput?.addEventListener('change', e => {
+    if (e.target.files[0]) showPreview(e.target.files[0]);
+  });
+
+  uploadArea?.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.classList.add('border-green-500', 'bg-green-50');
+  });
+
+  uploadArea?.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('border-green-500', 'bg-green-50');
+  });
+
+  uploadArea?.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-green-500', 'bg-green-50');
+    if (e.dataTransfer.files[0]) {
+      fileInput.files = e.dataTransfer.files;
+      showPreview(e.dataTransfer.files[0]);
     }
   });
 
-  /* ── Footer year ── */
-  document.getElementById('year').textContent = new Date().getFullYear();
+  removeBtn?.addEventListener('click', clearPreview);
 
-  /* ── Profile picture click (sidebar avatar) ── */
-  function changeProfilePicture() {
-    document.getElementById('profile-upload') && document.getElementById('profile-upload').click();
-  }
+  // ── Payment Preview ──
+  const valueInput    = document.getElementById('deal-value');
+  const weeksSelect   = document.getElementById('weeks');
+  const customWeeks   = document.getElementById('custom-weeks');
+  const customGroup   = document.getElementById('custom-weeks-group');
+  const extraFeeRow   = document.getElementById('extra-fee-row');
+  const breakdown     = document.getElementById('breakdown');
 
-  /* ── Upload new picture ── */
-  function uploadNewPicture() {
-    const input = document.getElementById('profile-upload');
-    if (!input || !input.files || !input.files[0]) {
-      alert('Please select a photo first using the camera icon.');
+  const displayValue   = document.getElementById('display-value');
+  const displayService = document.getElementById('display-service-fee');
+  const displayExtra   = document.getElementById('display-extra-fee');
+  const displayVat     = document.getElementById('display-vat');
+  const displayTotal   = document.getElementById('display-total');
+  const upfrontEl      = document.getElementById('upfront-amount');
+  const weeklyCountEl  = document.getElementById('weekly-count');
+  const weeklyAmountEl = document.getElementById('weekly-amount');
+
+  function updatePaymentPreview() {
+    const value = parseFloat(valueInput?.value) || 0;
+    if (value < 1000) {
+      resetPaymentDisplays();
       return;
     }
-    const formData = new FormData();
-    formData.append('file', input.files[0]);
-    fetch('/profile/upload', { method: 'POST', body: formData })
-      .then(r => r.ok ? alert('Profile picture updated!') : alert('Upload failed, please try again.'))
-      .catch(() => alert('Network error. Please try again.'));
+
+    let weeks = parseInt(weeksSelect?.value) || 0;
+    let extraFeePercent = 0;
+    const isCustom = weeksSelect?.value === 'custom';
+
+    if (isCustom) {
+      customGroup?.classList.remove('hidden');
+      weeks = parseInt(customWeeks?.value) || 0;
+      if (weeks > 2) extraFeePercent = 0.05;
+    } else {
+      customGroup?.classList.add('hidden');
+      if (customWeeks) customWeeks.value = '';
+    }
+
+    if (weeks < 1) {
+      resetPaymentDisplays();
+      return;
+    }
+
+    const serviceFee = value * 0.05 * weeks;
+    const extraFee   = (value + serviceFee) * extraFeePercent;
+    const subTotal   = value + serviceFee + extraFee;
+    const vat        = subTotal * 0.075;
+    const grandTotal = subTotal + vat;
+
+    if (displayValue)   displayValue.textContent   = value.toLocaleString();
+    if (displayService) displayService.textContent = 'NGN ' + serviceFee.toLocaleString();
+
+    if (extraFeePercent > 0) {
+      extraFeeRow?.classList.remove('hidden');
+      if (displayExtra) displayExtra.textContent = 'NGN ' + extraFee.toLocaleString();
+    } else {
+      extraFeeRow?.classList.add('hidden');
+    }
+
+    if (displayVat)   displayVat.textContent   = 'NGN ' + vat.toLocaleString();
+    if (displayTotal) displayTotal.textContent = 'NGN ' + grandTotal.toLocaleString();
+
+    const upfront = grandTotal * 0.5;
+    const weekly  = weeks > 0 ? (grandTotal * 0.5) / weeks : 0;
+
+    if (upfrontEl)      upfrontEl.textContent      = 'NGN ' + Math.round(upfront).toLocaleString();
+    if (weeklyCountEl)  weeklyCountEl.textContent  = weeks;
+    if (weeklyAmountEl) weeklyAmountEl.textContent = 'NGN ' + Math.round(weekly).toLocaleString();
+
+    breakdown?.classList.remove('hidden');
   }
 
-  /* ── Submit new deal ── */
-  function submitNewDeal() {
-    let valid = true;
-
-    const itemName = document.getElementById('item-name').value.trim();
-    document.getElementById('error-item-name').textContent = '';
-    if (!itemName) {
-      document.getElementById('error-item-name').textContent = 'Item name is required.';
-      valid = false;
-    }
-
-    const value = parseFloat(document.getElementById('expected-value').value);
-    document.getElementById('error-value').textContent = '';
-    if (!value || value <= 0) {
-      document.getElementById('error-value').textContent = 'Please enter a valid expected value.';
-      valid = false;
-    }
-
-    const weeks = parseInt(document.getElementById('weeks').value);
-    document.getElementById('error-weeks').textContent = '';
-    if (!weeks || weeks <= 0) {
-      document.getElementById('error-weeks').textContent = 'Please enter the number of installments.';
-      valid = false;
-    }
-
-    if (!document.getElementById('agree-terms').checked) {
-      alert('Please agree to the Terms and Conditions.');
-      valid = false;
-    }
-
-    if (!valid) return;
-
-    const listing    = document.querySelector('input[name="listing"]:checked')?.value || 'no';
-    const photoInput = document.getElementById('item-photo');
-    const formData   = new FormData();
-
-    formData.append('title',           itemName);
-    formData.append('itemLink',        document.getElementById('item-link').value.trim());
-    formData.append('sellerName',      document.getElementById('seller-name').value.trim());
-    formData.append('sellerPhone',     document.getElementById('seller-phone').value.trim());
-    formData.append('sellerAddress',   document.getElementById('seller-address').value.trim());
-    formData.append('deliveryAddress', document.getElementById('delivery-address').value.trim());
-    formData.append('itemSize',        document.getElementById('item-size').value);
-    formData.append('value',           value);
-    formData.append('description',     document.getElementById('description').value.trim());
-    formData.append('weeks',           weeks);
-    formData.append('listing',         listing);
-    formData.append('subscribeUpdates',document.getElementById('subscribe-updates').checked);
-
-    if (photoInput.files.length > 0) {
-      for (const file of photoInput.files) formData.append('photos', file);
-    }
-
-    fetch('/dashboard/deals/new', { method: 'POST', body: formData })
-      .then(r => {
-        if (r.ok) {
-          alert('Deal submitted successfully!');
-          closeNewDealModal();
-          window.location.reload();
-        } else {
-          alert('Failed to submit deal. Please try again.');
-        }
-      })
-      .catch(() => alert('Network error. Please try again.'));
+  function resetPaymentDisplays() {
+    [displayValue, displayService, displayExtra, displayVat, displayTotal, upfrontEl, weeklyAmountEl]
+      .forEach(el => { if (el) el.textContent = '0'; });
+    extraFeeRow?.classList.add('hidden');
+    breakdown?.classList.add('hidden');
   }
 
-  /*<![CDATA[*/
-  window.__DEALLOCK_DEALS__         = [[${dealsVm}]];
-  window.__DEALLOCK_CURRENT_EMAIL__ = [[${currentUser != null ? currentUser.email : null}]];
-  window.__DEALLOCK_CURRENT_NAME__  = [[${currentUser != null ? currentUser.fullName : null}]];
-  /*]]>*/
-=======
->>>>>>> e303ec9c812c40725dfef08ac94ea7d572d85e31
+  valueInput?.addEventListener('input', updatePaymentPreview);
+  weeksSelect?.addEventListener('change', updatePaymentPreview);
+  customWeeks?.addEventListener('input', updatePaymentPreview);
+
+  updatePaymentPreview();
+
+  // ====================== FORM SUBMISSION ======================
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData    = new FormData(form);
+    const submitBtn   = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.textContent : 'Lock Deal';
+
+    const title            = formData.get('deal-title');
+    const client           = formData.get('client-name');
+    const value            = formData.get('deal-value');
+    const photo            = formData.get('itemPhoto');
+    const weeks            = formData.get('weeks');
+    const customWeeksValue = formData.get('customWeeks');
+
+    if (!title || !client || !value) {
+      showToast('Please fill all required fields.', 'error');
+      return;
+    }
+    if (!weeks || weeks === '') {
+      showToast('Please select the number of weekly installments.', 'error');
+      return;
+    }
+    if (weeks === 'custom' && (!customWeeksValue || Number(customWeeksValue) < 3)) {
+      showToast('Please enter requested weeks (3 or more).', 'error');
+      return;
+    }
+    if (photo && photo.size > MAX_PHOTO_BYTES) {
+      showToast('Image is too large. Max 10MB.', 'error');
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled    = true;
+      submitBtn.textContent = 'Saving...';
+    }
+
+    try {
+      const res = await fetch('/api/deals', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || 'Failed to create deal');
+      }
+
+      showToast('Deal created successfully! Pending Approval.', 'success');
+      promptNewsletterAfterDeal();
+
+      window.closeModal();
+      form.reset();
+      clearPreview();
+
+      await loadDeals();
+
+    } catch (err) {
+      showToast(err.message || 'Failed to create deal.', 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled    = false;
+        submitBtn.textContent = originalText;
+      }
+    }
+  });
+
+  // ====================== INITIALIZATION ======================
+
+  const params       = new URLSearchParams(window.location.search);
+  const requestedTab = (params.get('tab') || '').toLowerCase();
+
+  if (requestedTab === 'orders') {
+    window.showTab('orders');
+  } else {
+    window.showTab('deals');
+  }
+
+  renderOrdersTable();
+  showNewDealIndicatorIfRequested();
+  loadDeals();
+
+  // ── Expose globals (for inline onclick attributes in HTML) ──
+  window.showToast              = showToast;
+  window.showShortPopup         = showShortPopup;
+  window.escapeHtml             = escapeHtml;
+  window.naira                  = naira;
+  window.loadDeals              = loadDeals;
+  window.renderDealsTable       = renderDealsTable;
+  window.filterDeals            = filterDeals;
+  window.loadOrders             = loadOrders;
+  window.renderOrdersTable      = renderOrdersTable;
+  window.requestPaymentExtension= requestPaymentExtension;
+  window.previewImage           = previewImage;
+  window.changeProfilePicture   = changeProfilePicture;
+  window.uploadNewPicture       = uploadNewPicture;
+  window.toggleSidebar          = toggleSidebar;
+  window.openDateFilter         = openDateFilter;
+  window.scrollToTop            = scrollToTop;
+  window.promptNewsletterAfterDeal = promptNewsletterAfterDeal;
+});
