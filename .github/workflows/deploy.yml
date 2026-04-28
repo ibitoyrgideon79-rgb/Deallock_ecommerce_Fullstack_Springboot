@@ -39,7 +39,15 @@ jobs:
 
             docker-compose up -d --build
 
-            sleep 20
+            # Retry health check up to 30 times (60 seconds)
+            for i in $(seq 1 30); do
+              if curl -fsS "${{ secrets.APP_HEALTHCHECK_URL }}" > /dev/null; then
+                echo "Health check passed"
+                exit 0
+              fi
+              echo "Waiting for app to be ready... ($i/30)"
+              sleep 2
+            done
 
             if ! curl -fsS "${{ secrets.APP_HEALTHCHECK_URL }}" > /dev/null; then
               echo "Health check failed. Rolling back to ${PREVIOUS_COMMIT}."
