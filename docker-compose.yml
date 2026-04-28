@@ -6,10 +6,10 @@ services:
     container_name: deallock-db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-deallock}
-      MYSQL_USER: ${MYSQL_USER:-deallock}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-deallock_pass}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-}
+      MYSQL_USER: ${MYSQL_USER:-}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
