@@ -1,25 +1,48 @@
-from sentence_transformers import SentenceTransformer
-import faiss
 import numpy as np
-from knowledge_base import documents
+import os
+from pathlib import Path
+from tempfile import mkdtemp
+from doc_chunks import documents
+from dotenv import load_dotenv
+import faiss
+from google import genai
+import tqdm
+from sklearn.preprocessing import normalize
+
+load_dotenv()
 
 
-MODEL_NAME = "all-mpnet-base-v2"
-_model = SentenceTransformer(MODEL_NAME)
+# Better model
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Prepare text
 
 
-_texts = [doc["question"] + " " + doc["answer"] for doc in documents]
-_embeddings = _model.encode(_texts)
-_embeddings = np.array(_embeddings).astype("float32")
+def build_index():
+    texts = [doc["question"] + " " + doc["answer"] for doc in documents]
+    response= client.models.embed_content(model = "models/gemini-embedding-001", contents=texts)
+    embeddings= response.embeddings
+    # embeddings = normalize(embeddings, norm = "l2")
+    dim = len(embeddings[0].values)
+    global index
+    index= faiss.IndexFlatIP(dim)
+    rows= [
+        {
+            "id": i,
+            "vector": embeddings[i].values,
+            "question": documents[i]["question"],
+            "answer": documents[i]["answer"],
+        }
+        for i in range(len(documents))  
+    ]
+    index.add(np.array([row["vector"] for row in rows], dtype=np.float32))
+    print(f"Indexed {len(rows)} documents into Faiss index.")
 
-_index = faiss.IndexFlatL2(_embeddings.shape[1])
-_index.add(_embeddings)
 
-
-def search(query: str, k: int = 3):
-    query_vector = _model.encode([query]).astype("float32")
-    distances, indices = _index.search(query_vector, k=k)
-    results = []
-    for i in indices[0]:
-        results.append(documents[i]["answer"])
-    return results
+def search(query: str, top_k: int = 3) -> list[str]:
+    data= client.models.embed_content(model = "models/gemini-embedding-001", contents=[query])
+    query_vector= data.embeddings[0].values
+    # query_vector= normalize(query_vector, norm = "l2")
+    build_index()
+    D, I = index.search(np.array([query_vector], dtype=np.float32), k=top_k)
+    return [documents[i]["answer"] for i in I[0]]
