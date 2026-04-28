@@ -37,7 +37,6 @@ jobs:
               exit 1
             fi
 
-            docker-compose down
             docker-compose up -d --build
 
             sleep 20
@@ -45,7 +44,6 @@ jobs:
             if ! curl -fsS "${{ secrets.APP_HEALTHCHECK_URL }}" > /dev/null; then
               echo "Health check failed. Rolling back to ${PREVIOUS_COMMIT}."
               git reset --hard "${PREVIOUS_COMMIT}"
-              docker-compose down
               docker-compose up -d --build
               exit 1
             fi
