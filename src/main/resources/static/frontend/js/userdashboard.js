@@ -410,10 +410,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Tab switching ──
+  // CSS controls visibility via .tab-content { display:none } / .tab-content.active { display:block }
+  // so we manage the 'active' class here, NOT 'hidden'.
   window.showTab = function(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-content').forEach(el => {
+      el.classList.remove('active');
+    });
     const tabEl = document.getElementById(tab + '-tab');
-    if (tabEl) tabEl.classList.remove('hidden');
+    if (tabEl) tabEl.classList.add('active');
 
     document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
     const activeLink = document.querySelector(`[onclick*="showTab('${tab}')"]`);
