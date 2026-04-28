@@ -57,3 +57,13 @@ server:
         http-only: true
         secure: true
         same-site: strict
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      permit-all-access: true

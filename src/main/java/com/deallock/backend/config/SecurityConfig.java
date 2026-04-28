@@ -36,6 +36,7 @@ public class SecurityConfig {
                                 "/",
                                 "/index.html",
                                 "/health",
+                                "/actuator/health",
                                 "/login",
                                 "/register",
                                 "/terms",
