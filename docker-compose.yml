@@ -30,10 +30,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-deallock}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-deallock}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-deallock_pass}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-}
       DB_USER: ${MYSQL_USER:-deallock}
-      DB_PASS: ${MYSQL_PASSWORD:-deallock_pass}
+      DB_PASS: ${MYSQL_PASSWORD:-}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       TERMII_API_KEY: ${TERMII_API_KEY:-}
