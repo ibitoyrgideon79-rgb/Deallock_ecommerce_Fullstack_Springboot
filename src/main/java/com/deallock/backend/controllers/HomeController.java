@@ -10,7 +10,7 @@ public class HomeController {
 
     @GetMapping
     public String index() {
-        // Render the Thymeleaf `index` template as the landing page.
-        return "index";
+        // Forward root to the login page to restore the original landing UI.
+        return "forward:/login";
     }
 }
