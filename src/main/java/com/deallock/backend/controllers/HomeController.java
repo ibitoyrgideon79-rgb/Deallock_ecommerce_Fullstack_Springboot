@@ -10,7 +10,7 @@ public class HomeController {
 
     @GetMapping
     public String index() {
-        // Forward root to the login page to restore the original landing UI.
-        return "forward:/login";
+        // Serve the static frontend landing page.
+        return "forward:/frontend/index.html";
     }
 }
