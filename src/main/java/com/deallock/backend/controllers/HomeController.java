@@ -10,7 +10,7 @@ public class HomeController {
 
     @GetMapping
     public String index() {
-        // Serve the static frontend landing page instead of the old template login page.
-        return "forward:/frontend/index.html";
+        // Serve the legacy Thymeleaf index template as the landing page.
+        return "index";
     }
 }
