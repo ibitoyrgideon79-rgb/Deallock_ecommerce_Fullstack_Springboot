@@ -97,7 +97,7 @@ public class SecurityConfig {
         if (StringUtils.hasText(googleClientId) || StringUtils.hasText(supabaseClientId)) {
             http = http.oauth2Login(oauth -> {
                 oauth.loginPage("/login");
-                // Configure user info endpoint services depending on which providers are configured
+                // Configure the provider-specific user info services depending on which providers are configured.
                 oauth.userInfoEndpoint(userInfo -> {
                     if (StringUtils.hasText(googleClientId)) {
                         userInfo.userService(googleOauth2UserService);
@@ -106,7 +106,6 @@ public class SecurityConfig {
                         userInfo.userService(supabaseOauth2UserService);
                     }
                 });
-
                 oauth.successHandler((request, response, authentication) -> {
                     boolean isAdmin = authentication.getAuthorities().stream()
                             .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
