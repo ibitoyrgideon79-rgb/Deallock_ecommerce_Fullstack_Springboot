@@ -31,18 +31,12 @@ spring:
     oauth2:
       client:
         registration:
-          google:
-            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID:}
-            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET:}
-            scope: openid,profile,email
           supabase:
             client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_ID}
             client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_SECRET}
             provider: supabase
             scope: openid,profile,email
         provider:
-          google:
-            issuer-uri: https://accounts.google.com
           supabase:
             issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}
             authorization-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}/auth/v1/authorize
