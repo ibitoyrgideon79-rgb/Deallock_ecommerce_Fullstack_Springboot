@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ====================== DEALS SYSTEM - ACTIVE & CLOSED ======================
+// ====.....================= DEALS SYSTEM - ACTIVE & CLOSED ======================
 const activeDealsList = document.getElementById('active-deals-list');
 const closedDealsList = document.getElementById('closed-deals-list');
 const dealsMessage = document.getElementById('deals-message');
