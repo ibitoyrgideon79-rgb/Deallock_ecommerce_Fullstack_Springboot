@@ -27,24 +27,14 @@ spring:
       max-file-size: 2MB
       # Allow a little overhead for multipart boundaries/fields so a 2MB file doesn't 413.
       max-request-size: 3MB
-  security:
-    oauth2:
-      client:
-        registration:
-          supabase:
-            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_ID}
-            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_SECRET}
-            provider: supabase
-            scope: openid,profile,email
-        provider:
-          supabase:
-            issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}
-            authorization-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}/auth/v1/authorize
-            token-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}/auth/v1/token
-            user-info-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}/auth/v1/user
-            user-name-attribute: email
-            jwk-set-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_SUPABASE_ISSUER_URI:https://your-project.supabase.co}/auth/v1/jwt
 
+security:
+  oauth2:
+    client:
+      registration:
+        supabase:
+          client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_ID}
+          client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_SECRET}
 server:
   tomcat:
     max-part-count: 200
@@ -66,12 +56,10 @@ app:
     payment-timeout: 24h
     # Additional service fee rate applied per approved payment-extension week.
     extension-weekly-service-rate: 0.02
-  supabase:
-    url: ${SUPABASE_URL:}
-    anon-key: ${SUPABASE_ANON_KEY:}
-    jwt-secret: ${SUPABASE_JWT_SECRET:}
 
 ai:
   agent:
     url: http://localhost:8000
     api-key: ${AI_AGENT_API_KEY:}
+  
+

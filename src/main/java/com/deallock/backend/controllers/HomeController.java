@@ -10,7 +10,6 @@ public class HomeController {
 
     @GetMapping
     public String index() {
-        // Serve the static frontend landing page.
-        return "forward:/frontend/index.html";
+        return "index";
     }
 }

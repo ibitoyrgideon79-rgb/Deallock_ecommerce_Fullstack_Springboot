@@ -25,7 +25,7 @@
       </a>
   
       <span class="text-gray-700 text-sm font-medium hidden sm:block">
-        Deal securin and purchase support.
+        Deal securing and purchase support.
       </span>
     </div>
 
@@ -46,7 +46,7 @@
 
       <div th:if="${currentUser != null}" class="relative group">
         <button class="flex items-center gap-x-2.5 px-4 py-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/default-avatar.png')}" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+          <img th:src="${currentUser.profileImageUrl != null && !#strings.isEmpty(currentUser.profileImageUrl) ? currentUser.profileImageUrl : (currentUser.profileImage != null ? '/profile/image' : '/frontend/images/logo.jpeg')}" class="w-8 h-8 rounded-full object-cover border border-gray-200">
           <span class="text-sm font-medium text-gray-700" th:text="${currentUser.fullName != null && !#strings.isEmpty(currentUser.fullName) ? currentUser.fullName : currentUser.email}"></span>
           <i class="fas fa-chevron-down text-xs text-gray-500"></i>
         </button>
@@ -138,12 +138,12 @@
       </button>
       
       <div class="flex justify-center gap-2 mb-2">
-        <input type="text" inputmode="numeric" maxlength="1" id="otp1" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:outline-none transition-all" onkeyup="moveToNext(this, 2)" onkeydown="handleBackspace(event, 1)">
-        <input type="text" inputmode="numeric" maxlength="1" id="otp2" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:outline-none transition-all" onkeyup="moveToNext(this, 3)" onkeydown="handleBackspace(event, 2)">
-        <input type="text" inputmode="numeric" maxlength="1" id="otp3" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:outline-none transition-all" onkeyup="moveToNext(this, 4)" onkeydown="handleBackspace(event, 3)">
-        <input type="text" inputmode="numeric" maxlength="1" id="otp4" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:outline-none transition-all" onkeyup="moveToNext(this, 5)" onkeydown="handleBackspace(event, 4)">
-        <input type="text" inputmode="numeric" maxlength="1" id="otp5" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:outline-none transition-all" onkeyup="moveToNext(this, 6)" onkeydown="handleBackspace(event, 5)">
-        <input type="text" inputmode="numeric" maxlength="1" id="otp6" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:outline-none transition-all" onkeyup="validateOTP()" onkeydown="handleBackspace(event, 6)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp1" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" onkeydown="handleBackspace(event, 1)" oninput="moveToNext(this, 2)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp2" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" onkeydown="handleBackspace(event, 2)" oninput="moveToNext(this, 3)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp3" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" onkeydown="handleBackspace(event, 3)" oninput="moveToNext(this, 4)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp4" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" onkeydown="handleBackspace(event, 4)" oninput="moveToNext(this, 5)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp5" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" onkeydown="handleBackspace(event, 5)" oninput="moveToNext(this, 6)">
+        <input type="text" inputmode="numeric" maxlength="1" id="otp6" class="otp-field w-10 h-14 text-center text-xl font-light border border-gray-200 rounded-xl shadow-sm focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" onkeydown="handleBackspace(event, 6)" oninput="validateOTP()">
       </div>
 
       <p id="otp-error" class="text-red-500 text-[10px] mb-5 hidden"></p>
@@ -168,8 +168,8 @@
       <div class="space-y-2 mb-4 text-left">
         <input id="display-user" type="text" readonly class="w-full px-3 py-2.5 border border-gray-100 rounded-xl bg-gray-50 text-gray-500 text-xs cursor-not-allowed">
         <div class="relative">
-          <input id="password-input" type="password" class="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Enter password">
-          <button type="button" onclick="togglePasswordVisibility()" id="toggle-password-btn" aria-label="Show password" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors">
+          <input id="password-input" type="password" class="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-xl focus:outline-none focus:border-black text-xs transition-all" placeholder="Enter your password">
+          <button type="button" onclick="togglePasswordVisibility()" id="toggle-password-btn" aria-label="Show password" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
             <i id="toggle-password-icon" class="fas fa-eye text-xs"></i>
           </button>
         </div>
@@ -210,7 +210,7 @@
   let encryptedLabel = "";
 
   function continueWithGoogle() {
-    window.location.href = "/oauth2/authorization/supabase";
+    window.location.href = "/oauth2/authorization/google";
   }
 
   async function postJson(url, payload) {
