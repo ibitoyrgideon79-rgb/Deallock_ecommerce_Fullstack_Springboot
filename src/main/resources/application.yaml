@@ -32,9 +32,9 @@ security:
   oauth2:
     client:
       registration:
-        supabase:
-          client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_ID}
-          client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_SECRET}
+        google:
+          client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
+          client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
 server:
   tomcat:
     max-part-count: 200

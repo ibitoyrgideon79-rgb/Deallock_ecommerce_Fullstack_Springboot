@@ -87,16 +87,12 @@ public class SecurityConfig {
                         .permitAll()
                 );
 
-        // Enable OAuth2 login only when a Google or Supabase client-id is configured in the environment/properties.
+        // Enable OAuth2 login when Google is configured in the environment/properties.
         String googleClientId = env.getProperty("spring.security.oauth2.client.registration.google.client-id");
-        String supabaseClientId = env.getProperty("spring.security.oauth2.client.registration.supabase.client-id");
-        if (StringUtils.hasText(googleClientId) || StringUtils.hasText(supabaseClientId)) {
+        if (StringUtils.hasText(googleClientId)) {
             http = http.oauth2Login(oauth -> {
                 oauth.loginPage("/login");
-                // Use the Google-specific user service only when Google is configured
-                if (StringUtils.hasText(googleClientId)) {
-                    oauth.userInfoEndpoint(userInfo -> userInfo.userService(googleOauth2UserService));
-                }
+                oauth.userInfoEndpoint(userInfo -> userInfo.userService(googleOauth2UserService));
                 oauth.successHandler((request, response, authentication) -> {
                     boolean isAdmin = authentication.getAuthorities().stream()
                             .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
