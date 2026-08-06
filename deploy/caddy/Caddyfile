@@ -1,0 +1,3 @@
+deallock.ng {
+    reverse_proxy nginx:80
+}
