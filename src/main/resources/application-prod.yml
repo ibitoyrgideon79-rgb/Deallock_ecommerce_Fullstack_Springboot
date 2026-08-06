@@ -1,0 +1,28 @@
+spring:
+  profiles: prod
+
+  security:
+    oauth2:
+      client:
+        registration:
+          supabase:
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_ID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_SUPABASE_CLIENT_SECRET}
+            scope: openid, profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+        provider:
+          supabase:
+            issuer-uri: ${SUPABASE_ISSUER_URI}
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+server:
+  servlet:
+    context-path: /
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
