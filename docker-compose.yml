@@ -48,14 +48,13 @@ services:
       AI_AGENT_URL: ${AI_AGENT_URL:-http://ai-agent:8000}
       AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
     ports:
-      - "${HOST_PORT:-8080}:8080"
+      - "8080:8080"
 
   nginx:
     image: nginx:1.25
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     depends_on:
       - app
     volumes:
