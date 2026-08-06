@@ -10,7 +10,7 @@ public class HomeController {
 
     @GetMapping
     public String index() {
-        // Serve the legacy Thymeleaf index template as the landing page.
+        // Render the Thymeleaf `index` template as the landing page.
         return "index";
     }
 }
