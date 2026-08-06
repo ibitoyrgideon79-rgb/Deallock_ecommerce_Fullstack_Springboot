@@ -19,6 +19,9 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import com.deallock.backend.repositories.UserRepository;
+import com.deallock.backend.entities.User;
+
 @Service
 public class SupabaseOauth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
