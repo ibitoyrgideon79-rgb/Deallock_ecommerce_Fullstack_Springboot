@@ -1,0 +1,630 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.deallock:backend >------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend ---
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] Copying 98 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 80 source files with javac [debug parameters release 25] to target\classes
+[INFO] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/config/CacheConfig.java: Some input files use or override a deprecated API.
+[INFO] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/config/CacheConfig.java: Recompile with -Xlint:deprecation for details.
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[29,116] repeated interface
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/config/SecurityConfig.java:[100,77] incompatible types: com.deallock.backend.services.GoogleOauth2UserService cannot be converted to org.springframework.security.oauth2.client.userinfo.OAuth2UserService<org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest,org.springframework.security.oauth2.core.oidc.user.OidcUser>
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[29,8] org.springframework.security.oauth2.client.userinfo.OAuth2UserService cannot be inherited with different arguments: <org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest,org.springframework.security.oauth2.core.user.OAuth2User> and <org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest,org.springframework.security.oauth2.core.oidc.user.OidcUser>
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[49,5] method does not override or implement a method from a supertype
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[55,56] cannot find symbol
+  symbol:   method getRole()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[64,56] cannot find symbol
+  symbol:   method getRole()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[66,37] cannot find symbol
+  symbol:   method getEmail()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[67,17] cannot find symbol
+  symbol:   method getFullName()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[67,48] cannot find symbol
+  symbol:   method getFullName()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[68,40] cannot find symbol
+  symbol:   method getFullName()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[88,28] constructor User in class com.deallock.backend.entities.User cannot be applied to given types;
+  required: java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.time.LocalDate,java.lang.String,boolean,int,java.time.Instant,java.lang.String,byte[],java.lang.String,java.lang.String,java.time.Instant
+  found:    no arguments
+  reason: actual and formal argument lists differ in length
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[89,20] cannot find symbol
+  symbol:   method setEmail(java.lang.String)
+  location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[90,20] cannot find symbol
+  symbol:   method setUsername(java.lang.String)
+  location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[91,20] cannot find symbol
+  symbol:   method setPassword(java.lang.String)
+  location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[92,20] cannot find symbol
+  symbol:   method setRole(admin ? "R[...]USER")
+  location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[93,20] cannot find symbol
+  symbol:   method setEnabled(boolean)
+  location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[94,20] cannot find symbol
+  symbol:   method setCreation(java.time.Instant)
+  location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[98,17] cannot find symbol
+  symbol:   method getCreation()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[99,17] cannot find symbol
+  symbol:   method setCreation(java.time.Instant)
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[101,17] cannot find symbol
+  symbol:   method getPassword()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[101,47] cannot find symbol
+  symbol:   method getPassword()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[102,17] cannot find symbol
+  symbol:   method setPassword(java.lang.String)
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[104,17] cannot find symbol
+  symbol:   method getUsername()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[104,47] cannot find symbol
+  symbol:   method getUsername()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[105,17] cannot find symbol
+  symbol:   method setUsername(java.lang.String)
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[107,61] cannot find symbol
+  symbol:   method getFullName()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[107,91] cannot find symbol
+  symbol:   method getFullName()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[108,17] cannot find symbol
+  symbol:   method setFullName(java.lang.String)
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[110,13] cannot find symbol
+  symbol:   method setEnabled(boolean)
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[111,13] cannot find symbol
+  symbol:   method setRole(admin ? "R[...]le()))
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[111,63] cannot find symbol
+  symbol:   method getRole()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[40,18] cannot find symbol
+  symbol:   method isUsed()
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[40,36] cannot find symbol
+  symbol:   method getExpiresAt()
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[41,52] cannot find symbol
+  symbol:   method getEmail()
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[45,55] cannot find symbol
+  symbol:   method getEmail()
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[47,52] cannot find symbol
+  symbol:   method getEmail()
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[55,14] cannot find symbol
+  symbol:   method setUsed(boolean)
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[61,48] cannot find symbol
+  symbol:   method getEmail()
+  location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[24,12] cannot find symbol
+  symbol:   method setEventType(java.lang.String)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[25,12] cannot find symbol
+  symbol:   method setEmail(java.lang.String)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[26,12] cannot find symbol
+  symbol:   method setIpAddress(java.lang.String)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[27,12] cannot find symbol
+  symbol:   method setUserAgent(request !=[...] null)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[29,16] cannot find symbol
+  symbol:   method setDetails(java.lang.String)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[31,16] cannot find symbol
+  symbol:   method setDetails(java.lang.String)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[33,12] cannot find symbol
+  symbol:   method setSuccess(boolean)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[34,12] cannot find symbol
+  symbol:   method setCreatedAt(java.time.Instant)
+  location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[78,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[79,65] cannot find symbol
+  symbol:   method getPaymentStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[82,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[83,59] cannot find symbol
+  symbol:   method getPaymentStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[86,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[87,25] invalid method reference
+  cannot find symbol
+    symbol:   method isSecured(T)
+    location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[90,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[91,25] invalid method reference
+  cannot find symbol
+    symbol:   method isSecured(T)
+    location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[96,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[97,25] invalid method reference
+  cannot find symbol
+    symbol:   method isSecured(T)
+    location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[102,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[103,31] cannot find symbol
+  symbol:   method getDeliveryInitiatedAt()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[104,31] cannot find symbol
+  symbol:   method getDeliveryConfirmedAt()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[107,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[108,31] cannot find symbol
+  symbol:   method getDeliveryInitiatedAt()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[109,25] invalid method reference
+  cannot find symbol
+    symbol:   method isDeliveryConfirmedByUser(T)
+    location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[113,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[114,31] cannot find symbol
+  symbol:   method getFeedback()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[114,59] cannot find symbol
+  symbol:   method getFeedback()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[117,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[118,31] cannot find symbol
+  symbol:   method getDeliveryConfirmedAt()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[122,31] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[122,92] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[125,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[128,59] cannot find symbol
+  symbol:   method getStatus()
+  location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[146,71] cannot find symbol
+  symbol:   method getRole()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[158,71] cannot find symbol
+  symbol:   method getRole()
+  location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[168,17] cannot find symbol
+  symbol:   method setStatus(java.lang.String)
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[174,59] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[171,37] cannot find symbol
+  symbol:   method getUser()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[177,50] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[179,50] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[180,50] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[189,17] cannot find symbol
+  symbol:   method setStatus(java.lang.String)
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[194,17] cannot find symbol
+  symbol:   method setRejectionReason(java.lang.String)
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[199,59] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[196,37] cannot find symbol
+  symbol:   method getUser()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[202,50] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[204,50] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[205,50] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[213,17] cannot find symbol
+  symbol:   method setPaymentStatus(java.lang.String)
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[218,68] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[215,37] cannot find symbol
+  symbol:   method getUser()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[221,54] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[223,54] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[224,54] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[232,17] cannot find symbol
+  symbol:   method setPaymentStatus(java.lang.String)
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[237,71] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[234,37] cannot find symbol
+  symbol:   method getUser()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[240,57] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[242,57] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[243,57] cannot find symbol
+  symbol:   method getTitle()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[259,17] cannot find symbol
+  symbol:   method getPaymentStatus()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[259,53] cannot find symbol
+  symbol:   method getPaymentStatus()
+  location: variable deal of type com.deallock.backend.entities.Deal
+[INFO] 100 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.832 s
+[INFO] Finished at: 2026-08-07T15:22:37+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project backend: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[29,116] repeated interface
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/config/SecurityConfig.java:[100,77] incompatible types: com.deallock.backend.services.GoogleOauth2UserService cannot be converted to org.springframework.security.oauth2.client.userinfo.OAuth2UserService<org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest,org.springframework.security.oauth2.core.oidc.user.OidcUser>
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[29,8] org.springframework.security.oauth2.client.userinfo.OAuth2UserService cannot be inherited with different arguments: <org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest,org.springframework.security.oauth2.core.user.OAuth2User> and <org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest,org.springframework.security.oauth2.core.oidc.user.OidcUser>
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[49,5] method does not override or implement a method from a supertype
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[55,56] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[64,56] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[66,37] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[67,17] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[67,48] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[68,40] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[88,28] constructor User in class com.deallock.backend.entities.User cannot be applied to given types;
+[ERROR]   required: java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.time.LocalDate,java.lang.String,boolean,int,java.time.Instant,java.lang.String,byte[],java.lang.String,java.lang.String,java.time.Instant
+[ERROR]   found:    no arguments
+[ERROR]   reason: actual and formal argument lists differ in length
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[89,20] cannot find symbol
+[ERROR]   symbol:   method setEmail(java.lang.String)
+[ERROR]   location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[90,20] cannot find symbol
+[ERROR]   symbol:   method setUsername(java.lang.String)
+[ERROR]   location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[91,20] cannot find symbol
+[ERROR]   symbol:   method setPassword(java.lang.String)
+[ERROR]   location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[92,20] cannot find symbol
+[ERROR]   symbol:   method setRole(admin ? "R[...]USER")
+[ERROR]   location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[93,20] cannot find symbol
+[ERROR]   symbol:   method setEnabled(boolean)
+[ERROR]   location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[94,20] cannot find symbol
+[ERROR]   symbol:   method setCreation(java.time.Instant)
+[ERROR]   location: variable created of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[98,17] cannot find symbol
+[ERROR]   symbol:   method getCreation()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[99,17] cannot find symbol
+[ERROR]   symbol:   method setCreation(java.time.Instant)
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[101,17] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[101,47] cannot find symbol
+[ERROR]   symbol:   method getPassword()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[102,17] cannot find symbol
+[ERROR]   symbol:   method setPassword(java.lang.String)
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[104,17] cannot find symbol
+[ERROR]   symbol:   method getUsername()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[104,47] cannot find symbol
+[ERROR]   symbol:   method getUsername()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[105,17] cannot find symbol
+[ERROR]   symbol:   method setUsername(java.lang.String)
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[107,61] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[107,91] cannot find symbol
+[ERROR]   symbol:   method getFullName()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[108,17] cannot find symbol
+[ERROR]   symbol:   method setFullName(java.lang.String)
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[110,13] cannot find symbol
+[ERROR]   symbol:   method setEnabled(boolean)
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[111,13] cannot find symbol
+[ERROR]   symbol:   method setRole(admin ? "R[...]le()))
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/GoogleOauth2UserService.java:[111,63] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[40,18] cannot find symbol
+[ERROR]   symbol:   method isUsed()
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[40,36] cannot find symbol
+[ERROR]   symbol:   method getExpiresAt()
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[41,52] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[45,55] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[47,52] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[55,14] cannot find symbol
+[ERROR]   symbol:   method setUsed(boolean)
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/ActivationController.java:[61,48] cannot find symbol
+[ERROR]   symbol:   method getEmail()
+[ERROR]   location: variable entry of type com.deallock.backend.entities.ActivationToken
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[24,12] cannot find symbol
+[ERROR]   symbol:   method setEventType(java.lang.String)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[25,12] cannot find symbol
+[ERROR]   symbol:   method setEmail(java.lang.String)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[26,12] cannot find symbol
+[ERROR]   symbol:   method setIpAddress(java.lang.String)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[27,12] cannot find symbol
+[ERROR]   symbol:   method setUserAgent(request !=[...] null)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[29,16] cannot find symbol
+[ERROR]   symbol:   method setDetails(java.lang.String)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[31,16] cannot find symbol
+[ERROR]   symbol:   method setDetails(java.lang.String)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[33,12] cannot find symbol
+[ERROR]   symbol:   method setSuccess(boolean)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/services/AuditLogService.java:[34,12] cannot find symbol
+[ERROR]   symbol:   method setCreatedAt(java.time.Instant)
+[ERROR]   location: variable log of type com.deallock.backend.entities.AuditLog
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[78,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[79,65] cannot find symbol
+[ERROR]   symbol:   method getPaymentStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[82,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[83,59] cannot find symbol
+[ERROR]   symbol:   method getPaymentStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[86,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[87,25] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method isSecured(T)
+[ERROR]     location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[90,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[91,25] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method isSecured(T)
+[ERROR]     location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[96,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[97,25] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method isSecured(T)
+[ERROR]     location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[102,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[103,31] cannot find symbol
+[ERROR]   symbol:   method getDeliveryInitiatedAt()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[104,31] cannot find symbol
+[ERROR]   symbol:   method getDeliveryConfirmedAt()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[107,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[108,31] cannot find symbol
+[ERROR]   symbol:   method getDeliveryInitiatedAt()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[109,25] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method isDeliveryConfirmedByUser(T)
+[ERROR]     location: class com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[113,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[114,31] cannot find symbol
+[ERROR]   symbol:   method getFeedback()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[114,59] cannot find symbol
+[ERROR]   symbol:   method getFeedback()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[117,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[118,31] cannot find symbol
+[ERROR]   symbol:   method getDeliveryConfirmedAt()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[122,31] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[122,92] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[125,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[128,59] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable d of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[146,71] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[158,71] cannot find symbol
+[ERROR]   symbol:   method getRole()
+[ERROR]   location: variable user of type com.deallock.backend.entities.User
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[168,17] cannot find symbol
+[ERROR]   symbol:   method setStatus(java.lang.String)
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[174,59] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[171,37] cannot find symbol
+[ERROR]   symbol:   method getUser()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[177,50] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[179,50] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[180,50] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[189,17] cannot find symbol
+[ERROR]   symbol:   method setStatus(java.lang.String)
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[194,17] cannot find symbol
+[ERROR]   symbol:   method setRejectionReason(java.lang.String)
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[199,59] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[196,37] cannot find symbol
+[ERROR]   symbol:   method getUser()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[202,50] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[204,50] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[205,50] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[213,17] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(java.lang.String)
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[218,68] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[215,37] cannot find symbol
+[ERROR]   symbol:   method getUser()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[221,54] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[223,54] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[224,54] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[232,17] cannot find symbol
+[ERROR]   symbol:   method setPaymentStatus(java.lang.String)
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[237,71] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[234,37] cannot find symbol
+[ERROR]   symbol:   method getUser()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[240,57] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[242,57] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[243,57] cannot find symbol
+[ERROR]   symbol:   method getTitle()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[259,17] cannot find symbol
+[ERROR]   symbol:   method getPaymentStatus()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] /C:/Users/user/Desktop/Digitalreciept/deallock_ecommerce_fullstack_springboot/src/main/java/com/deallock/backend/controllers/AdminController.java:[259,53] cannot find symbol
+[ERROR]   symbol:   method getPaymentStatus()
+[ERROR]   location: variable deal of type com.deallock.backend.entities.Deal
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
