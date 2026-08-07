@@ -36,6 +36,7 @@ security:
           client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
           client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
 server:
+  forward-headers-strategy: framework
   tomcat:
     max-part-count: 200
   port: 8080
