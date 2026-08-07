@@ -97,7 +97,7 @@ public class SecurityConfig {
                 oauth.loginPage("/login");
                 oauth.authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorization"));
                 oauth.redirectionEndpoint(endpoint -> endpoint.baseUri("/login/oauth2/code/*"));
-                oauth.userInfoEndpoint(userInfo -> userInfo.userService(googleOauth2UserService));
+                oauth.userInfoEndpoint(userInfo -> userInfo.oidcUserService(googleOauth2UserService));
                 oauth.successHandler((request, response, authentication) -> {
                     boolean isAdmin = authentication.getAuthorities().stream()
                             .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));

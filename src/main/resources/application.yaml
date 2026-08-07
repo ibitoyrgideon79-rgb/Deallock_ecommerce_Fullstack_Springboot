@@ -27,15 +27,15 @@ spring:
       max-file-size: 2MB
       # Allow a little overhead for multipart boundaries/fields so a 2MB file doesn't 413.
       max-request-size: 3MB
-
-security:
-  oauth2:
-    client:
-      registration:
-        google:
-          client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
-          client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
-          redirect-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI:https://deallock.ng/login/oauth2/code/google}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
+            redirect-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI:https://deallock.ng/login/oauth2/code/google}
+            scope: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE:openid,email,profile}
 server:
   forward-headers-strategy: framework
   tomcat:

@@ -12,17 +12,21 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuth2UserService<OidcUserRequest, OidcUser> {
 
     private static final String FALLBACK_ADMIN_EMAIL = "info@deallock.ng";
     private static final BCryptPasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
@@ -39,6 +43,34 @@ public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequ
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oauthUser = new DefaultOAuth2UserService().loadUser(userRequest);
+        return buildOAuth2User(oauthUser);
+    }
+
+    @Override
+    public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+        OidcUser oidcUser = new OidcUserService().loadUser(userRequest);
+        User user = createOrUpdateUser(oidcUser);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(user.getRole()));
+
+        return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo(), "email");
+    }
+
+    private OAuth2User buildOAuth2User(OAuth2User oauthUser) {
+        User user = createOrUpdateUser(oauthUser);
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(user.getRole()));
+        Map<String, Object> attributes = new HashMap<>(oauthUser.getAttributes());
+        attributes.put("email", user.getEmail());
+        if (user.getFullName() != null && !user.getFullName().isBlank()) {
+            attributes.put("name", user.getFullName());
+        }
+        return new DefaultOAuth2User(authorities, attributes, "email");
+    }
+
+    private User createOrUpdateUser(OAuth2User oauthUser) {
         String email = stringAttr(oauthUser, "email");
         if (email == null || email.isBlank()) {
             throw new OAuth2AuthenticationException(
@@ -79,14 +111,7 @@ public class GoogleOauth2UserService implements OAuth2UserService<OAuth2UserRequ
         user.setRole(admin ? "ROLE_ADMIN" : normalizeRole(user.getRole()));
         userRepository.save(user);
 
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(user.getRole()));
-        Map<String, Object> attributes = new HashMap<>(oauthUser.getAttributes());
-        attributes.put("email", normalizedEmail);
-        if (user.getFullName() != null && !user.getFullName().isBlank()) {
-            attributes.put("name", user.getFullName());
-        }
-        return new DefaultOAuth2User(authorities, attributes, "email");
+        return user;
     }
 
     private String normalizeRole(String role) {

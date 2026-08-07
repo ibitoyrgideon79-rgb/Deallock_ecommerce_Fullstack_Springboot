@@ -94,7 +94,8 @@
       </div>
 
       <h1 class="text-lg font-bold text-center text-gray-900 mb-0.5">Welcome back</h1>
-      <p class="text-gray-500 text-center text-[11px] mb-5">Continue to your dashboard</p>
+      <p class="text-gray-500 text-center text-[11px] mb-2">Continue to your dashboard</p>
+      <div id="oauth-error" class="text-red-500 text-xs text-center mb-4 hidden">Google sign-in failed. Please try again or contact support.</div>
 
       <button type="button" onclick="continueWithGoogle()" class="w-full py-2 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold mb-4 bg-[#4285F4] text-black hover:bg-[#357ae8] transition-colors border-0">
         <img src="https://www.gstatic.com/images/branding/googleg_gradient/svg/googleg_gradient_standard_24px.svg" alt="Google" class="h-4 w-4">
@@ -213,6 +214,13 @@
     window.location.href = "/oauth2/authorization/google";
   }
 
+  function showOAuthError(message) {
+    const errorEl = document.getElementById('oauth-error');
+    if (!errorEl) return;
+    errorEl.textContent = message || 'Google sign-in failed. Please try again.';
+    errorEl.classList.remove('hidden');
+  }
+
   async function postJson(url, payload) {
     const res = await fetch(url, {
       method: "POST",
@@ -228,6 +236,15 @@
     }
     return data;
   }
+
+  function handleLoginError() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('error') === 'true') {
+      showOAuthError('Google sign-in failed. Please try again or use another account.');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', handleLoginError);
 
   function isEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
