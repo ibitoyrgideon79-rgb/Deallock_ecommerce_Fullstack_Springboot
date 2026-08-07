@@ -28,6 +28,8 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # Ensure Java uses non-blocking entropy source to avoid SecureRandom blocking
+      JAVA_TOOL_OPTIONS: "-Djava.security.egd=file:/dev/./urandom"
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-deallock}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
