@@ -51,7 +51,7 @@ services:
       APP_ADMIN_PHONES: ${APP_ADMIN_PHONES:-}
       AI_AGENT_URL: ${AI_AGENT_URL:-http://ai-agent:8000}
       AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
-      SPRING_SERVER_FORWARD_HEADERS_STRATEGY: native
+      SPRING_SERVER_FORWARD_HEADERS_STRATEGY: framework
     ports:
       - "8080:8080"
 
