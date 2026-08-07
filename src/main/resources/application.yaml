@@ -35,6 +35,7 @@ security:
         google:
           client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
           client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
+          redirect-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI:https://deallock.ng/login/oauth2/code/google}
 server:
   forward-headers-strategy: framework
   tomcat:
@@ -63,4 +64,10 @@ ai:
     url: http://localhost:8000
     api-key: ${AI_AGENT_API_KEY:}
   
+
+management:
+  health:
+    redis:
+      enabled: false
+
 
