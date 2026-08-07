@@ -3,8 +3,11 @@ package com.deallock.backend.services;
 import com.deallock.backend.entities.User;
 import com.deallock.backend.repositories.UserRepository;
 import java.security.Principal;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +23,13 @@ public class CurrentUserService {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             return Optional.empty();
         }
+        if (principal instanceof OAuth2AuthenticationToken oauth2Token) {
+            OAuth2User oauth2User = oauth2Token.getPrincipal();
+            String email = normalizeEmail((String) oauth2User.getAttributes().get("email"));
+            if (email != null && !email.isBlank()) {
+                return userRepository.findByEmail(email);
+            }
+        }
         return resolveIdentifier(principal.getName());
     }
 
@@ -27,11 +37,23 @@ public class CurrentUserService {
         if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
             return Optional.empty();
         }
+        if (authentication instanceof OAuth2AuthenticationToken oauth2Token) {
+            OAuth2User oauth2User = oauth2Token.getPrincipal();
+            String email = normalizeEmail((String) oauth2User.getAttributes().get("email"));
+            if (email != null && !email.isBlank()) {
+                return userRepository.findByEmail(email);
+            }
+        }
         String name = authentication.getName();
         if ("anonymousUser".equalsIgnoreCase(name)) {
             return Optional.empty();
         }
         return resolveIdentifier(name);
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null) return null;
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 
     public Optional<User> resolveIdentifier(String identifier) {
