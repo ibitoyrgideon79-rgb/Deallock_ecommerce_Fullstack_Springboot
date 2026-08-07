@@ -52,8 +52,7 @@ services:
       AI_AGENT_URL: ${AI_AGENT_URL:-http://ai-agent:8000}
       AI_AGENT_API_KEY: ${AI_AGENT_API_KEY:-}
       SPRING_SERVER_FORWARD_HEADERS_STRATEGY: framework
-    ports:
-      - "8080:8080"
+    # Keep the app internal-only; all public traffic should terminate at Caddy and pass through nginx.
 
   nginx:
     image: nginx:1.25

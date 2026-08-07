@@ -90,9 +90,12 @@ public class SecurityConfig {
                         .permitAll()
                 );
 
-        // Enable OAuth2 login when Google is configured in the environment/properties.
+        // Enable OAuth2 login only when both Google client credentials are present.
+        // This prevents the app from starting an OAuth flow with incomplete Google config,
+        // which otherwise results in noisy callback failures and redirects to /login?error=true.
         String googleClientId = env.getProperty("spring.security.oauth2.client.registration.google.client-id");
-        if (StringUtils.hasText(googleClientId)) {
+        String googleClientSecret = env.getProperty("spring.security.oauth2.client.registration.google.client-secret");
+        if (StringUtils.hasText(googleClientId) && StringUtils.hasText(googleClientSecret)) {
             http = http.oauth2Login(oauth -> {
                 oauth.loginPage("/login");
                 oauth.authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorization"));

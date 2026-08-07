@@ -36,14 +36,20 @@ public class GoogleOauth2UserService extends OidcUserService {
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
-        User user = createOrUpdateUser(oidcUser);
-
-        var authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
-        return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo(), "email");
+        try {
+            User user = createOrUpdateUser(oidcUser);
+            var authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
+            return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo(), "email");
+        } catch (RuntimeException ex) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("user_registration_failed", "Unable to create or update the local user from Google account data.", null),
+                    ex
+            );
+        }
     }
 
     private User createOrUpdateUser(OidcUser oidcUser) {
-        String email = stringAttr(oidcUser, "email");
+        String email = resolveEmail(oidcUser);
         if (email == null || email.isBlank()) {
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("invalid_user_info"),
@@ -51,7 +57,7 @@ public class GoogleOauth2UserService extends OidcUserService {
             );
         }
         String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
-        String fullName = stringAttr(oidcUser, "name");
+        String fullName = resolveFullName(oidcUser);
         boolean admin = isAdminEmail(normalizedEmail);
 
         User user = userRepository.findByEmail(normalizedEmail).orElseGet(() -> {
@@ -74,6 +80,9 @@ public class GoogleOauth2UserService extends OidcUserService {
         if (user.getUsername() == null || user.getUsername().isBlank()) {
             user.setUsername(generateUniqueUsername(normalizedEmail));
         }
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            user.setEmail(normalizedEmail);
+        }
         if (fullName != null && !fullName.isBlank() && (user.getFullName() == null || user.getFullName().isBlank())) {
             user.setFullName(fullName.trim());
         }
@@ -82,6 +91,55 @@ public class GoogleOauth2UserService extends OidcUserService {
         userRepository.save(user);
 
         return user;
+    }
+
+    private String resolveEmail(OidcUser oidcUser) {
+        String email = firstNonBlank(
+                stringAttr(oidcUser, "email"),
+                stringAttr(oidcUser, "preferred_username"),
+                stringAttr(oidcUser, "upn")
+        );
+        if (email != null && !email.isBlank()) {
+            return email;
+        }
+        if (oidcUser.getIdToken() != null) {
+            String idTokenEmail = oidcUser.getIdToken().getEmail();
+            if (idTokenEmail != null && !idTokenEmail.isBlank()) {
+                return idTokenEmail;
+            }
+        }
+        return null;
+    }
+
+    private String resolveFullName(OidcUser oidcUser) {
+        String given = stringAttr(oidcUser, "given_name");
+        String family = stringAttr(oidcUser, "family_name");
+        String name = stringAttr(oidcUser, "name");
+        if (name != null && !name.isBlank()) {
+            return name.trim();
+        }
+        if (given != null || family != null) {
+            return (given == null ? "" : given.trim()).trim() + " " + (family == null ? "" : family.trim()).trim();
+        }
+        if (oidcUser.getIdToken() != null) {
+            String idTokenName = oidcUser.getIdToken().getFullName();
+            if (idTokenName != null && !idTokenName.isBlank()) {
+                return idTokenName.trim();
+            }
+        }
+        return null;
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private String normalizeRole(String role) {
