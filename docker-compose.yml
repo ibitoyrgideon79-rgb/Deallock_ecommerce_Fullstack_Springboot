@@ -31,10 +31,10 @@ services:
       # Ensure Java uses non-blocking entropy source to avoid SecureRandom blocking
       JAVA_TOOL_OPTIONS: "-Djava.security.egd=file:/dev/./urandom"
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-deallock}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-      DB_USER: ${MYSQL_USER:-deallock}
-      DB_PASS: ${MYSQL_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-deallock}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS:-deallock_pass}
+      DB_USER: ${DB_USER:-deallock}
+      DB_PASS: ${DB_PASS:-deallock_pass}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
