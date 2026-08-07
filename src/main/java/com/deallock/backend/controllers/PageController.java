@@ -45,7 +45,10 @@ public class PageController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(Principal principal) {
+        if (principal != null && currentUserService.resolve(principal).isPresent()) {
+            return "redirect:/dashboard";
+        }
         return "login";
     }
 
