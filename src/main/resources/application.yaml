@@ -15,6 +15,22 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:deallock}
     password: ${SPRING_DATASOURCE_PASSWORD:deallock_pass}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
   jpa:
     show-sql: true
     hibernate:

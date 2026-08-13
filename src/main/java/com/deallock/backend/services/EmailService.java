@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    @Value("${SMTP_FROM:no-reply@deallock.ng}")
+    @Value("${SMTP_FROM:noreply@deallock.ng}")
     private String smtpFromEmail;
 
     @Value("${SMTP_FROM_NAME:DealLock}")
@@ -60,7 +60,12 @@ public class EmailService {
     }
 
     public void sendOtp(String email, String otp) {
-        send(email, "DealLock OTP", "Your OTP is: " + otp);
+        String body = "Hello,\n\n"
+                + "Your DealLock login code is: " + otp + "\n\n"
+                + "This code expires in 5 minutes. Do not share it with anyone.\n"
+                + "If you did not request this code, you can safely ignore this email.\n\n"
+                + "Team DealLock";
+        send(email, "Your DealLock login code", body);
     }
 
     public void sendActivationLink(String email, String link) {
